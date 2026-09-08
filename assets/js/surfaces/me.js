@@ -25,8 +25,6 @@
       const recent = x => D.daysBetween(x.date, D.today()) < 14;
       const rode = c.urges.filter(u => recent(u) && u.rode).length;
       const used = c.uses.filter(recent).length;
-      const clearHabit = s.habits.find(h => h.name === 'Clear day');
-      const markedToday = !!(clearHabit && clearHabit.log && clearHabit.log[D.today()]);
 
       return `
         <div class="lbl" style="margin-top:8px">Trajectory<span class="r">${verdict(v)}</span></div>
@@ -60,13 +58,13 @@
 
         <div class="lbl">Clear<span class="r">${clear === null ? 'not started' : 'best ' + (s.clarity.best || 0) + 'd'}</span></div>
         <div class="clearbar">
-          ${clear === null
-            ? `<button class="fullbtn hot" data-dayone>Today is day one</button>`
-            : `<button class="fullbtn ${markedToday ? '' : 'hot'}" data-markclear>${
-                markedToday ? 'Today already marked clear' : 'Mark today clear'}</button>`}
+          ${clear === null ? `<button class="fullbtn hot" data-dayone>Today is day one</button>` : ''}
           <button class="fullbtn" data-urge>An urge just hit</button>
           <button class="fullbtn warn" data-used>I smoked — reset the count</button>
         </div>
+        <p class="note">${clear === null
+          ? 'Start the count and it runs on its own. You never mark a day.'
+          : 'This counts itself. You only touch it when something happens.'}</p>
         ${clear !== null || rode || used ? `<p class="note">${rode} urge${rode === 1 ? '' : 's'} ridden out in the
           last fortnight${used ? ', ' + used + ' used' : ''}. A use resets the count and nothing else.</p>` : ''}
 
@@ -174,16 +172,6 @@
       };
       const dayone = root.querySelector('[data-dayone]');
       if (dayone) dayone.onclick = () => { store.markClear(); ui.toast('Day one. The number exists now.'); redraw(); };
-      const mc = root.querySelector('[data-markclear]');
-      if (mc) mc.onclick = () => {
-        const h = store.state.habits.find(x => x.name === 'Clear day');
-        if (h && !(h.log && h.log[D.today()])) {
-          store.toggleHabit(h.id);
-          store.win('clarity', 'Marked today clear', 1, 'clear_mark');
-          ui.toast('Clear day logged');
-        }
-        redraw();
-      };
       const ub = root.querySelector('[data-urge]');
       if (ub) ub.onclick = () => LO.machine.quick('urge');
       const usedb = root.querySelector('[data-used]');

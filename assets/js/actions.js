@@ -160,16 +160,6 @@ window.LO = window.LO || {};
         tab: 'clear'
       });
     }
-    const clearHabit = habit('Clear day');
-    if (clearHabit && !doneToday(clearHabit) && slot() === 'evening') {
-      push({
-        id: 'clear_mark', kind: 'close the day', when: 'evening', weight: 6, minutes: 1,
-        label: 'Mark today clear',
-        sub: 'If it was, take it. If it was not, log that instead — the count restarts, the system does not.',
-        tab: 'clear'
-      });
-    }
-
     /* --- state and record --- */
     const checked = s.mind.logs.some(r => r.date === today);
     if (!checked) {
