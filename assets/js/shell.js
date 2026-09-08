@@ -34,7 +34,8 @@ window.LO = window.LO || {};
       });
 
       setTimeout(() => document.getElementById('veil').classList.add('gone'), 380);
-      if (fresh) LO.ui.toast('Set up from what you told me');
+      if (fresh) LO.ui.toast('Started. Restore a backup from the gear if you have one.', 4000);
+      LO.sync.maybe('on open');
     },
 
     paintTop() {
@@ -144,6 +145,8 @@ window.LO = window.LO || {};
       const el = document.getElementById('sheet2');
       const s = LO.store.state;
       const info = await LO.store.storageInfo();
+      const sy = LO.sync.status();
+      const cur = LO.sync.cfg();
       const size = n => n == null ? '—' : n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB';
       const back = LO.store.daysSinceBackup();
 
@@ -170,8 +173,35 @@ window.LO = window.LO || {};
           <button class="fullbtn" data-s="import">Restore from a file</button>
           <input type="file" accept="application/json" data-file hidden>
         </div>
-        <p class="note" style="margin-top:14px">A backup in a cloud folder is what makes this survive a lost
-          phone. Keep one and the rest takes care of itself.</p>
+        <p class="note" style="margin-top:14px">A copy that is not on this device is what makes this survive a
+          lost phone. Set the one below up and it happens on its own.</p>
+
+        <div class="lbl">Automatic backup${sy.configured ? '<span class="r">' +
+          (sy.last ? (sy.ago === 0 ? 'backed up just now' : 'backed up ' + sy.ago + 'h ago')
+                   : 'never run') + '</span>' : ''}</div>
+        <p class="note" style="margin:0 0 12px">Commits your whole record to a
+          <b>private</b> GitHub repo. Every backup is a restore point you can roll back to.</p>
+        ${sy.lastErr ? `<p class="note" style="color:var(--bad);margin:0 0 12px">Last attempt failed: ${LO.ui.esc(sy.lastErr)}</p>` : ''}
+        <div class="row">
+          <label class="fld" style="flex:1 1 120px"><span>Owner</span>
+            <input data-sowner value="${LO.ui.esc(sy.owner)}" placeholder="your-github-name" autocapitalize="off"></label>
+          <label class="fld" style="flex:1 1 120px"><span>Private repo</span>
+            <input data-srepo value="${LO.ui.esc(sy.repo)}" placeholder="life-organizer-data" autocapitalize="off"></label>
+        </div>
+        <label class="fld"><span>File</span>
+          <input data-spath value="${LO.ui.esc(sy.path || 'backup.json')}" autocapitalize="off"></label>
+        <label class="fld"><span>Fine-grained token${cur.token ? ' — saved on this device' : ''}</span>
+          <input data-stoken type="password" placeholder="${cur.token ? '•••••••• leave blank to keep' : 'github_pat_…'}" autocapitalize="off" autocomplete="off"></label>
+        <div class="bars">
+          <button class="fullbtn hot" data-s="synctest">Check and save</button>
+          <button class="fullbtn" data-s="syncnow"${sy.configured ? '' : ' disabled style="opacity:.45"'}>Back up now</button>
+          <button class="fullbtn" data-s="syncrestore"${sy.configured ? '' : ' disabled style="opacity:.45"'}>Restore from GitHub</button>
+          ${sy.configured ? `<button class="fullbtn" data-s="syncoff">${sy.on ? 'Turn automatic backup off' : 'Turn automatic backup on'}</button>` : ''}
+        </div>
+        <p class="note" style="margin-top:12px">Making the token: GitHub → Settings → Developer settings →
+          <b>Fine-grained tokens</b> → only the backup repo → <b>Repository permissions → Contents:
+          Read and write</b>. Nothing else. It is stored on this device only and is stripped out of every
+          export, so it can never end up inside the backup it just made.</p>
 
         <div class="lbl">Elsewhere<span class="ln"></span></div>
         <div class="bars">
@@ -211,6 +241,45 @@ window.LO = window.LO || {};
           } catch (e) { LO.ui.toast('Clipboard blocked. Use download instead.'); }
         },
         import: () => file.click(),
+
+        synctest: async () => {
+          const c = LO.sync.cfg();
+          const over = {
+            owner: box.querySelector('[data-sowner]').value.trim(),
+            repo: box.querySelector('[data-srepo]').value.trim(),
+            path: (box.querySelector('[data-spath]').value.trim() || 'backup.json'),
+            token: box.querySelector('[data-stoken]').value.trim() || c.token
+          };
+          if (!over.owner || !over.repo || !over.token) return LO.ui.toast('Owner, repo and token');
+          LO.ui.toast('Checking…');
+          const res = await LO.sync.test(over);
+          if (!res.ok) { LO.ui.toast(res.error, 5000); LO.store.save(); return this.sheet(); }
+          Object.assign(c, over, { on: true, lastErr: '' });
+          LO.store.save();
+          LO.ui.toast('Connected to ' + res.repo);
+          const first = await LO.sync.push('first backup');
+          LO.ui.toast(first.ok ? 'Backed up' : first.error, 4000);
+          this.sheet();
+        },
+        syncnow: async () => {
+          LO.ui.toast('Backing up…');
+          const r = await LO.sync.push('manual');
+          LO.ui.toast(r.ok ? 'Backed up to GitHub' : r.error, 4500);
+          this.sheet();
+        },
+        syncrestore: async () => {
+          if (!confirm('Replace everything on this device with the copy in GitHub?')) return;
+          const r = await LO.sync.restore();
+          if (!r.ok) return LO.ui.toast(r.error, 5000);
+          LO.ui.toast('Restored'); setTimeout(() => location.reload(), 600);
+        },
+        syncoff: () => {
+          const c = LO.sync.cfg();
+          c.on = !c.on;
+          LO.store.save();
+          LO.ui.toast(c.on ? 'Automatic backup on' : 'Automatic backup off');
+          this.sheet();
+        },
         lattice: () => { location.href = 'archive/lattice.html'; },
         wipe: () => {
           if (!confirm('Delete everything on this device? Download a backup first if you want it back.')) return;

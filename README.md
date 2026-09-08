@@ -93,16 +93,21 @@ An empty system should not congratulate you.
 
 ## Will it still be here in ten years?
 
-Yes, and capacity is not the hard part — a decade of dense logging is about
-**11 MB** against the **2.5 GB** this browser already offers. Durability is the
-real question: clearing site data or losing the device is what kills a record,
-not running out of room. The store now uses IndexedDB with persistent storage
-requested, the `chronicle` is append-only so no future version can rewrite your
-history, and Settings → Memory shows the backend, the quota and days since your
-last backup — the Character page nags you when that number gets old.
+Capacity was never the question — a decade of dense logging is about **11 MB**
+against gigabytes of quota. Losing the device was.
 
-Full analysis, the risks, and the four options for automatic off-device backup:
-[docs/MEMORY.md](docs/MEMORY.md).
+That is now handled: the app commits your whole record to a **private GitHub
+repo** on open and after writes, at most once every six hours. One file rewritten
+each time, so git's history is your version history and every backup is a restore
+point. Set it up in **⚙ → Automatic backup** — it refuses public repos, verifies
+the token can write before saving, and takes the first backup on the spot.
+
+The token stays on the device and is stripped from every export, so it can never
+end up inside the backup it just made.
+
+Storage underneath is IndexedDB with persistent storage requested, and the
+`chronicle` is append-only so no future version can rewrite your history. Full
+analysis: [docs/MEMORY.md](docs/MEMORY.md) · setup: [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## How the Alignment Index works
 

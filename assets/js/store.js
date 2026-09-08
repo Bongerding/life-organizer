@@ -232,6 +232,7 @@ window.LO = window.LO || {};
         this._flush = setTimeout(() => { this._flush = null; this.flush(); }, 120);
       }
       this.listeners.forEach(fn => { try { fn(this.state); } catch (_) {} });
+      if (LO.sync) LO.sync.maybe();
     },
 
     flush() {
@@ -637,12 +638,22 @@ window.LO = window.LO || {};
     },
 
     /* ---------- portability ---------- */
+    /** the whole record as JSON, with the sync token stripped — a backup
+        must never carry the credential that wrote it */
     export() {
-      return JSON.stringify(this.state, null, 2);
+      const copy = JSON.parse(JSON.stringify(this.state));
+      if (copy.settings && copy.settings.sync) copy.settings.sync.token = '';
+      return JSON.stringify(copy, null, 2);
     },
     import(json) {
       const parsed = JSON.parse(json);
+      const token = this.state.settings && this.state.settings.sync
+        ? this.state.settings.sync.token : '';
       this.state = graft(blank(), parsed);
+      if (token) {
+        this.state.settings.sync = this.state.settings.sync || {};
+        this.state.settings.sync.token = token;
+      }
       this.save();
     },
     wipe() { localStorage.removeItem(KEY); this.state = blank(); this.save(); }

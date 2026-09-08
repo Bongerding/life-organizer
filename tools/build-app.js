@@ -24,6 +24,7 @@ const js = [
   'assets/js/classify.js',
   'assets/js/insight.js',
   'assets/js/advice.js',
+  'assets/js/sync.js',
   'assets/js/shell.js',
   'assets/js/surfaces/do.js',
   'assets/js/surfaces/write.js',

@@ -10,7 +10,7 @@
    IndexedDB, not in this cache. Clearing the cache costs you
    nothing but a reload.
    ============================================================ */
-const CACHE = 'life-organizer-202609081446';
+const CACHE = 'life-organizer-202609081457';
 
 const SHELL = [
   './',
@@ -25,6 +25,7 @@ const SHELL = [
   './assets/js/classify.js',
   './assets/js/insight.js',
   './assets/js/advice.js',
+  './assets/js/sync.js',
   './assets/js/shell.js',
   './assets/js/surfaces/do.js',
   './assets/js/surfaces/write.js',

@@ -104,10 +104,44 @@ build, and the writes you made offline are already in the record.
 | LAN `http://<pc-ip>:5273` | instant | not offered — install needs HTTPS | dev only |
 | Single file copied over | copy it again by hand | no | last resort |
 
-## 6. Backup, once the repo exists
+## 6. Automatic backup
 
-With the repo already there, the durable-backup answer is the same repo: the app
-commits your exported JSON on a schedule through the GitHub API, using a
-fine-grained token you paste in once. Every save becomes a restore point with
-full history, so "I lost six months" stops being possible and the worst case is
-"restore yesterday". That is the next thing to build.
+Built, and it is the thing that makes six months of writing safe.
+
+The app commits your whole record to **one file in a private repo**, over and
+over. Because it is the same path every time, git's history *is* your version
+history — every backup is a restore point you can read, diff or roll back to.
+
+### Turning it on, once
+
+1. GitHub → **Settings → Developer settings → Personal access tokens →
+   Fine-grained tokens → Generate new token**
+2. **Repository access:** Only select repositories → `life-organizer-data`
+3. **Permissions:** Repository permissions → **Contents: Read and write**.
+   Nothing else. No other repo, no other scope.
+4. Generate it, copy it.
+5. In the app: **⚙ → Automatic backup** → owner, repo, `backup.json`, paste the
+   token → **Check and save**.
+
+It refuses to accept a public repo, checks the token can actually write before
+saving, and takes the first backup immediately so you know it works.
+
+### After that
+
+- Backs up on open, and after writes, at most once every six hours.
+- **Back up now** forces one.
+- **Restore from GitHub** pulls the committed copy back down — that is also how
+  you move to a new phone.
+- Offline it simply does not run; nothing queues up wrong and nothing is lost.
+
+### Why the token is safe here
+
+- It lives in IndexedDB on this device only.
+- `store.export()` strips it, so it cannot end up inside the backup it just made,
+  and it is not in any file you download or paste.
+- Importing a backup never overwrites the token this device is using.
+- It is scoped to one private repo with one permission. If it ever leaked, the
+  worst anyone gets is that repo.
+
+If the token expires, backups fail loudly — the settings panel shows the error
+and the Character page nags once the last backup gets old. Nothing fails silently.
