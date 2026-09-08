@@ -401,6 +401,39 @@ window.LO = window.LO || {};
       this.patch('mind.load', id, { status: 'closed', closedOn: D.today() });
     },
 
+    /* ---------- the day's list ----------
+       What he wrote on the Do tab, plus anything captured on Write.
+       Closed items stay until midnight so the day reads as 4 of 5,
+       and so the line struck through them is visible for a while. */
+    capture(title, effort) {
+      const e = Math.max(1, Math.min(3, +effort || 2));
+      const entry = this.add('scribe.entries', {
+        date: D.today(), kind: 'task', prompt: '', text: title, tags: []
+      });
+      const rec = {
+        id: this.id('task'), title, kind: 'task', weight: e, effort: e,
+        status: 'open', created: D.today(), ts: Date.now(), from: entry.id
+      };
+      this.state.mind.load.unshift(rec);
+      this.save();
+      return rec;
+    },
+    /** oldest first, so a finished list reads top to bottom */
+    dayList() {
+      const t = D.today();
+      return this.state.mind.load
+        .filter(l => (l.status !== 'closed' && (!l.defer || l.defer <= t)) || l.closedOn === t)
+        .slice().reverse();
+    },
+    /** the bonus for clearing everything you set — paid once a day */
+    dayCleared() {
+      return this.state.wins.some(w => w.date === D.today() && w.ref === 'day');
+    },
+    awardDay(n) {
+      if (this.dayCleared()) return 0;
+      return this.win('day', 'Cleared the whole list', 0, 'day', LO.level.dayBonus(n));
+    },
+
     /** call after a successful export so the system can nag about backups */
     markBackup() {
       this.state.meta.lastBackup = D.today();
@@ -575,17 +608,20 @@ window.LO = window.LO || {};
     },
 
     /* ---------- wins (the first-step ledger) ---------- */
-    win(kind, label, minutes, ref) {
+    win(kind, label, minutes, ref, points) {
+      const pts = typeof points === 'number' ? points : 15;
       this.state.wins.unshift({
-        id: this.id('win'), date: D.today(), kind, label, minutes: minutes || 0, ref: ref || ''
+        id: this.id('win'), date: D.today(), kind, label,
+        minutes: minutes || 0, ref: ref || '', points: pts
       });
       // any first step also strikes the meta-habit, if it exists
       const meta = this.state.habits.find(h => h.name === 'One first step');
       if (meta && !(meta.log && meta.log[D.today()])) {
         meta.log = meta.log || {}; meta.log[D.today()] = 1;
       }
-      this.log('step', label, { kind, minutes: minutes || 0, ref: ref || '' });
+      this.log('step', label, { kind, minutes: minutes || 0, ref: ref || '', points: pts });
       this.save();
+      return pts;
     },
     winsOn(date) { return this.state.wins.filter(w => w.date === (date || D.today())); },
     winStreak() {

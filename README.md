@@ -134,6 +134,7 @@ index.html                   the desk: four tabs
 assets/css/core.css          design system
 assets/css/desk.css          desktop layer
 assets/js/store.js           state, IndexedDB persistence, chronicle, derived scores
+assets/js/level.js           effort tiers, points, the level on the crest
 assets/js/insight.js         what it says, what it can prove, what it asks
 assets/js/actions.js         the first-step dealer, shared by both apps
 assets/js/library.js         drill bank, prompts, taxonomies

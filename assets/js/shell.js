@@ -44,6 +44,7 @@ window.LO = window.LO || {};
       document.querySelectorAll('[data-go]').forEach(b => {
         b.onclick = () => { location.hash = b.dataset.go; };
       });
+      document.getElementById('crest').onclick = () => { location.hash = 'me'; };
       document.getElementById('gear').onclick = () => this.sheet();
       document.getElementById('sheet2').onclick = e => {
         if (e.target.id === 'sheet2') this.closeSheet();
@@ -54,7 +55,7 @@ window.LO = window.LO || {};
     /** one plain line: what today looks like */
     paintStatus() {
       const s = LO.store.state, st = LO.store;
-      const done = st.winsOn().length;
+      const done = st.winsOn().filter(w => w.kind !== 'day').length;
       const clear = st.daysClear();
       const bits = [done ? done + ' done today' : 'nothing done yet'];
       if (clear !== null) bits.push(clear + ' days clear');
@@ -62,6 +63,27 @@ window.LO = window.LO || {};
       if (open) bits.push(open + ' open');
       const el = document.getElementById('status');
       if (el) el.textContent = bits.join('  ·  ');
+      this.paintCrest();
+    },
+
+    /** the level crest, top left, on every screen */
+    paintCrest() {
+      const el = document.getElementById('crest');
+      if (!el || !LO.level) return;
+      const st = LO.level.stats();
+      el.querySelector('b').textContent = st.level;
+      el.querySelector('.xpbar i').style.width = st.pct + '%';
+      el.title = 'Level ' + st.level + ' · ' + st.into + ' / ' + st.need + ' points';
+    },
+
+    /** a level just went up — say so where the number lives */
+    crestPulse() {
+      const el = document.getElementById('crest');
+      if (!el) return;
+      el.classList.remove('up');
+      void el.offsetWidth;
+      el.classList.add('up');
+      setTimeout(() => el.classList.remove('up'), 1600);
     },
 
     route() {

@@ -219,18 +219,106 @@ window.LO = window.LO || {};
     { id: 'ten_years', q: 'Ten years out, what do you want to be able to say about this stretch?', when: () => true },
     { id: 'week_worth', q: 'What would make this week worth remembering?', when: () => true, repeat: 7 },
     { id: 'drains', q: 'What drains you that you could actually remove?', when: () => true },
-    { id: 'proud', q: 'What have you done that you have never given yourself credit for?', when: () => true }
+    { id: 'proud', q: 'What have you done that you have never given yourself credit for?', when: () => true },
+    { id: 'morning', q: 'What does the first hour of a good morning look like?', when: () => true },
+    { id: 'first_step', q: 'When you do get started, what usually got you started?', when: () => true },
+    { id: 'stuck_shape', q: 'When you get stuck, what does it actually feel like from the inside?', when: () => true },
+    { id: 'no_more', q: 'What would you say no to if saying no cost you nothing?', when: () => true, repeat: 60 },
+    { id: 'money', q: 'What does money need to do for you — the real number, not the dream one?', when: () => true },
+    { id: 'body_want', q: 'What do you want from your body in a year?', when: () => true, repeat: 90 },
+    { id: 'free_day', q: 'A whole free day, nobody needs anything from you. What do you actually do?', when: () => true },
+    { id: 'at_best', q: 'Describe yourself at your best. What were you doing at the time?', when: () => true },
+    { id: 'home_state', q: 'What does the place you live need to feel like for you to think straight?', when: () => true },
+    { id: 'lie', q: 'What is the story you tell about yourself that is not quite true any more?', when: () => true, repeat: 90 },
+    { id: 'week_shape', q: 'What would a genuinely good week look like, laid out day by day?', when: () => true, repeat: 45 },
+    { id: 'learn_next', q: 'What do you want to be good at that you are not good at yet?', when: () => true }
   ];
 
   function questions(s) {
     const answered = s.identity.facts || [];
-    return BANK.filter(q => {
+    const asked = id => answered.filter(f => f.qid === id);
+    const pending = BANK.filter(q => {
       if (!q.when(s)) return false;
-      const hits = answered.filter(f => f.id === q.id);
+      const hits = asked(q.id);
       if (!hits.length) return true;
       if (!q.repeat) return false;
       return !within(hits[0].date, q.repeat);
     });
+    if (pending.length) return pending;
+    // the queue never runs dry: when everything is answered it comes back
+    // round to whatever you told it longest ago, and asks that again.
+    return BANK.filter(q => q.when(s)).slice().sort((a, b) => {
+      const A = asked(a.id)[0], B = asked(b.id)[0];
+      return (A ? A.date : '') < (B ? B.date : '') ? -1 : 1;
+    });
+  }
+
+  /* ------------------------------------------------------------
+     PORTRAIT — the paragraph at the top of Me. Assembled out of
+     what you have told it and what it has measured, never guessed,
+     and it grows a sentence at a time as the questions get answered.
+     ------------------------------------------------------------ */
+  function portrait(s) {
+    const st = LO.store, out = [];
+    const fact = id => {
+      const f = (s.identity.facts || []).find(x => x.qid === id);
+      return f ? f.a : null;
+    };
+    const name = s.meta.name || fact('name');
+
+    if (s.identity.northStar) {
+      out.push('What this is all for: ' + trim(s.identity.northStar));
+    }
+    const stance = s.identity.statements[0];
+    if (stance) out.push(trim(stance.text));
+
+    const good = fact('good_day');
+    if (good) out.push('A good day, in your words: ' + trim(good));
+
+    const hours = fact('best_hours');
+    if (hours) out.push('Best work: ' + trim(hours.toLowerCase()));
+
+    const proven = truths(s);
+    if (proven.length) out.push(proven[0].claim + ' ' + proven[0].evidence);
+
+    const habits = s.habits.slice().sort((a, b) => st.adherence(b, 28) - st.adherence(a, 28));
+    if (habits.length) {
+      const h = habits[0];
+      out.push('Strongest habit is ' + h.name.toLowerCase() + ', ' + st.adherence(h, 28) + '% over four weeks.');
+    }
+
+    const series = st.indexSeries(21).filter(p => p.v !== null);
+    if (series.length >= 6) {
+      const first = series[0].v, last = series[series.length - 1].v;
+      const dir = last - first;
+      out.push('Trajectory over three weeks: ' +
+        (dir > 4 ? 'rising, ' + first + ' to ' + last + '.'
+         : dir < -4 ? 'falling, ' + first + ' to ' + last + '.'
+         : 'flat around ' + last + '.'));
+    }
+
+    const days = st.daysClear();
+    if (days !== null) out.push(days + ' days clear, best run ' + (s.clarity.best || days) + '.');
+
+    const avoiding = fact('avoiding');
+    if (avoiding) out.push('Last thing you admitted to avoiding: ' + trim(avoiding.toLowerCase()));
+
+    const ten = fact('ten_years');
+    if (ten) out.push('Ten years out: ' + trim(ten));
+
+    const learn = fact('learn_next');
+    if (learn) out.push('Wants to be good at: ' + trim(learn.toLowerCase()));
+
+    if (out.length < 3) {
+      out.push('I do not know much about you yet. The question at the bottom of this page is how that changes.');
+    }
+    return { name: name || '', lines: out };
+  }
+
+  function trim(t) {
+    const one = String(t).replace(/\s+/g, ' ').trim();
+    const cut = one.length > 150 ? one.slice(0, 150).replace(/\s+\S*$/, '') + '…' : one;
+    return /[.!?…]$/.test(cut) ? cut : cut + '.';
   }
 
   /* one current-state line, used in both the shell and the character header */
@@ -247,5 +335,5 @@ window.LO = window.LO || {};
     return bits.join(' · ');
   }
 
-  LO.insight = { messages, truths, questions, snapshot, BANK };
+  LO.insight = { messages, truths, questions, portrait, snapshot, BANK };
 })(window.LO);

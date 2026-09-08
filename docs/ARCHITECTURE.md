@@ -9,6 +9,7 @@ without changing anything.
 index.html                 the whole app: bar + four tabs, phone and desktop
 assets/css/core.css        the entire design system (tokens → components)
 assets/js/store.js         single source of truth + persistence + derived scores
+assets/js/level.js         effort → points → level, derived from the wins ledger
 assets/js/library.js       reference data: drill bank, prompts, taxonomies
 assets/js/ui.js            render primitives: cards, meters, rings, sparks, fields
 assets/css/app.css         the one layout layer, mobile-first, centred

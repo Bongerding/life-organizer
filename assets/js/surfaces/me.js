@@ -30,9 +30,22 @@
       const q = qs.length ? qs[qAt % qs.length] : null;
       const name = s.meta.name || 'you';
 
+      const lvl = LO.level.stats();
+      const port = insight.portrait(s);
+
       return `
+        <!-- 0 · WHO -->
+        <div class="profile">
+          <div class="bigcrest"><b>${lvl.level}</b></div>
+          <h1 class="pname">${ui.esc(cap(name))}</h1>
+          <div class="plvl">Level ${lvl.level}  ·  ${lvl.into} / ${lvl.need}</div>
+          <div class="meter" style="max-width:220px;margin:10px auto 0"><i style="width:${lvl.pct}%"></i></div>
+          <div class="plvl" style="margin-top:8px">${lvl.total} points earned  ·  ${verdict(v)}</div>
+        </div>
+        <div class="portrait">${port.lines.map(l => `<p>${ui.esc(l)}</p>`).join('')}</div>
+
         <!-- 1 · TRAJECTORY -->
-        <div class="lbl" style="margin-top:8px">Trajectory<span class="r">${verdict(v)}</span></div>
+        <div class="lbl" style="margin-top:30px">Trajectory<span class="r">${verdict(v)}</span></div>
         <div class="stats">
           <div class="stat2"><b>${v.index}</b><span>Alignment</span></div>
           <div class="stat2"><b>${clear === null ? '—' : clear}</b><span>Days clear</span></div>
@@ -71,19 +84,9 @@
             <span class="t">${ui.esc(f.a)}<em>${ui.esc(f.q)}</em></span>
             <button class="x" data-delfact="${f.id}">×</button>
           </div>`).join('')}</div>` : ''}
-        ${q ? `
-          <div class="ask" style="margin-top:14px">
-            <h3>${ui.esc(q.q)}</h3>
-            <textarea data-answer rows="3" placeholder="As long or short as you like."></textarea>
-            <div class="acts">
-              <button class="go" data-saveq="${q.id}">Answer</button>
-              <button class="flat" data-nextq>Another</button>
-            </div>
-          </div>` : ''}
 
         <!-- 4 · YOU -->
         <div class="lbl">You<span class="ln"></span></div>
-        <h1 class="hd" style="margin-bottom:12px">${ui.esc(cap(name))}</h1>
         <div class="ns" contenteditable="true" data-ns spellcheck="false">${
           ui.esc(s.identity.northStar || 'Write what all of this is for.')}</div>
         <div class="rows" style="margin-top:16px">
@@ -117,7 +120,21 @@
           <button class="flat" data-addperson>Add</button>
         </div>
 
-        <!-- 6 · MISSION -->
+        <!-- 6 · THE QUESTION -->
+        <div class="lbl">One question at a time<span class="r">${(s.identity.facts || []).length} answered</span></div>
+        ${q ? `
+          <div class="ask">
+            <h3>${ui.esc(q.q)}</h3>
+            <textarea data-answer rows="3" placeholder="As long or short as you like."></textarea>
+            <div class="acts">
+              <button class="go" data-saveq="${q.id}">Answer</button>
+              <button class="flat" data-nextq>A different one</button>
+            </div>
+            <p class="note" style="margin-top:12px">Everything you answer here becomes part of the
+              portrait at the top of this page. There is always another question.</p>
+          </div>` : ''}
+
+        <!-- 7 · MISSION -->
         <div class="lbl">The mission<span class="ln"></span></div>
         <div class="mission">
           <p>Build the life you described, not the one you drift into.</p>
@@ -162,6 +179,8 @@
         if (q.id === 'name') store.state.meta.name = a.split(/[\s,]/)[0];
         store.log('insight', a, { q: q.q });
         store.save();
+        // the answered question leaves the queue, so the cursor already
+        // points at a new one — advancing it again would skip a question
         ui.toast('Kept');
         redraw();
       };

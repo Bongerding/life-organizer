@@ -55,9 +55,39 @@ body{overflow:hidden;font-size:15.5px}
   padding:calc(env(safe-area-inset-top) + 12px) 18px 11px;
   border-bottom:1px solid var(--line);background:rgba(16,17,20,.92);backdrop-filter:blur(14px);
 }
-#top .mark{
-  width:19px;height:22px;clip-path:var(--hex);flex:0 0 auto;background:var(--accent);
+/* the crest: who you are and how far in, on every screen */
+#crest{
+  flex:0 0 auto;display:flex;align-items:center;gap:9px;
+  background:none;border:0;padding:2px 4px 2px 0;cursor:pointer;font:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+#crest .hex{
+  width:26px;height:29px;clip-path:var(--hex);flex:0 0 auto;display:grid;place-items:center;
+  background:linear-gradient(160deg,#f4835c,var(--accent) 55%,#b8431f);
   box-shadow:0 0 16px rgba(226,96,58,.38);
+  transition:transform 220ms cubic-bezier(.2,.8,.3,1),box-shadow 220ms ease;
+}
+#crest .hex b{
+  font-family:var(--mono);font-size:12px;font-weight:800;color:#170603;
+  line-height:1;font-variant-numeric:tabular-nums;
+}
+#crest .xpbar{
+  width:36px;height:3px;border-radius:2px;background:var(--void-4);overflow:hidden;flex:0 0 auto;
+}
+#crest .xpbar i{
+  display:block;height:100%;width:0;border-radius:2px;background:var(--gold);
+  transition:width 520ms cubic-bezier(.2,.8,.3,1);
+}
+#crest:active .hex{transform:scale(.9)}
+#crest.up .hex{
+  animation:levelup 1.5s cubic-bezier(.2,.8,.3,1);
+  background:linear-gradient(160deg,var(--gold-hi),var(--gold) 55%,var(--gold-lo));
+}
+#crest.up .hex b{color:var(--gold-ink)}
+@keyframes levelup{
+  0%{transform:scale(1)}
+  22%{transform:scale(1.45);box-shadow:0 0 26px 2px var(--gold)}
+  100%{transform:scale(1);box-shadow:0 0 16px rgba(226,96,58,.38)}
 }
 #status{
   flex:1;min-width:0;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
@@ -533,7 +563,7 @@ input,textarea,select{font-size:16px}
 .now{background:linear-gradient(180deg,var(--void-3),var(--void-2))}
 
 /* marks are hexagons */
-#top .mark,.tab::before,.reward .seal{clip-path:var(--hex)}
+#crest .hex,.tab::before,.reward .seal,.bigcrest{clip-path:var(--hex)}
 
 /* circles for the things that register a state */
 .tick{border-radius:50%}
@@ -669,3 +699,120 @@ input,textarea,select{font-size:16px}
 }
 .aim .meter{height:5px}
 .aim-m{margin-top:7px;font-size:11.5px;color:var(--ink-3);font-family:var(--mono)}
+
+
+/* ============================================================
+   THE DAY'S LIST
+   Under the big target: one line to say what can be done today,
+   and everything you said, in the order you said it. The only
+   gesture is a tap on the words.
+   ============================================================ */
+.capture{
+  display:flex;align-items:center;gap:8px;margin:26px auto 0;max-width:340px;
+  border:1px solid var(--line-2);border-radius:var(--r-pill);
+  background:var(--void-1);padding:4px 4px 4px 6px;
+  transition:border-color var(--t-fast) ease,box-shadow var(--t-fast) ease;
+}
+.capture:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.capture input{
+  flex:1;min-width:0;border:0;background:none;color:var(--ink-0);font:inherit;
+  font-size:15px;padding:11px 8px 11px 12px;text-align:left;
+}
+.capture input:focus{outline:none}
+/* the prompt is meant to be read, not ignored */
+.capture input::placeholder{
+  color:var(--accent);opacity:.92;font-weight:600;letter-spacing:.01em;
+}
+.capture-go{
+  flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:0;cursor:pointer;
+  font:inherit;font-size:20px;line-height:1;color:#170603;
+  background:radial-gradient(circle at 50% 30%,#f4835c,var(--accent) 60%,#b8431f);
+  transition:transform var(--t-fast) cubic-bezier(.2,.8,.3,1);
+}
+.capture-go:active{transform:scale(.88)}
+
+.todo{display:flex;flex-direction:column;text-align:left}
+.td{
+  display:flex;align-items:center;gap:10px;padding:4px 2px;
+  border-bottom:1px solid var(--line);
+}
+.td:last-child{border-bottom:0}
+.td-hit{
+  flex:1;min-width:0;background:none;border:0;font:inherit;cursor:pointer;
+  text-align:left;padding:12px 0;color:var(--ink-0);
+  -webkit-tap-highlight-color:transparent;
+}
+/* the line: it draws across the words — a background rather than a
+   pseudo-element, so it crosses every line of a task that wraps */
+.td-t{
+  display:inline;font-size:15px;line-height:1.55;
+  background-image:linear-gradient(var(--gold),var(--gold));
+  background-repeat:no-repeat;background-position:0 58%;background-size:0% 1.5px;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone;
+  transition:background-size 420ms cubic-bezier(.3,.8,.3,1),color 320ms ease;
+}
+.td.done .td-t{color:var(--ink-3);background-size:100% 1.5px}
+.td-p{
+  flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:var(--r-pill);
+  color:var(--ink-3);font-family:var(--mono);font-size:11px;padding:4px 9px;cursor:pointer;
+  font-variant-numeric:tabular-nums;transition:all var(--t-fast) ease;
+}
+.td-p:hover{border-color:var(--line-2);color:var(--ink-1)}
+.td.done .td-p{border-color:transparent;color:var(--gold)}
+.td-box{
+  flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line-2);
+  background:none;cursor:pointer;position:relative;
+  transition:all 260ms cubic-bezier(.2,.8,.3,1);
+}
+.td-box:hover{border-color:var(--accent)}
+.td.done .td-box{
+  background:var(--gold);border-color:var(--gold);transform:scale(1);
+  animation:tickpop 380ms cubic-bezier(.2,.8,.3,1);
+}
+.td.done .td-box::after{
+  content:"";position:absolute;left:8px;top:11px;width:9px;height:5px;
+  border-left:2px solid var(--gold-ink);border-bottom:2px solid var(--gold-ink);
+  transform:rotate(-45deg);
+}
+@keyframes tickpop{0%{transform:scale(.7)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
+.td-x{
+  flex:0 0 auto;border:0;background:none;color:var(--ink-3);cursor:pointer;font-size:17px;
+  padding:4px 5px;border-radius:5px;opacity:.4;transition:all var(--t-fast) ease;
+}
+.td:hover .td-x{opacity:1}
+.td-x:hover{color:var(--f-oxblood)}
+.note.cleared{
+  margin-top:14px;color:var(--gold);text-align:center;
+}
+
+/* ============================================================
+   THE PROFILE — the top of Me, and the only place the level is
+   spelled out in full.
+   ============================================================ */
+.profile{text-align:center;padding:6px 0 4px}
+.bigcrest{
+  width:64px;height:73px;margin:0 auto 14px;display:grid;place-items:center;
+  background:linear-gradient(160deg,#f4835c,var(--accent) 55%,#b8431f);
+  box-shadow:0 14px 34px -16px rgba(226,96,58,.9);
+}
+.bigcrest b{
+  font-family:var(--mono);font-size:27px;font-weight:800;color:#170603;
+  line-height:1;font-variant-numeric:tabular-nums;
+}
+.pname{
+  font-family:var(--font);margin:0;font-size:26px;line-height:1.2;
+  color:var(--ink-0);font-weight:650;letter-spacing:-.015em;
+}
+.plvl{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--ink-3);
+  margin-top:7px;font-variant-numeric:tabular-nums;
+}
+.portrait{
+  margin:20px auto 0;max-width:52ch;text-align:left;
+  border-left:2px solid var(--line-2);padding-left:15px;
+}
+.portrait p{
+  margin:0 0 9px;font-size:14px;line-height:1.65;color:var(--ink-1);
+}
+.portrait p:first-child{color:var(--ink-0);font-size:15px}
+.portrait p:last-child{margin-bottom:0}

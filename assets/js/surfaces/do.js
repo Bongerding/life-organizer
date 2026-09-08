@@ -21,7 +21,7 @@
       if (won) return rewardView(s);
 
       if (!action) action = LO.actions.pick(s);
-      const tasks = store.tasks();
+      const list = store.dayList();
       const t = D.today();
       const q = LO.quotes.today();
       const struck = s.habits.filter(h => h.log && h.log[t]).length;
@@ -51,15 +51,17 @@
           <button class="urge" data-urge><b>I want to smoke</b><span>ride it out</span></button>
         </div>
 
-        ${tasks.length ? `
-          <div class="lbl">Tasks<span class="r">${tasks.length}</span></div>
-          <div class="rows">${tasks.slice(0, 6).map(l => `
-            <div class="row-l">
-              <button class="tick" data-close="${l.id}" title="Mark done"></button>
-              <span class="t">${ui.esc(l.title)}</span>
-              <button class="x" data-drop="${l.id}">×</button>
-            </div>`).join('')}</div>
-          ${tasks.length > 6 ? `<p class="note" style="margin-top:10px">${tasks.length - 6} more on Write.</p>` : ''}
+        <form class="capture" data-capture>
+          <input data-newtask type="text" autocomplete="off" enterkeyhint="done"
+                 maxlength="140" placeholder="What can be done today?">
+          <button type="submit" class="capture-go" aria-label="Add it">+</button>
+        </form>
+
+        ${list.length ? `
+          <div class="lbl">Today<span class="r">${todayLine(list)}</span></div>
+          <div class="todo">${list.map(taskRow).join('')}</div>
+          ${list.every(l => l.status === 'closed') && list.length > 1
+            ? `<p class="note cleared">Everything you set for today is done.</p>` : ''}
         ` : ''}
 
         ${s.habits.length ? `
@@ -102,14 +104,32 @@
       const did = root.querySelector('[data-did]');
       if (did) did.onclick = () => { bank(action, redraw); };
 
-      root.querySelectorAll('[data-close]').forEach(b => {
-        b.onclick = () => {
-          b.classList.add('on');
-          const task = store.tasks().find(x => x.id === b.dataset.close);
-          store.closeTask(b.dataset.close);
-          store.win('task', task ? task.title : 'A task', 0, 'task_' + b.dataset.close);
-          ui.toast('Done');
-          setTimeout(redraw, 260);
+      const cap = root.querySelector('[data-capture]');
+      if (cap) {
+        const box = cap.querySelector('[data-newtask]');
+        cap.onsubmit = e => {
+          e.preventDefault();
+          const title = box.value.trim();
+          if (!title) return box.focus();
+          store.capture(title, LO.level.estimate(title));
+          box.value = '';
+          redraw();
+          const fresh = document.querySelector('.pane[data-pane="do"] [data-newtask]');
+          if (fresh) fresh.focus();
+        };
+      }
+
+      root.querySelectorAll('[data-hit]').forEach(b => {
+        b.onclick = () => strike(b.dataset.hit, b, redraw);
+      });
+      root.querySelectorAll('[data-eff]').forEach(b => {
+        b.onclick = e => {
+          e.stopPropagation();
+          const l = store.state.mind.load.find(x => x.id === b.dataset.eff);
+          if (!l || l.status === 'closed') return;
+          const next = ((+l.effort || 2) % 3) + 1;
+          store.patch('mind.load', l.id, { effort: next, weight: next });
+          redraw();
         };
       });
       root.querySelectorAll('[data-drop]').forEach(b => {
@@ -121,10 +141,63 @@
     }
   });
 
+  /* ---------------- the day's list ---------------- */
+  function taskRow(l) {
+    const done = l.status === 'closed';
+    const eff = +l.effort || +l.weight || 2;
+    const pts = LO.level.tier(eff).points;
+    return `<div class="td${done ? ' done' : ''}" data-row="${l.id}">
+      <button class="td-hit" data-hit="${l.id}"${done ? ' disabled' : ''}>
+        <span class="td-t">${ui.esc(l.title)}</span>
+      </button>
+      <button class="td-p" data-eff="${l.id}" title="${LO.level.tier(eff).name} — tap to change">+${pts}</button>
+      <button class="td-box" data-hit="${l.id}" aria-label="Mark done"${done ? ' disabled' : ''}></button>
+      ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
+    </div>`;
+  }
+
+  function todayLine(list) {
+    const done = list.filter(l => l.status === 'closed').length;
+    const pts = LO.level.earnedOn();
+    return done + '/' + list.length + (pts ? '  ·  ' + pts + ' pts' : '');
+  }
+
+  /** strike it through first, bank it after — the line is the reward */
+  function strike(id, el, redraw) {
+    const row = el.closest('.td');
+    if (!row || row.classList.contains('done')) return;
+    row.classList.add('done');
+    row.querySelectorAll('button').forEach(b => { b.disabled = true; });
+
+    const l = store.state.mind.load.find(x => x.id === id);
+    const eff = l ? (+l.effort || +l.weight || 2) : 2;
+    const before = LO.level.stats().level;
+
+    setTimeout(() => {
+      store.closeTask(id);
+      store.win('task', l ? l.title : 'A task', 0, 'task_' + id, LO.level.tier(eff).points);
+
+      const list = store.dayList();
+      let bonus = 0;
+      if (list.length > 1 && list.every(x => x.status === 'closed')) bonus = store.awardDay(list.length);
+
+      const after = LO.level.stats().level;
+      if (after > before) {
+        LO.machine.crestPulse();
+        ui.toast('Level ' + after, 3200);
+      } else if (bonus) {
+        ui.toast('List cleared  ·  +' + bonus, 3000);
+      } else {
+        ui.toast('+' + LO.level.tier(eff).points);
+      }
+      redraw();
+    }, 430);
+  }
+
   /* ---------------- reward ---------------- */
   function rewardView(s) {
     const streak = store.winStreak();
-    const done = store.winsOn().length;
+    const done = store.winsOn().filter(w => w.kind !== 'day').length;
     return `
       <div class="reward">
         <div class="seal">✓</div>
@@ -146,7 +219,8 @@
 
   function bank(a, redraw) {
     if (a.done) a.done();
-    store.win(a.winKind || 'step', a.label, a.minutes || 0, a.id);
+    store.win(a.winKind || 'step', a.label, a.minutes || 0, a.id,
+      Math.min(60, 10 + (a.minutes || 0) * 2));
     won = {
       praise: PRAISE[Math.floor(Math.random() * PRAISE.length)],
       label: a.label,
