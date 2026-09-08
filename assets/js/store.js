@@ -446,9 +446,19 @@ window.LO = window.LO || {};
 
       // AIM — average live goal progress
       const live = s.goals.filter(g => g.status !== 'done' && g.status !== 'parked');
-      const aim = live.length
-        ? Math.round(live.reduce((a, g) => a + (Number(g.progress) || 0), 0) / live.length)
-        : null;
+      // A goal measured *by* the alignment index cannot also feed it — that is a
+      // loop, and it would be double counting even if it terminated.
+      let aim = null;
+      if (live.length) {
+        const feeds = !LO.aims ? live : live.filter(g => {
+          const t = g.track || LO.aims.detect(g.title, g.domain);
+          return t.kind !== 'index' && t.kind !== 'pillar';
+        });
+        if (feeds.length) {
+          aim = Math.round(feeds.reduce((a, g) =>
+            a + (LO.aims ? LO.aims.progress(g, s).pct : (Number(g.progress) || 0)), 0) / feeds.length);
+        }
+      }
 
       // BODY — sleep / steps / training vs targets over 7 days
       const t = s.vessel.targets, vl = s.vessel.logs.filter(r => D.daysBetween(r.date, D.today()) < 7);

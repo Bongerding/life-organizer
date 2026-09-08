@@ -23,6 +23,7 @@ const js = [
   'assets/js/quotes.js',
   'assets/js/actions.js',
   'assets/js/classify.js',
+  'assets/js/aims.js',
   'assets/js/insight.js',
   'assets/js/advice.js',
   'assets/js/sync.js',
