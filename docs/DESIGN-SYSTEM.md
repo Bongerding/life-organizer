@@ -1,65 +1,91 @@
-# Deep Canopy — Design System v0.5
+# Ember & Graphite — Design System v1.0
 
-The look and the voice of Life Organizer. One palette, one accent, one way of
-speaking. Everything in the product draws from this file.
+**Chosen 2026-09-08 and settled.** Direction 02 of four, with a hexagon/circle
+shape blend and occasional saturated flavour. This is the brand; extend it
+rather than re-deciding it.
 
-Live visual reference: **[reference.html](reference.html)**.
-
----
-
-## 1. What changed in v0.4, and why
-
-v0.1–v0.3 grew three visual languages: a hex lattice, an editorial desktop and a
-phone app, each shifting its accent per tab. That was incoherent, so:
-
-- **One accent for the whole product.** The interface accent no longer changes
-  between tabs. Only gold moves, and only for reward.
-- **One palette, forest.** Deep Canopy replaced the teal/azure/violet spread:
-  forest-floor darks, sage light, antique gold.
-- **Centred composition on the desktop.** The whole desk reads down the middle.
-- **Plainer words.** See §6. Aphorisms now live only in Advice, where advice is
-  the point.
-- **Fewer boxes.** Hairlines and space instead of a border round everything.
+Live visual reference: **[reference.html](reference.html)** ·
+the four directions that were on the table: **[../brands.html](../brands.html)**
 
 ---
+
+## 1. The idea
+
+A machine shop, not a wellness app. Cold graphite, one hot ember accent, bone
+type, hard-edged surfaces. It should read as a tool for starting things —
+riding, building, shipping — rather than something that wants to soothe you.
+
+Three rules hold everything together:
+
+1. **One accent, fixed.** Ember never changes between tabs. Only one thing on
+   screen is filled with it at a time.
+2. **Reward is champagne brass and nothing else.** Cooled deliberately clear of
+   the ember so the two never read as the same signal.
+3. **Flavour is occasional.** Dark green and a small saturated set appear as a
+   section tint, a category, or a status — never as chrome.
 
 ## 2. Colour
 
-### Ground — forest floor at night
+### Ground — graphite
 | Token | Value | Use |
 |---|---|---|
-| `--void-0` | `#080d0a` | page ground |
-| `--void-1` | `#0b120e` | recessed surfaces, inputs |
-| `--void-2` | `#101a13` | panels |
-| `--void-3` | `#16241b` | raised panel, top of a gradient |
-| `--void-4` | `#1f3226` | bars, unfilled tracks |
-| `--line` | `rgba(186,216,190,.085)` | default hairline |
-| `--line-2` | `rgba(186,216,190,.17)` | emphasis hairline |
+| `--void-0` | `#0c0c0e` | page ground |
+| `--void-1` | `#101114` | recessed surfaces, inputs |
+| `--void-2` | `#141518` | panels |
+| `--void-3` | `#1a1c20` | raised panel |
+| `--void-4` | `#25272c` | bars, unfilled tracks |
+| `--line` | `rgba(255,255,255,.10)` | hairline |
+| `--line-2` | `rgba(255,255,255,.19)` | emphasis hairline |
 
-### Ink — light through leaves
-`--ink-0 #e9f1e7` primary · `--ink-1 #c4d3c1` body · `--ink-2 #93a693` secondary ·
-`--ink-3 #6b7d6d` labels.
+### Ink — bone
+`--ink-0 #f2efe9` · `--ink-1 #cbc8c2` · `--ink-2 #94959a` · `--ink-3 #6b6c72`
 
-### Accent — sage
-`--accent #8fbf8a`, `--accent-soft rgba(143,191,138,.14)`. Fixed. Every control,
-meter, ring, focus ring and section label reads from it.
+### Accent — ember
+`--accent #e2603a`, `--accent-soft rgba(226,96,58,.14)`. Every control, active
+tab, focus ring and section marker reads from it.
 
-### Reward — antique gold
-`--gold #e0b552` · `--gold-hi #f6e2a6` · `--gold-lo #9d7420` · `--gold-ink #241a05`.
+### Reward — champagne brass
+`--gold #eac878` · `--gold-hi #f9e8bd` · `--gold-lo #a8802c` · `--gold-ink #241a05`
 
-> **Gold is reward and nothing else.** It appears on Ignition's "One more"
-> button, and on the desktop reward panel and its seal. If gold shows up on
-> chrome it stops meaning anything, and the reward stops landing.
+> Brass appears on exactly two things: the "One more" button and the reward
+> panel's seal. It is paler and yellower than the ember on purpose — if the two
+> ever start reading as the same colour, cool the brass further, do not warm it.
 
-### Semantic
-`--ok #7fbf87` · `--warn #d9b25e` · `--bad #c9806c` (earthy, not pink). Used as
-text colour, sparingly.
+### Flavour — used sparingly
+`--forest #14251c` and `--forest-2 #1e3b2c` are the dark green surfaces: the
+mission block's tint and the gradient under the section rules. The saturated set
+is `--f-green #35b37e`, `--f-teal #2fa89b`, `--f-mustard #d9a441`,
+`--f-oxblood #b3452f`, `--f-violet #9b7bd4`, `--f-blue #4f9dd9`,
+`--f-steel #7d8ba0`.
 
-### The forest family
-Kept for the archived lattice and Ignition's four tabs, all inside one family so
-nothing reads as a different product: `--c-core #8fbf8a`, `--c-compass #a9c9b0`,
-`--c-rhythm #7ea88f`, `--c-forge #c9a35c`, `--c-rewire #c98b7a`,
-`--c-vessel #6fae7a`, `--c-mind #7fb3a3`, `--c-scribe #b8c98a`.
+Where they are allowed to show:
+
+| Place | Colour |
+|---|---|
+| Write category pills | task ember · chore mustard · activity green · plan teal · feeling oxblood · thought steel |
+| The mission block | forest tint, green rule |
+| Days clear, clear-day buttons | green |
+| "I'm spinning" / "I want to smoke" | teal / oxblood |
+| Overdue people | oxblood |
+| Domain accents (archived lattice) | the same set |
+
+Semantic: `--ok #35b37e` · `--warn #d9a441` · `--bad #c9573c`.
+
+---
+
+## 3. Shape — the blend
+
+The identity is that the three shape families each mean something:
+
+| Family | Radius | What it is for |
+|---|---|---|
+| **Rectangles** | `--r-lg 5px` / `--r-md 4px` / `--r-sm 3px` | surfaces: panels, cards, sheets, entries |
+| **Circles and pills** | `--r-pill 999px`, `border-radius:50%` | anything you touch: buttons, pills, ticks, the gear |
+| **Hexagons** | `--hex` clip-path | anything standing for you or your progress: the app mark, tab glyphs, the reward seal |
+
+So the surfaces are machined, the controls are round, and the marks are
+hexagonal. Keep that mapping — it is what makes the blend read as deliberate
+rather than mixed.
 
 ---
 
@@ -67,7 +93,8 @@ nothing reads as a different product: `--c-core #8fbf8a`, `--c-compass #a9c9b0`,
 
 **A phone app, centred, at every size.** `#app` is `max-width: var(--app-w)`
 (480px) centred with hairline sides on a wide window; `.col` is
-`text-align: center`. Headings, ledes, action panels, advice and controls are
+`text-align: center`. The tab bar is fixed to the bottom of the screen and lives
+outside `#app`. Headings, ledes, action panels, advice and controls are
 centred. Long-form reading is the exception and stays left-aligned inside the
 centred block: protocol steps, stream entries, list rows, the settings sheet.
 Centred paragraphs longer than two lines are hard to read; centred single
@@ -79,13 +106,9 @@ accidental.
 
 | Token | Value |
 |---|---|
-| `--r-lg` | 14px (panels) |
-| `--r-md` | 11px (buttons, inputs) |
-| `--r-sm` | 8px (small controls) |
 | Column | 480px (`--app-w`) |
 
-Hexagons now appear only on the app mark, the reward seal and Ignition's tab
-glyphs. In v0.1 they were on every bullet, and that was part of the noise.
+See §3 for what each shape family means.
 
 ---
 
@@ -157,15 +180,16 @@ The phrasing rules matter as much as the colour.
 
 ## 7. Components
 
-`assets/css/app.css`, loaded after `core.css`. Mobile-first: one phone-width
-column at every window size, with the tab bar fixed to the bottom of the screen.
+`assets/css/app.css`, loaded after `core.css`.
 
 | Component | Class | Notes |
 |---|---|---|
 | Top bar | `#top` | mark, live status line, `⚙` |
 | Tab bar | `#tabs` | fixed to the bottom, four hex glyphs; lives outside `#app` because a `backdrop-filter` ancestor would capture it |
 | Tab | `.tab` / `.tab.on` | hex glyph fills sage and lifts when active |
-| Panel | `.panel` / `.panel.lift` | the single card treatment |
+| Panel | `.panel` | the single card treatment, 5px corners |
+| Quote | `.quote` | the one line at the top of Do, ember rule under it |
+| Mission | `.mission` | forest-tinted block, green rule |
 | Action | `.now` | centred: kind, heading, sub, minutes, buttons |
 | Primary / ghost | `.go` / `.flat` | sage fill; hairline ghost |
 | Reward | `.reward`, `.seal`, `.gold` | the only gold on the desk |

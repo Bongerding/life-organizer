@@ -6,48 +6,62 @@
    ============================================================ */
 
 /* ---------- 1. TOKENS ---------- */
-/* Palette: "Deep Canopy" — forest floor darks, sage light, antique gold
-   for reward only. Every surface in the product draws from these. */
+/* Palette: "Ember & Graphite".
+   Cold graphite ground, one hot ember accent, bone type. Champagne
+   brass is reserved for reward and nothing else. Dark green and a
+   small set of saturated flavours appear occasionally — a section
+   tint, a category, a status — never as chrome. */
 :root{
-  /* ground — forest floor at night */
-  --void-0:#080d0a;
-  --void-1:#0b120e;
-  --void-2:#101a13;
-  --void-3:#16241b;
-  --void-4:#1f3226;
-  --line:  rgba(186,216,190,.085);
-  --line-2:rgba(186,216,190,.17);
+  /* ground — graphite */
+  --void-0:#0c0c0e;
+  --void-1:#101114;
+  --void-2:#141518;
+  --void-3:#1a1c20;
+  --void-4:#25272c;
+  --line:  rgba(255,255,255,.10);
+  --line-2:rgba(255,255,255,.19);
 
-  /* ink — light coming through leaves */
-  --ink-0:#e9f1e7;
-  --ink-1:#c4d3c1;
-  --ink-2:#93a693;
-  --ink-3:#6b7d6d;
+  /* ink — bone */
+  --ink-0:#f2efe9;
+  --ink-1:#cbc8c2;
+  --ink-2:#94959a;
+  --ink-3:#6b6c72;
 
-  /* the forest family — used by the archived lattice and Ignition's tabs */
-  --c-core:#8fbf8a;
-  --c-compass:#a9c9b0;
-  --c-rhythm:#7ea88f;
-  --c-forge:#c9a35c;
-  --c-rewire:#c98b7a;
-  --c-vessel:#6fae7a;
-  --c-mind:#7fb3a3;
-  --c-scribe:#b8c98a;
+  /* the accent. Fixed, everywhere. */
+  --accent:#e2603a;
+  --accent-soft:rgba(226,96,58,.14);
 
-  /* semantic */
-  --ok:#7fbf87;
-  --warn:#d9b25e;
-  --bad:#c9806c;
-
-  /* reward — antique gold, reserved for the control that offers you more */
-  --gold:#e0b552;
-  --gold-hi:#f6e2a6;
-  --gold-lo:#9d7420;
+  /* reward — champagne brass, cooled well clear of the ember */
+  --gold:#eac878;
+  --gold-hi:#f9e8bd;
+  --gold-lo:#a8802c;
   --gold-ink:#241a05;
 
-  /* the live accent */
-  --accent:#8fbf8a;
-  --accent-soft:rgba(143,191,138,.14);
+  /* flavour — sparingly: a tinted surface, a category, a status */
+  --forest:#14251c;
+  --forest-2:#1e3b2c;
+  --f-green:#35b37e;
+  --f-teal:#2fa89b;
+  --f-mustard:#d9a441;
+  --f-oxblood:#b3452f;
+  --f-violet:#9b7bd4;
+  --f-blue:#4f9dd9;
+  --f-steel:#7d8ba0;
+
+  /* per-domain, drawn from the flavour set */
+  --c-core:#e2603a;
+  --c-compass:#2fa89b;
+  --c-rhythm:#9b7bd4;
+  --c-forge:#d9a441;
+  --c-rewire:#b3452f;
+  --c-vessel:#35b37e;
+  --c-mind:#4f9dd9;
+  --c-scribe:#c9a227;
+
+  /* semantic */
+  --ok:#35b37e;
+  --warn:#d9a441;
+  --bad:#c9573c;
 
   /* type */
   --font: "Inter", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -60,11 +74,12 @@
   --t-med:  280ms;
   --t-slow: 620ms;
 
-  /* geometry */
+  /* geometry — hard panels, round controls, hexagonal marks */
   --hex: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  --r-lg:20px;
-  --r-md:14px;
-  --r-sm:9px;
+  --r-lg:5px;
+  --r-md:4px;
+  --r-sm:3px;
+  --r-pill:999px;
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -85,14 +100,13 @@ body{
 body::before{
   content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(110% 80% at 50% -15%, rgba(143,191,138,.11), transparent 62%),
-    radial-gradient(70% 60% at 10% 106%, rgba(224,181,82,.06), transparent 60%),
-    radial-gradient(70% 60% at 92% 96%, rgba(127,179,163,.07), transparent 60%),
-    linear-gradient(180deg,var(--void-1),var(--void-0) 68%);
+    radial-gradient(100% 70% at 50% -12%, rgba(226,96,58,.10), transparent 62%),
+    radial-gradient(80% 60% at 50% 108%, rgba(31,59,44,.55), transparent 64%),
+    linear-gradient(180deg,var(--void-1),var(--void-0) 66%);
 }
 body::after{
   content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.32;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='96' viewBox='0 0 56 96'%3E%3Cg fill='none' stroke='%237fa585' stroke-opacity='0.22' stroke-width='1'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z'/%3E%3Cpath d='M28 48 L56 64 L56 96 L28 112 L0 96 L0 64 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='96' viewBox='0 0 56 96'%3E%3Cg fill='none' stroke='%23b08070' stroke-opacity='0.22' stroke-width='1'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z'/%3E%3Cpath d='M28 48 L56 64 L56 96 L28 112 L0 96 L0 64 Z'/%3E%3C/g%3E%3C/svg%3E");
   background-size:56px 96px;
   -webkit-mask-image:radial-gradient(115% 95% at 50% 42%, #000 20%, transparent 78%);
   mask-image:radial-gradient(115% 95% at 50% 42%, #000 20%, transparent 78%);
@@ -111,7 +125,7 @@ body::after{
 .brand-mark{
   width:26px;height:30px;clip-path:var(--hex);flex:0 0 auto;
   background:linear-gradient(150deg,var(--c-core),var(--c-compass) 55%,var(--c-rhythm));
-  box-shadow:0 0 22px rgba(143,191,138,.4);
+  box-shadow:0 0 22px rgba(226,96,58,.4);
   animation:markspin 12s linear infinite;
 }
 @keyframes markspin{to{filter:hue-rotate(360deg)}}
