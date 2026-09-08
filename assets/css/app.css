@@ -816,3 +816,18 @@ input,textarea,select{font-size:16px}
 }
 .portrait p:first-child{color:var(--ink-0);font-size:15px}
 .portrait p:last-child{margin-bottom:0}
+
+/* the number the reward screen just paid, and where it left the level */
+.reward .earned{
+  font-family:var(--mono);font-size:34px;line-height:1;color:var(--gold);
+  font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0 16px;
+  animation:earn 620ms cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes earn{0%{opacity:0;transform:translateY(8px) scale(.86)}60%{transform:scale(1.06)}100%{opacity:1;transform:none}}
+.reward .lvlwrap{max-width:230px;margin:16px auto 0}
+.reward .lvlwrap .meter{height:5px}
+.reward .lvlwrap .meter i{background:var(--gold)}
+.reward .lvlnote{
+  font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-3);
+  margin-top:9px;font-variant-numeric:tabular-nums;
+}

@@ -182,11 +182,19 @@
       if (list.length > 1 && list.every(x => x.status === 'closed')) bonus = store.awardDay(list.length);
 
       const after = LO.level.stats().level;
-      if (after > before) {
-        LO.machine.crestPulse();
+      const levelled = after > before;
+      if (levelled) LO.machine.crestPulse();
+
+      if (bonus) {
+        won = {
+          praise: 'The whole list.',
+          label: list.length + ' things, all of them done',
+          stop: STOP[Math.floor(Math.random() * STOP.length)],
+          points: LO.level.tier(eff).points + bonus, levelled
+        };
+        action = null;
+      } else if (levelled) {
         ui.toast('Level ' + after, 3200);
-      } else if (bonus) {
-        ui.toast('List cleared  ·  +' + bonus, 3000);
       } else {
         ui.toast('+' + LO.level.tier(eff).points);
       }
@@ -198,12 +206,19 @@
   function rewardView(s) {
     const streak = store.winStreak();
     const done = store.winsOn().filter(w => w.kind !== 'day').length;
+    const lv = LO.level.stats();
     return `
       <div class="reward">
         <div class="seal">✓</div>
         <h2>${ui.esc(won.praise)}</h2>
         <div class="did">${ui.esc(won.label)}</div>
+        ${won.points ? `<div class="earned">+${won.points}</div>` : ''}
         <div class="streakline">${done} today${streak ? '  ·  ' + streak + ' day streak' : ''}</div>
+        <div class="lvlwrap">
+          <div class="meter"><i style="width:${lv.pct}%"></i></div>
+          <div class="lvlnote">${won.levelled ? 'Level ' + lv.level + ' reached' : 'Level ' + lv.level}
+            &nbsp;·&nbsp; ${lv.into} / ${lv.need}</div>
+        </div>
       </div>
       <button class="bigstart gold-round" data-again><b>One more</b></button>
       <div class="textlinks"><button data-stop>Stop here</button></div>
@@ -219,12 +234,16 @@
 
   function bank(a, redraw) {
     if (a.done) a.done();
-    store.win(a.winKind || 'step', a.label, a.minutes || 0, a.id,
+    const before = LO.level.stats().level;
+    const pts = store.win(a.winKind || 'step', a.label, a.minutes || 0, a.id,
       Math.min(60, 10 + (a.minutes || 0) * 2));
+    const levelled = LO.level.stats().level > before;
+    if (levelled) LO.machine.crestPulse();
     won = {
       praise: PRAISE[Math.floor(Math.random() * PRAISE.length)],
       label: a.label,
-      stop: STOP[Math.floor(Math.random() * STOP.length)]
+      stop: STOP[Math.floor(Math.random() * STOP.length)],
+      points: pts, levelled
     };
     action = null;
     redraw();

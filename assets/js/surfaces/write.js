@@ -117,7 +117,12 @@
             });
           }
         }
-        store.win('write', labelFor(kind), 0, 'write_' + kind);
+        // writing something down keeps the streak alive but pays nothing:
+        // points are for finished things, or the level means nothing.
+        // An activity was already banked by store.write().
+        // quiet: what he wrote is already in the chronicle, and a second
+        // "did · wrote something down" under every entry is noise
+        if (kind !== 'activity') store.win('write', labelFor(kind), 0, 'write_' + kind, 0, true);
         ui.toast(classify.kind(kind).actionable ? 'Added to Do' : 'Saved');
         kind = 'thought'; auto = true; why = '';
         redraw();

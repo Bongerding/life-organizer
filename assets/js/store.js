@@ -379,12 +379,15 @@ window.LO = window.LO || {};
       }, extra || {}));
       // tasks and chores become things to do; an activity is already done
       if (kind === 'task' || kind === 'chore') {
+        const e = kind === 'chore' ? 1 : LO.level.estimate(text);
         this.state.mind.load.unshift({
-          id: this.id('task'), title: text, kind, weight: kind === 'chore' ? 1 : 2,
-          status: 'open', created: D.today(), from: rec.id
+          id: this.id('task'), title: text, kind, weight: e, effort: e,
+          status: 'open', created: D.today(), ts: Date.now(), from: rec.id
         });
       }
-      if (kind === 'activity') this.win('activity', text, 0, 'logged_activity');
+      if (kind === 'activity') {
+        this.win('activity', text, 0, 'logged_activity', LO.level.tier(2).points, true);
+      }
       this.save();
       return rec;
     },
@@ -451,7 +454,19 @@ window.LO = window.LO || {};
       const d = date || D.today();
       h.log = h.log || {};
       if (h.log[d]) delete h.log[d]; else h.log[d] = 1;
-      if (h.log[d]) this.log('habit', h.name, { ref: id, streak: this.streakOf(h) });
+      const ref = 'habit_' + id;
+      if (h.log[d]) {
+        this.log('habit', h.name, { ref: id, streak: this.streakOf(h) });
+        // pays once a day however many times it is toggled
+        if (!this.state.wins.some(w => w.date === d && w.ref === ref)) {
+          this.win('habit', h.name, 0, ref, 10, true);
+        }
+      } else {
+        // unticking is a correction, not a day's work — the points go back.
+        // The chronicle keeps both events; only the ledger is adjusted.
+        const i = this.state.wins.findIndex(w => w.date === d && w.ref === ref);
+        if (i > -1) this.state.wins.splice(i, 1);
+      }
       this.save();
       return !!h.log[d];
     },
@@ -608,7 +623,7 @@ window.LO = window.LO || {};
     },
 
     /* ---------- wins (the first-step ledger) ---------- */
-    win(kind, label, minutes, ref, points) {
+    win(kind, label, minutes, ref, points, quiet) {
       const pts = typeof points === 'number' ? points : 15;
       this.state.wins.unshift({
         id: this.id('win'), date: D.today(), kind, label,
@@ -619,7 +634,7 @@ window.LO = window.LO || {};
       if (meta && !(meta.log && meta.log[D.today()])) {
         meta.log = meta.log || {}; meta.log[D.today()] = 1;
       }
-      this.log('step', label, { kind, minutes: minutes || 0, ref: ref || '', points: pts });
+      if (!quiet) this.log('step', label, { kind, minutes: minutes || 0, ref: ref || '', points: pts });
       this.save();
       return pts;
     },

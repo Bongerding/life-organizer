@@ -109,6 +109,20 @@ Storage underneath is IndexedDB with persistent storage requested, and the
 `chronicle` is append-only so no future version can rewrite your history. Full
 analysis: [docs/MEMORY.md](docs/MEMORY.md) · setup: [docs/DEPLOY.md](docs/DEPLOY.md).
 
+## Points and levels
+
+Points come from **finished** things, never from writing one down — otherwise
+the level measures typing. A task pays by effort: **light 10**, **real 25**,
+**heavy 60**, guessed from the wording and changeable with a tap on the badge.
+A struck habit pays 10, once a day however many times it is toggled, and gives
+the points back if you untick it. An activity you log pays 25. A timed first
+step pays 10 + 2 a minute, capped at 60. Clearing everything on the day's list
+pays 50 + 10 a task on top, once a day.
+
+Level *n* costs `150 + (n-1) × 75` points. The level is **derived from the wins
+ledger, never stored** — restore a backup and you level straight back to where
+you were. It lives on the crest in the top left of every screen.
+
 ## How the Alignment Index works
 
 Eight pillars, each 0–100, weighted: Reps ×1.4, Clear ×1.3, Aim ×1.2, Mind ×1.2,
