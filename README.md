@@ -161,6 +161,8 @@ archive/lattice.html         the original eight-node lattice
 assets/js/app.js + modules/  what the archived lattice runs on
 build/                       single-file phone builds (generated)
 data/                        schema.json, drills.json, prompts.json, taxonomy.json
+CLAUDE.md                    the rules for changing this codebase — read first
+docs/DECISIONS.md            why it is shaped this way; add to it when you decide
 docs/                        ignition, memory, design system, architecture, roadmap, reference
 tools/gen-data.js            regenerates data/ from the JS source of truth
 tools/build-app.js           inlines the whole app into one file

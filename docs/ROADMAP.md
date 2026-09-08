@@ -4,7 +4,9 @@ The end state: a system that holds everything about your life, calculates your
 trajectory, and trains you toward the person you have decided to become —
 reachable from a phone in two seconds.
 
-Current position: **Phase 0 shipped. Phase 1 mostly done — Ignition and the four-tab desk are live.**
+Current position: **Phase 0 shipped. Phase 1 mostly done — the four-tab app,
+the insight engine, ten-year storage, automatic backup and the level loop are
+live.** Design rationale for anything here: [DECISIONS.md](DECISIONS.md).
 
 ---
 
@@ -53,9 +55,15 @@ Make the system know you rather than merely record you.
       a searchable day-by-day logbook with a notebook attached.
 - [x] **Ten-year storage** — IndexedDB, persistence requested, quota and backup
       age surfaced, append-only history. See [MEMORY.md](MEMORY.md).
-- [ ] **Automatic off-device backup** — needs one decision on the target; the four
-      options are laid out in [MEMORY.md](MEMORY.md#5-automatic-backup--the-decision-to-make).
-      Recommendation: a private GitHub repo, so every save is a restore point.
+- [x] **Automatic off-device backup** — settled: a private GitHub repo, so every
+      save is a restore point. `assets/js/sync.js`, configured from the gear with
+      a fine-grained token that is stored on-device only and stripped from every
+      export.
+- [x] **Points and levels** — the day's list on Do, effort-weighted points, and a
+      level on the crest in every screen's top left. Derived from the wins ledger,
+      never stored. Rules in [DECISIONS.md](DECISIONS.md).
+- [x] **The profile** — Me leads with a portrait assembled from what he has told
+      the system and what it has measured, and one question at a time fills it in.
 - [ ] **Weekly review** — auto-generated: what moved, what slipped, which pillar
       carried the week, one question to answer, next week's single lever.
 - [ ] **A year in review** — the Chronicle's answer to "where did the years go".
@@ -70,8 +78,9 @@ Make the system know you rather than merely record you.
 
 - [ ] Local-first sync (private repo, worker, or file sync), same JSON contract
 - [ ] Auth + one private instance
-- [ ] Offline-first service worker so Ignition survives no signal (the manifest and
-      icon are already in place; only the worker is missing)
+- [x] Offline-first service worker so the app survives no signal — `sw.js`,
+      network-first with a cache fallback, so online you always get the file you
+      just edited
 - [ ] Time-series storage so history is not capped by `localStorage`
 - [ ] Import bridges: Health/Fitbit sleep + steps, calendar into Rhythm
 
@@ -105,7 +114,10 @@ The layer that reads everything and speaks back.
    that is what makes it land when it does.
 6. **Data belongs to you.** Export works, always, in one click.
 7. **Starting is the product.** The reward is for ignition, never for output, and
-   every action carries explicit permission to stop after one.
+   every action carries explicit permission to stop after one. Two loops keep
+   this honest: the **streak** rewards starting (writing something down keeps it
+   alive), while the **level** counts finishing. Capture never pays points — see
+   [DECISIONS.md](DECISIONS.md).
 8. **It speaks first.** The machine keeps in touch with him. Anything that
    requires him to remember to check it is a design failure.
 9. **History is append-only.** No future version may rewrite what already

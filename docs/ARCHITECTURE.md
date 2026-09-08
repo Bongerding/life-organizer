@@ -1,5 +1,8 @@
 # Architecture — Life Organizer v0.5
 
+Design rationale is in [DECISIONS.md](DECISIONS.md); the working rules for
+changing this codebase are in [CLAUDE.md](../CLAUDE.md).
+
 Zero dependencies, and no build step to run it. Classic scripts and one global
 namespace so
 the app runs from a filesystem, a static host, a phone, or inside a native shell
@@ -79,17 +82,20 @@ rhythm    blocks[{ label, start, end, days[0-6], domain, anchor }], rules[]
 habits    [{ name, identity, domain, cue, reward, target, log{date:1} }]
 rewire    targets[{ from, to, trait }], reps[{ date, drillId, trait, response }]
 vessel    targets{}, logs[{ date, sleep, weight, steps, water, note }], sessions[]
-mind      logs[{ date, mood, energy, clarity, stress, grateful, note }], load[{ title, weight, kind, status }]
+mind      logs[{ date, mood, energy, clarity, stress, grateful, note }], load[{ title, weight, effort, kind, status, closedOn }]
 people    [{ name, cadence, lastContact, note }]
 clarity   { substance, clearSince, best, urges[{ date, intensity, rode, instead }], uses[{ date, note }] }
-wins      [{ date, kind, label, minutes, ref }]     the first-step ledger
+wins      [{ date, kind, label, minutes, ref, points }]   the ledger the level is derived from
 scribe    entries[{ date, prompt, text, tags }], insights[{ date, text, source }]
 settings  reduceMotion, weekStart
 ```
 
 `people`, `clarity` and `wins` arrived with schema v2 and are written by Ignition.
 `wins[].ref` holds the id of the action that produced the win, which is how the
-dealer knows not to offer the same thing twice in a day.
+dealer knows not to offer the same thing twice in a day — and how a habit is
+stopped from paying twice on the same day (`habit_<id>`) and the day's clearing
+bonus from being paid twice (`day`). `wins[].points` arrived with the level
+engine; a win written before it counts as 15.
 
 `chronicle` and `identity.facts` arrived with v3. **The chronicle is the logbook
 and the durability guarantee**: `store.log(type, text, meta, date)` appends, and
@@ -154,6 +160,37 @@ module, it belongs in `vitals()`.
 
 ---
 
+## 2a. The level engine
+
+`LO.level` turns the same ledger into the one number the owner actually watches.
+Like `vitals()`, **nothing is stored** — level and progress are recomputed from
+`state.wins` on every read, so a restored backup reproduces them exactly and a
+change to the scoring applies to the whole history rather than stranding it.
+
+| Source | Points | Guard |
+|---|---|---|
+| Task closed | 10 / 25 / 60 by effort | `ref: task_<id>` |
+| Habit struck | 10 | once a day per habit; refunded on untick |
+| Activity logged | 25 | banked by `store.write`, not the surface |
+| Timed first step | `min(60, 10 + 2 × minutes)` | — |
+| Day's list cleared | `50 + 10 × n` | once a day, `ref: day` |
+| Anything written | **0** | keeps the streak, never the level |
+
+Effort is guessed from the wording by `LO.level.estimate(text)` → 1/2/3 and
+stored on the task as `effort`; the badge on the row cycles it. Level *n* costs
+`150 + (n-1) × 75`.
+
+**The rule that gets broken by anyone who has not read it: points are for
+finished things.** Paying for capture makes the level measure typing. The
+reasoning, and why this does not contradict "the reward is for ignition", is in
+[DECISIONS.md](DECISIONS.md).
+
+`store.win(kind, label, minutes, ref, points, quiet)` is the only writer. Pass
+`quiet` when the caller has already written its own chronicle entry, so one
+action never produces two rows in the logbook.
+
+---
+
 ## 3. The insight engine
 
 `LO.insight` is what makes this a machine that speaks rather than a set of forms.
@@ -167,7 +204,13 @@ All three outputs are derived on read; none of it is stored.
   here: the page about who you are does not carry them, drift goes in messages.
 - **`questions(state)`** — the bank of things it does not know, filtered by
   `when(state)` and by `repeat` days since last answered. Answers land in
-  `identity.facts` and stay on the page.
+  `identity.facts` (keyed by `qid`, *not* `id` — matching on `id` silently
+  re-asks answered questions) and stay on the page. The queue never runs dry:
+  when everything is answered it returns the whole bank ordered by whatever was
+  answered longest ago.
+- **`portrait(state)`** — the prose at the top of Me, assembled only from facts
+  he has given and numbers the system has measured. Same rule as `truths`:
+  nothing inferred, nothing flattering.
 
 Extending the bank is the cheapest way to make the system know him better. Keep
 the rule: no claim the data cannot back.

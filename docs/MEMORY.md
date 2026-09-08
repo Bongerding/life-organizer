@@ -70,10 +70,16 @@ Put those files in a cloud folder — iCloud Drive, Dropbox, Drive, anything tha
 syncs — and the ten-year problem is already solved at the cost of one tap a
 fortnight.
 
-## 5. Automatic backup — the decision to make
+## 5. Automatic backup — decided and built
 
-Manual works but depends on you. These are the four real options for making it
-automatic, and they need one choice from you before I build it:
+**Settled: a private GitHub repo, and it is live.** `assets/js/sync.js`, set up
+from the gear on any screen. It commits the whole record to a private repo you
+own, so every backup is a restore point you can roll back to. The fine-grained
+token is stored on that device only and is stripped out of every export, so it
+can never end up inside the backup it just made.
+
+The four options that were weighed, kept here because the reasoning still applies
+if the target ever needs to change:
 
 | Option | How it works | Upside | Cost |
 |---|---|---|---|
@@ -82,9 +88,8 @@ automatic, and they need one choice from you before I build it:
 | Small private server | A VPS with one file per save | Total control | A machine to maintain for ten years |
 | Cloud-folder file (native shell) | The iOS app writes into iCloud Drive | Zero infrastructure, invisible, Apple keeps it | Needs the Phase 4 native shell first |
 
-The GitHub option is the one I would pick. Version history is the difference
-between "I have a backup" and "I can go back to how this looked in March 2029",
-and it costs nothing forever.
+Version history is what decided it: the difference between "I have a backup" and
+"I can go back to how this looked in March 2029", at no cost, forever.
 
 ## 6. Why the format will still open in ten years
 
@@ -104,9 +109,9 @@ and it costs nothing forever.
 
 Belt and braces, in order of effort:
 
-1. Add Ignition to your Home Screen (helps the persistence grant, kills the iOS
+1. Add the app to your Home Screen (helps the persistence grant, kills the iOS
    7-day eviction risk).
 2. Download a backup into a synced cloud folder — the app will remind you.
-3. Pick a sync target from §5 so it stops depending on you.
+3. Turn on automatic backup (§5) so it stops depending on you.
 4. Once a year, export and drop a copy somewhere cold: a USB stick, an email to
    yourself, a printed year in review from the Chronicle.
