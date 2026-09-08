@@ -1,0 +1,11 @@
+# generated single-file builds — rebuilt by tools/build-app.js
+build/
+
+# local scratch
+*.log
+.DS_Store
+Thumbs.db
+
+# personal calibration and exports — data, never code
+personal/
+*.backup.json

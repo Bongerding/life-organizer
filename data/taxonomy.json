@@ -1,0 +1,129 @@
+{
+  "domains": [
+    {
+      "id": "body",
+      "label": "Body",
+      "accent": "var(--c-vessel)"
+    },
+    {
+      "id": "mind",
+      "label": "Mind",
+      "accent": "var(--c-mind)"
+    },
+    {
+      "id": "craft",
+      "label": "Craft",
+      "accent": "var(--c-compass)"
+    },
+    {
+      "id": "wealth",
+      "label": "Wealth",
+      "accent": "var(--c-forge)"
+    },
+    {
+      "id": "people",
+      "label": "People",
+      "accent": "var(--c-rewire)"
+    },
+    {
+      "id": "spirit",
+      "label": "Spirit",
+      "accent": "var(--c-rhythm)"
+    },
+    {
+      "id": "order",
+      "label": "Order",
+      "accent": "var(--c-scribe)"
+    }
+  ],
+  "horizons": [
+    {
+      "id": "lifetime",
+      "label": "Lifetime"
+    },
+    {
+      "id": "decade",
+      "label": "10 Year"
+    },
+    {
+      "id": "year",
+      "label": "1 Year"
+    },
+    {
+      "id": "quarter",
+      "label": "90 Day"
+    },
+    {
+      "id": "week",
+      "label": "This Week"
+    }
+  ],
+  "traits": [
+    {
+      "id": "discipline",
+      "label": "Discipline",
+      "line": "Acting from decision, not from mood."
+    },
+    {
+      "id": "focus",
+      "label": "Focus",
+      "line": "One thing, all the way down."
+    },
+    {
+      "id": "courage",
+      "label": "Courage",
+      "line": "Moving toward the thing that tightens your chest."
+    },
+    {
+      "id": "calm",
+      "label": "Calm",
+      "line": "Slack in the system before the pressure arrives."
+    },
+    {
+      "id": "presence",
+      "label": "Presence",
+      "line": "Being where your body is."
+    },
+    {
+      "id": "identity",
+      "label": "Identity",
+      "line": "Becoming the person for whom this is normal."
+    },
+    {
+      "id": "connection",
+      "label": "Connection",
+      "line": "Going first, staying open."
+    },
+    {
+      "id": "drive",
+      "label": "Drive",
+      "line": "Wanting it on the days it is boring."
+    }
+  ],
+  "valueWords": [
+    "Discipline",
+    "Freedom",
+    "Mastery",
+    "Health",
+    "Family",
+    "Truth",
+    "Courage",
+    "Growth",
+    "Service",
+    "Creation",
+    "Stillness",
+    "Loyalty",
+    "Curiosity",
+    "Strength",
+    "Integrity",
+    "Adventure",
+    "Wealth",
+    "Presence",
+    "Independence",
+    "Craft",
+    "Legacy",
+    "Play",
+    "Order",
+    "Compassion"
+  ]
+}

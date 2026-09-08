@@ -1,0 +1,22 @@
+{
+  "name": "Life Organizer",
+  "short_name": "Organizer",
+  "description": "Write it down, do one thing, and get advice when you are stuck.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080d0a",
+  "theme_color": "#080d0a",
+  "orientation": "any",
+  "categories": ["productivity", "lifestyle", "health"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Write something", "short_name": "Write", "url": "./index.html#write" },
+    { "name": "Advice", "short_name": "Advice", "url": "./index.html#advice" }
+  ]
+}

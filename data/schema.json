@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "schema": 1,
+    "created": "YYYY-MM-DD",
+    "lastOpen": "YYYY-MM-DD",
+    "opens": 0,
+    "streak": 0
+  },
+  "chronicle": [],
+  "identity": {
+    "name": "",
+    "northStar": "",
+    "values": [],
+    "statements": [],
+    "avoid": [],
+    "facts": []
+  },
+  "goals": [],
+  "rhythm": {
+    "blocks": [],
+    "rules": []
+  },
+  "habits": [],
+  "rewire": {
+    "targets": [],
+    "reps": []
+  },
+  "vessel": {
+    "targets": {
+      "weight": null,
+      "sleep": 7.5,
+      "steps": 8000,
+      "train": 4,
+      "water": 3
+    },
+    "logs": [],
+    "sessions": []
+  },
+  "mind": {
+    "logs": [],
+    "load": []
+  },
+  "people": [],
+  "clarity": {
+    "substance": "",
+    "clearSince": null,
+    "best": 0,
+    "urges": [],
+    "uses": []
+  },
+  "wins": [],
+  "scribe": {
+    "entries": [],
+    "insights": []
+  },
+  "classifier": {
+    "weights": {},
+    "corrections": 0
+  },
+  "settings": {
+    "reduceMotion": false,
+    "weekStart": 1
+  }
+}
