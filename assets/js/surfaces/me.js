@@ -29,18 +29,34 @@
       const markedToday = !!(clearHabit && clearHabit.log && clearHabit.log[D.today()]);
 
       return `
-        <h1 class="hd">${ui.esc(cap(name))}</h1>
-        <p class="lede">Day ${D.daysBetween(s.meta.created, D.today()) + 1}. This page writes itself from what you log.</p>
-
-        <div class="ns" contenteditable="true" data-ns spellcheck="false">${
-          ui.esc(s.identity.northStar || 'Write what all of this is for.')}</div>
-
-        <div class="stats" style="margin-top:26px">
+        <div class="lbl" style="margin-top:8px">Trajectory<span class="r">${verdict(v)}</span></div>
+        <div class="stats">
           <div class="stat2"><b>${v.index}</b><span>Alignment</span></div>
           ${clear !== null ? `<div class="stat2"><b>${clear}</b><span>Days clear</span></div>` : ''}
           <div class="stat2"><b>${store.winStreak()}</b><span>Day streak</span></div>
           <div class="stat2"><b>${s.chronicle.length}</b><span>Entries</span></div>
         </div>
+        <div class="panel" style="margin-top:14px">
+          ${ui.spark(store.indexSeries(30).map(p => p.v), { min: 0, max: 100 })}
+          <p class="note" style="margin:8px auto 0">Alignment, last 30 days.</p>
+        </div>
+
+        <div class="lbl">The mission<span class="ln"></span></div>
+        <div class="mission">
+          <p>Build the life you described, not the one you drift into.</p>
+          <p>I keep the record so you do not have to remember it. I read what actually
+             happened rather than what you meant to do, and I say it plainly. I give you
+             one thing to start, because starting is the part that costs you.</p>
+          <p>I will not flatter you. Every claim on this page carries the number that
+             earns it. When something is drifting I say so once and hand you a protocol,
+             not a lecture.</p>
+          <p class="m-end">One measure: better than yesterday, by the data.</p>
+        </div>
+
+        <div class="lbl">You<span class="ln"></span></div>
+        <h1 class="hd" style="margin-bottom:12px">${ui.esc(cap(name))}</h1>
+        <div class="ns" contenteditable="true" data-ns spellcheck="false">${
+          ui.esc(s.identity.northStar || 'Write what all of this is for.')}</div>
 
         <div class="lbl">Clear<span class="r">${clear === null ? 'not started' : 'best ' + (s.clarity.best || 0) + 'd'}</span></div>
         <div class="clearbar">
@@ -123,9 +139,8 @@
           <button class="flat" data-addav>Add</button>
         </div>
 
-        <div class="lbl">Trajectory<span class="r">${verdict(v)}</span></div>
-        <div class="panel">${ui.spark(store.indexSeries(30).map(p => p.v), { min: 0, max: 100 })}
-          <p class="note" style="margin:8px auto 0">Alignment over the last 30 days.</p></div>`;
+        <p class="note" style="margin-top:26px">Everything here is yours and stays on this
+          device. The gear icon backs it all up.</p>`;
     },
 
     mount(root) {

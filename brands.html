@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brand directions</title>
+<meta name="theme-color" content="#0a0c0e">
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0;background:#0a0c0e;color:#cfd6d2;
+    font:15px/1.6 "Inter","Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1180px;margin:0 auto;padding:44px 22px 90px}
+  h1{margin:0 0 8px;font-size:30px;color:#f0f4f1;font-weight:600;letter-spacing:-.02em}
+  .lede{margin:0 0 8px;color:#7d8a84;font-size:14.5px;max-width:64ch}
+  .lede b{color:#cfd6d2;font-weight:600}
+  .grid{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));margin-top:36px}
+
+  .card{border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;background:#101315}
+  .card > header{padding:18px 20px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .num{font:600 10px/1 ui-monospace,monospace;letter-spacing:.24em;color:#6b7772}
+  .card h2{margin:9px 0 6px;font-size:21px;color:#f0f4f1;font-weight:650;letter-spacing:-.01em}
+  .card .why{margin:0;font-size:13.5px;line-height:1.6;color:#8e9a95}
+
+  .sw{display:flex;height:34px}
+  .sw i{flex:1}
+
+  /* the mock screen: every direction is the same markup, different variables */
+  .screen{
+    --r:12px;
+    padding:20px 16px 0;background:var(--bg);color:var(--ink);
+    font-family:var(--ui);
+  }
+  .screen .bar{
+    display:flex;align-items:center;gap:8px;margin-bottom:18px;
+    font:600 9px/1 var(--ui);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  }
+  .screen .bar .mk{width:15px;height:17px;background:var(--acc);flex:0 0 auto;clip-path:var(--shape)}
+  .screen .bar .sp{flex:1}
+  .q{text-align:center;margin:0 0 20px}
+  .q blockquote{
+    margin:0;font:var(--qw) 17px/1.35 var(--display);color:var(--ink);letter-spacing:-.01em;
+  }
+  .q figcaption{margin-top:9px;font:600 8.5px/1 var(--ui);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+  .q::after{content:"";display:block;width:22px;height:1px;background:var(--line);margin:14px auto 0}
+
+  .act{border:1px solid var(--line);border-radius:var(--r);padding:16px 14px;background:var(--panel);text-align:center}
+  .act .k{font:700 8.5px/1 var(--ui);letter-spacing:.2em;text-transform:uppercase;color:var(--acc)}
+  .act h3{margin:9px 0 7px;font:600 16px/1.25 var(--ui);color:var(--ink)}
+  .act p{margin:0 0 13px;font-size:12px;line-height:1.5;color:var(--dim)}
+  .act .go{
+    display:block;width:100%;padding:12px;border:0;border-radius:calc(var(--r) - 3px);
+    background:var(--acc);color:var(--onacc);
+    font:var(--btnw) 11.5px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+  }
+  .act .row{display:flex;gap:7px;margin-top:7px}
+  .act .row button{
+    flex:1;padding:10px;border:1px solid var(--line);border-radius:calc(var(--r) - 4px);
+    background:none;color:var(--dim);font:500 10.5px/1 var(--ui);cursor:pointer;
+  }
+  .gold{margin-top:9px;display:block;width:100%;padding:12px;border:0;border-radius:calc(var(--r) - 3px);
+    background:var(--reward);color:var(--onreward);font:800 11.5px/1 var(--ui);letter-spacing:.12em;
+    text-transform:uppercase;cursor:pointer}
+  .tabs{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:20px -16px 0;
+    padding:9px 12px 12px;border-top:1px solid var(--line);background:var(--barbg);
+  }
+  .tabs div{display:flex;flex-direction:column;align-items:center;gap:5px;
+    font:650 8px/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .tabs div::before{content:"";width:18px;height:20px;background:var(--chip);clip-path:var(--shape)}
+  .tabs div.on{color:var(--ink)}
+  .tabs div.on::before{background:var(--acc)}
+
+  .spec{padding:16px 20px 20px;font-size:12.5px;line-height:1.65;color:#8e9a95}
+  .spec dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:5px 12px}
+  .spec dt{color:#6b7772;font:600 9.5px/1.7 ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase}
+  .spec dd{margin:0;color:#b9c4bf}
+  .hex{font-family:ui-monospace,monospace;font-size:11px;color:#7d8a84}
+
+  footer{margin-top:46px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);
+    color:#7d8a84;font-size:13.5px;line-height:1.7;max-width:70ch}
+  footer b{color:#cfd6d2}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Four directions</h1>
+  <p class="lede">The same screen, four brands. Look at them on the phone, pick one by number,
+    and I will apply it everywhere and write it into the design system. <b>One choice, then we stop
+    re-deciding.</b></p>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <section class="card">
+      <header>
+        <div class="num">DIRECTION 01</div>
+        <h2>Deep Canopy</h2>
+        <p class="why">What it is now. Forest floor, sage light, antique gold for reward.
+          Calm and organic; the hexagon is the motif.</p>
+      </header>
+      <div class="sw">
+        <i style="background:#080d0a"></i><i style="background:#16241b"></i>
+        <i style="background:#8fbf8a"></i><i style="background:#e0b552"></i><i style="background:#e9f1e7"></i>
+      </div>
+      <div class="screen" style="
+        --bg:#080d0a;--panel:#101a13;--ink:#e9f1e7;--dim:#7d8f7f;--line:rgba(186,216,190,.14);
+        --acc:#8fbf8a;--onacc:#080d0a;--reward:#e0b552;--onreward:#241a05;--chip:#1f3226;--barbg:#0b120e;
+        --ui:'Inter',system-ui,sans-serif;--display:'Inter',system-ui,sans-serif;--qw:500;--btnw:700;
+        --shape:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);">
+        <div class="bar"><span class="mk"></span><span class="sp"></span><span>nothing done yet</span></div>
+        <figure class="q"><blockquote>Well begun is half done.</blockquote><figcaption>Aristotle</figcaption></figure>
+        <div class="act">
+          <div class="k">first inch</div><h3>Two minutes on the business</h3>
+          <p>Open the file. Write one line.</p>
+          <button class="go">Start</button>
+          <div class="row"><button>Not this</button><button>Already did it</button></div>
+          <button class="gold">One more</button>
+        </div>
+        <div class="tabs"><div class="on">Do</div><div>Write</div><div>Advice</div><div>Me</div></div>
+      </div>
+      <div class="spec"><dl>
+        <dt>Shape</dt><dd>Hexagon, 11–14px radii</dd>
+        <dt>Type</dt><dd>One sans throughout, mono for numbers</dd>
+        <dt>Feels</dt><dd>Quiet, outdoorsy, unhurried</dd>
+        <dt>Risk</dt><dd>Can read soft — less like a tool</dd>
+      </dl></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="card">
+      <header>
+        <div class="num">DIRECTION 02</div>
+        <h2>Ember &amp; Graphite</h2>
+        <p class="why">Machine shop. Cold graphite with one hot ember accent, bone-white type,
+          hard edges. Built like something with an engine in it.</p>
+      </header>
+      <div class="sw">
+        <i style="background:#0c0c0e"></i><i style="background:#1a1b1f"></i>
+        <i style="background:#e2603a"></i><i style="background:#d9a441"></i><i style="background:#f2efe9"></i>
+      </div>
+      <div class="screen" style="
+        --bg:#0c0c0e;--panel:#141518;--ink:#f2efe9;--dim:#8a8b90;--line:rgba(255,255,255,.11);
+        --acc:#e2603a;--onacc:#120704;--reward:#d9a441;--onreward:#1d1403;--chip:#26272c;--barbg:#0f1012;
+        --ui:'Inter',system-ui,sans-serif;--display:'Inter',system-ui,sans-serif;--qw:700;--btnw:800;
+        --r:3px;--shape:polygon(0 0,100% 0,100% 100%,0 100%);">
+        <div class="bar"><span class="mk"></span><span class="sp"></span><span>nothing done yet</span></div>
+        <figure class="q"><blockquote>Well begun is half done.</blockquote><figcaption>Aristotle</figcaption></figure>
+        <div class="act">
+          <div class="k">first inch</div><h3>Two minutes on the business</h3>
+          <p>Open the file. Write one line.</p>
+          <button class="go">Start</button>
+          <div class="row"><button>Not this</button><button>Already did it</button></div>
+          <button class="gold">One more</button>
+        </div>
+        <div class="tabs"><div class="on">Do</div><div>Write</div><div>Advice</div><div>Me</div></div>
+      </div>
+      <div class="spec"><dl>
+        <dt>Shape</dt><dd>Square corners, 3px radii, hard rules</dd>
+        <dt>Type</dt><dd>Heavier weights, wide-tracked caps</dd>
+        <dt>Feels</dt><dd>Purposeful, mechanical, a bit severe</dd>
+        <dt>Risk</dt><dd>Reward gold sits close to the ember accent</dd>
+      </dl></div>
+    </section>
+
+    <!-- 3 -->
+    <section class="card">
+      <header>
+        <div class="num">DIRECTION 03</div>
+        <h2>Field Notebook</h2>
+        <p class="why">Light, and the only one that is. Warm paper, ink, one oxblood accent,
+          a serif for the quote. Reads like a logbook you keep rather than an app you check.</p>
+      </header>
+      <div class="sw">
+        <i style="background:#f4f1e8"></i><i style="background:#e7e2d5"></i>
+        <i style="background:#8c3b2e"></i><i style="background:#9a7b2f"></i><i style="background:#1c1b18"></i>
+      </div>
+      <div class="screen" style="
+        --bg:#f4f1e8;--panel:#fbf9f3;--ink:#1c1b18;--dim:#7a7365;--line:rgba(28,27,24,.16);
+        --acc:#8c3b2e;--onacc:#fbf9f3;--reward:#9a7b2f;--onreward:#fbf9f3;--chip:#ddd7c8;--barbg:#efebe0;
+        --ui:'Inter',system-ui,sans-serif;--display:Georgia,'Iowan Old Style',serif;--qw:400;--btnw:700;
+        --r:6px;--shape:polygon(0 0,100% 0,100% 100%,0 100%);">
+        <div class="bar"><span class="mk"></span><span class="sp"></span><span>nothing done yet</span></div>
+        <figure class="q"><blockquote>Well begun is half done.</blockquote><figcaption>Aristotle</figcaption></figure>
+        <div class="act">
+          <div class="k">first inch</div><h3>Two minutes on the business</h3>
+          <p>Open the file. Write one line.</p>
+          <button class="go">Start</button>
+          <div class="row"><button>Not this</button><button>Already did it</button></div>
+          <button class="gold">One more</button>
+        </div>
+        <div class="tabs"><div class="on">Do</div><div>Write</div><div>Advice</div><div>Me</div></div>
+      </div>
+      <div class="spec"><dl>
+        <dt>Shape</dt><dd>Ruled lines, small radii, almost no fills</dd>
+        <dt>Type</dt><dd>Serif for quotes and writing, sans for controls</dd>
+        <dt>Feels</dt><dd>Considered, analogue, easy to read outdoors</dd>
+        <dt>Risk</dt><dd>Bright in a dark room; not a bedside app</dd>
+      </dl></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="card">
+      <header>
+        <div class="num">DIRECTION 04</div>
+        <h2>Cold Instrument</h2>
+        <p class="why">A gauge cluster. Blue-black, steel greys, one ice accent, circles instead
+          of hexagons and numbers given real prominence.</p>
+      </header>
+      <div class="sw">
+        <i style="background:#080b11"></i><i style="background:#151c26"></i>
+        <i style="background:#6fc7e8"></i><i style="background:#d8b169"></i><i style="background:#e8eef4"></i>
+      </div>
+      <div class="screen" style="
+        --bg:#080b11;--panel:#111823;--ink:#e8eef4;--dim:#7c8b9c;--line:rgba(160,190,220,.15);
+        --acc:#6fc7e8;--onacc:#04080e;--reward:#d8b169;--onreward:#1b1305;--chip:#1d2836;--barbg:#0a0f16;
+        --ui:'Inter',system-ui,sans-serif;--display:'Inter',system-ui,sans-serif;--qw:500;--btnw:700;
+        --r:999px;--shape:circle(50% at 50% 50%);">
+        <div class="bar"><span class="mk"></span><span class="sp"></span><span>nothing done yet</span></div>
+        <figure class="q"><blockquote>Well begun is half done.</blockquote><figcaption>Aristotle</figcaption></figure>
+        <div class="act" style="border-radius:16px">
+          <div class="k">first inch</div><h3>Two minutes on the business</h3>
+          <p>Open the file. Write one line.</p>
+          <button class="go">Start</button>
+          <div class="row"><button>Not this</button><button>Already did it</button></div>
+          <button class="gold">One more</button>
+        </div>
+        <div class="tabs"><div class="on">Do</div><div>Write</div><div>Advice</div><div>Me</div></div>
+      </div>
+      <div class="spec"><dl>
+        <dt>Shape</dt><dd>Circles and pills, 16px panels</dd>
+        <dt>Type</dt><dd>Mono numerals large; sans elsewhere</dd>
+        <dt>Feels</dt><dd>Clinical, precise, data-forward</dd>
+        <dt>Risk</dt><dd>Closest to the version you already called incoherent</dd>
+      </dl></div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p><b>What stays whatever you pick:</b> four tabs at the bottom, one fixed accent that never
+      changes between tabs, a single reserved reward colour, and plain phrasing. The brand changes
+      the surface, not the rules.</p>
+    <p><b>My call, if you want one:</b> <b>02, Ember &amp; Graphite.</b> It suits what the app is
+      actually for — starting things, riding, building a business — better than the soft green does,
+      and the hard edges make it read as a tool rather than a wellness app. Its one problem is that
+      ember and gold are neighbours, so I would cool the reward to a pale brass to keep the gold
+      meaning what it means.</p>
+    <p>Reply with a number and I will apply it everywhere in one pass.</p>
+  </footer>
+
+</div>
+</body>
+</html>

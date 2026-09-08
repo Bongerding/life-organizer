@@ -20,6 +20,7 @@ const js = [
   'assets/js/store.js',
   'assets/js/library.js',
   'assets/js/ui.js',
+  'assets/js/quotes.js',
   'assets/js/actions.js',
   'assets/js/classify.js',
   'assets/js/insight.js',

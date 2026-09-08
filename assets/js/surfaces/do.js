@@ -22,22 +22,17 @@
 
       if (!action) action = LO.actions.pick(s);
       const done = store.winsOn();
-      const streak = store.winStreak();
-      const tip = LO.advice.today(s);
       const tasks = store.tasks();
       const t = D.today();
 
+      const q = LO.quotes.today();
+
       return `
-        <h1 class="hd">${done.length ? 'One more if you want it.' : 'One thing is enough.'}</h1>
-        <p class="lede">${done.length
-          ? done.length + ' done today. Anything else is a bonus.'
-          : 'Pick it up, set the timer, put the screen down.'}</p>
+        <figure class="quote">
+          <blockquote>${ui.esc(q.text)}</blockquote>
+          <figcaption>${ui.esc(q.who)}</figcaption>
+        </figure>
 
-        ${tip ? `<div class="lbl">Today<span class="r">${ui.esc(tip.title)}</span></div>
-          <p class="note" style="margin-bottom:6px">${ui.esc(clip(tip.body, 130))}
-            <a href="#advice" style="color:var(--accent);text-decoration:none">Read it</a></p>` : ''}
-
-        <div class="lbl">Now<span class="r">${streak ? streak + ' day streak' : ''}</span></div>
         <div class="now">
           <div class="k">${ui.esc(action.kind)}</div>
           <h2>${ui.esc(action.label)}</h2>
