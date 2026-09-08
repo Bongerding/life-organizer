@@ -21,11 +21,10 @@
       if (won) return rewardView(s);
 
       if (!action) action = LO.actions.pick(s);
-      const done = store.winsOn();
       const tasks = store.tasks();
       const t = D.today();
-
       const q = LO.quotes.today();
+      const struck = s.habits.filter(h => h.log && h.log[t]).length;
 
       return `
         <figure class="quote">
@@ -33,49 +32,45 @@
           <figcaption>${ui.esc(q.who)}</figcaption>
         </figure>
 
-        <div class="now">
-          <div class="k">${ui.esc(action.kind)}</div>
-          <h2>${ui.esc(action.label)}</h2>
-          <p>${ui.esc(action.sub || '')}</p>
-          ${action.minutes ? `<div class="mins">${action.minutes} min</div>` : ''}
-          ${action.id === 'nothing' ? '' : `
-            <div class="acts">
-              <button class="go" data-start>${action.tab || action.sheet ? 'Open' : 'Start'}</button>
-              <button class="flat" data-skip>Not this</button>
-              <button class="flat" data-did>Already did it</button>
-            </div>`}
-        </div>
+        <div class="k">${ui.esc(action.kind)}</div>
+        <h2 class="deed">${ui.esc(action.label)}</h2>
+        ${action.sub ? `<p class="deed-sub">${ui.esc(action.sub)}</p>` : ''}
+
+        ${action.id === 'nothing' ? '' : `
+          <button class="bigstart" data-start>
+            <b>${action.tab || action.sheet ? 'Open' : 'Start'}</b>
+            ${action.minutes ? `<span>${action.minutes} min</span>` : ''}
+          </button>
+          <div class="textlinks">
+            <button data-skip>Not this</button>
+            <button data-did>Already did it</button>
+          </div>`}
 
         <div class="sos">
           <button class="spin" data-spin><b>I'm spinning</b><span>rumination</span></button>
           <button class="urge" data-urge><b>I want to smoke</b><span>ride it out</span></button>
         </div>
 
-        ${done.length ? `<div class="lbl">Done today<span class="ln"></span></div>
-          <div class="rows">${done.map(w =>
-            `<div class="row-l"><span class="tick on"></span><span class="t">${ui.esc(w.label)}</span>
-             <span class="r">${w.minutes ? w.minutes + 'm' : ''}</span></div>`).join('')}</div>` : ''}
+        ${tasks.length ? `
+          <div class="lbl">Tasks<span class="r">${tasks.length}</span></div>
+          <div class="rows">${tasks.slice(0, 6).map(l => `
+            <div class="row-l">
+              <button class="tick" data-close="${l.id}" title="Mark done"></button>
+              <span class="t">${ui.esc(l.title)}</span>
+              <button class="x" data-drop="${l.id}">×</button>
+            </div>`).join('')}</div>
+          ${tasks.length > 6 ? `<p class="note" style="margin-top:10px">${tasks.length - 6} more on Write.</p>` : ''}
+        ` : ''}
 
-        <div class="lbl">Your tasks<span class="r">${tasks.length || 'none open'}</span></div>
-        ${tasks.length ? `<div class="rows">${tasks.map(l => `
-          <div class="row-l">
-            <button class="tick" data-close="${l.id}" title="Mark done"></button>
-            <span class="t">${ui.esc(l.title)}<em>written ${D.pretty(l.created)}</em></span>
-            <button class="x" data-drop="${l.id}">×</button>
-          </div>`).join('')}</div>`
-        : `<p class="note">Nothing open. Write tasks on the <a href="#write" style="color:var(--accent);text-decoration:none">Write</a> tab and they land here.</p>`}
-
-        ${s.habits.length ? `<div class="lbl">Habits<span class="r">${
-            s.habits.filter(h => h.log && h.log[t]).length}/${s.habits.length}</span></div>
-          <div class="rows">${s.habits.map(h => {
-            const on = !!(h.log && h.log[t]);
-            const k = store.streakOf(h);
-            return `<div class="row-l">
-              <button class="tick ${on ? 'on' : ''}" data-habit="${h.id}"></button>
-              <span class="t">${ui.esc(h.name)}</span>
-              <span class="r">${k ? k + 'd' : ''}</span>
-            </div>`;
-          }).join('')}</div>` : ''}`;
+        ${s.habits.length ? `
+          <div class="lbl">Habits<span class="r">${struck}/${s.habits.length}</span></div>
+          <div class="hrow">
+            ${s.habits.map(h => {
+              const on = !!(h.log && h.log[t]);
+              return `<button class="hchip ${on ? 'on' : ''}" data-habit="${h.id}">
+                <i></i><b>${ui.esc(h.name)}</b></button>`;
+            }).join('')}
+          </div>` : ''}`;
     },
 
     mount(root) {
@@ -136,12 +131,10 @@
         <h2>${ui.esc(won.praise)}</h2>
         <div class="did">${ui.esc(won.label)}</div>
         <div class="streakline">${done} today${streak ? '  ·  ' + streak + ' day streak' : ''}</div>
-        <div class="acts">
-          <button class="gold" data-again>One more</button>
-          <button class="flat" data-stop>Stop here</button>
-        </div>
       </div>
-      <p class="note" style="margin-top:22px">${ui.esc(won.stop)}</p>`;
+      <button class="bigstart gold-round" data-again><b>One more</b></button>
+      <div class="textlinks"><button data-stop>Stop here</button></div>
+      <p class="note" style="margin-top:20px">${ui.esc(won.stop)}</p>`;
   }
 
   const PRAISE = ["That's one.", 'Done.', 'On the board.', 'Started and finished.'];
