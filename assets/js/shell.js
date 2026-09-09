@@ -19,6 +19,7 @@ window.LO = window.LO || {};
     async boot() {
       await LO.store.load();
       const fresh = LO.store.seed();
+      LO.companion.boot();
       LO.ui.startField(document.getElementById('field'));
 
       this.paintTop();
@@ -88,6 +89,7 @@ window.LO = window.LO || {};
 
     route() {
       const id = (location.hash || '').replace('#', '') || 'do';
+      if (id === 'people') { this.go('me'); LO.companion.openFriends(); return; }
       const sf = this.get(id) || this.get('do');
       this.current = sf.id;
       document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.go === sf.id));
@@ -114,7 +116,12 @@ window.LO = window.LO || {};
       if (sf) (sf.refresh || (() => this.render(sf)))();
     },
 
-    go(id) { location.hash = id; },
+    go(id) {
+      if (id === 'people') return LO.companion.openFriends();
+      if (id === 'clear') id = 'me';
+      if (id === 'loops') id = 'write';
+      location.hash = id;
+    },
 
     /* ---------------- sheets ---------------- */
     /** the two protocols that must be one tap away from anywhere */

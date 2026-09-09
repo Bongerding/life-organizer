@@ -29,7 +29,7 @@
       return `
         <figure class="quote">
           <blockquote>${ui.esc(q.text)}</blockquote>
-          <figcaption>${ui.esc(q.who)}</figcaption>
+          <figcaption><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(q.who.replace(/ /g, '_'))}" target="_blank" rel="noopener noreferrer">${ui.esc(q.who)}</a></figcaption>
         </figure>
 
         <div class="k">${ui.esc(action.kind)}</div>
@@ -72,7 +72,7 @@
               return `<button class="hchip ${on ? 'on' : ''}" data-habit="${h.id}">
                 <i></i><b>${ui.esc(h.name)}</b></button>`;
             }).join('')}
-          </div>` : ''}`;
+          </div>` : ''}${LO.companion.discovery()}`;
     },
 
     mount(root) {
@@ -94,7 +94,11 @@
       if (urge) urge.onclick = () => LO.machine.quick('urge');
 
       const start = root.querySelector('[data-start]');
-      if (start) start.onclick = () => {
+      if (start) start.onclick = async () => {
+        start.disabled = true;
+        await LO.companion.launch(start);
+        start.disabled = false;
+        if (!start.isConnected || LO.machine.current !== 'do') return;
         if (action.tab) return LO.machine.go(action.tab === 'loops' ? 'write' : action.tab);
         if (action.sheet) return LO.machine.go(action.sheet === 'line' ? 'write' : 'write');
         beginTimer(action, redraw);

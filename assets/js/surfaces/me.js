@@ -36,13 +36,15 @@
       return `
         <!-- 0 · WHO -->
         <div class="profile">
-          <div class="bigcrest"><b>${lvl.level}</b></div>
+          ${LO.companion.playerStats()}
+          <div class="bigcrest"><img src="assets/icons/lumen-512.png" alt="Lumen glass companion"><b>${lvl.level}</b></div>
           <h1 class="pname">${ui.esc(cap(name))}</h1>
           <div class="plvl">Level ${lvl.level}  ·  ${lvl.into} / ${lvl.need}</div>
           <div class="meter" style="max-width:220px;margin:10px auto 0"><i style="width:${lvl.pct}%"></i></div>
           <div class="plvl" style="margin-top:8px">${lvl.total} points earned  ·  ${verdict(v)}</div>
         </div>
         <div class="portrait">${port.lines.map(l => `<p>${ui.esc(l)}</p>`).join('')}</div>
+        ${LO.companion.guidancePanel()}
 
         <!-- 1 · TRAJECTORY -->
         <div class="lbl" style="margin-top:30px">Trajectory<span class="r">${verdict(v)}</span></div>
@@ -108,6 +110,7 @@
 
         <!-- 5 · PEOPLE -->
         <div class="lbl">People<span class="r">${s.people.length || 'none yet'}</span></div>
+        <button class="flat" data-friends>Open my circle · birthdays & plans ↗</button>
         ${people(s)}
         <div class="acts" style="margin-top:12px">
           <input data-person placeholder="Add a name" style="max-width:200px;text-align:left">

@@ -41,7 +41,7 @@ window.LO = window.LO || {};
 
   /** stable for the whole day, different tomorrow, cycling through all 25 */
   function today() {
-    const day = Math.floor(Date.now() / 86400000);
+    const day = LO.store.state.meta.opens || Math.floor(Date.now() / 86400000);
     const q = QUOTES[day % QUOTES.length];
     return { text: q[0], who: q[1] };
   }

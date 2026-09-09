@@ -1,5 +1,13 @@
 # Architecture — Life Organizer v0.5
 
+Lumen update: `adaptive.js` is the on-device guidance engine; `companion.js`
+owns the friends drawer, discovery cards and shared companion interactions;
+`companion.css` supplies the game presentation. The existing state gains
+`guidance: {enabled, feedback, interests, motion}`. People may carry `birthday`,
+`nextReach` and `note`. `entry-hidden` / `entry-restored` events implement
+recoverable record removal through `store.visibleChronicle()`. See
+[LUMEN-GUIDE.md](LUMEN-GUIDE.md) for the current release's boundaries.
+
 Design rationale is in [DECISIONS.md](DECISIONS.md); the working rules for
 changing this codebase are in [CLAUDE.md](../CLAUDE.md).
 

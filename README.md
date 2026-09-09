@@ -11,6 +11,11 @@ Zero dependencies. No build step to run it. One JSON object that is yours.
 
 ## One app
 
+The current direction is **Lumen**, a glass companion inside a personal growth
+game. Read [the prospective guide](docs/LUMEN-GUIDE.md) for the new player card,
+friends drawer, adaptive guidance, and planned trajectory. Asset provenance and
+the full generation prompt are in [MASCOT.md](docs/MASCOT.md).
+
 There is no separate phone build any more. `index.html` is the whole thing:
 a bottom tab bar and full-bleed panels on a handset, the same markup widening
 into a centred column on a laptop. Four tabs, and four is the ceiling.

@@ -165,7 +165,7 @@ window.LO = window.LO || {};
       body: s => 'It has been ' + sinceRide(s) + ' days. Motorcycling is not the reward for clearing your list, it is the reason for having one.' },
 
     { id: 'ride-none', rank: 8,
-      when: s => sinceRide(s) === null,
+      when: s => sinceRide(s) === null && /motorcycl/i.test(s.identity.northStar + ' ' + s.goals.map(g => g.title).join(' ')),
       title: 'Log a ride',
       body: 'Nothing on the board for the motorcycle yet. Take it out this week and mark it, so the thing you actually love gets counted.' },
 
@@ -278,5 +278,20 @@ window.LO = window.LO || {};
     return rows.reduce((a, r) => a + (+r[key] || 0), 0) / rows.length;
   }
 
-  LO.advice = { SITUATIONS, DAILY, today, situation };
+  SITUATIONS.push(
+    { id: 'curious', icon: '✧', label: 'Curious', what: 'Follow one interesting thread.', steps: ['Notice something you want to understand.', 'Find one reliable source and read a little.', 'Explain what you learned in one sentence.'], after: 'Curiosity counts even when it does not become a project.' },
+    { id: 'proud', icon: '☀', label: 'Proud of myself', what: 'Let a good moment register.', steps: ['Name the thing you did.', 'Notice the choice that made it possible.', 'Keep one sentence about it in Write.'], after: 'You can enjoy this without immediately raising the bar.' },
+    { id: 'connected', icon: '♡', label: 'Connected', what: 'Give a good connection a little room.', steps: ['Think of the person behind this feeling.', 'Tell them one specific thing you appreciate.', 'Choose a relaxed time to see or speak to them again.'], after: 'A small sincere message can carry a lot.', go: 'people' },
+    { id: 'energized', icon: '↗', label: 'Ready for something', what: 'Spend a little of that energy intentionally.', steps: ['Pick one meaningful thing.', 'Choose a short, finishable piece of it.', 'Stop and notice your progress before choosing more.'], after: 'Energy is an opportunity, not a debt.' },
+    { id: 'content', icon: '≈', label: 'Content', what: 'Nothing needs fixing in this moment.', steps: ['Look around and notice one detail.', 'Take a comfortable breath.', 'Enjoy a moment without turning it into a task.'], after: 'A good life includes moments with nothing to optimize.' },
+    { id: 'mixed', icon: '◒', label: 'A bit of everything', what: 'Mixed feelings do not need a single label.', steps: ['Name two feelings that are here together.', 'Choose the one that needs attention first.', 'Write one small thing that would help.'], after: 'You can hold more than one feeling at once.' }
+  );
+  function moods() {
+    const day = Math.floor(Date.now() / 86400000);
+    const original = SITUATIONS.slice(0, -6), positive = SITUATIONS.slice(-6);
+    const rotate = (a, n) => a.slice(n % a.length).concat(a.slice(0, n % a.length));
+    const a = rotate(original, Math.floor(day / 3)), b = rotate(positive, Math.floor(day / 3));
+    return a.slice(0, 6).flatMap((x, i) => day % 2 ? [b[i], x] : [x, b[i]]);
+  }
+  LO.advice = { SITUATIONS, DAILY, today, situation, moods };
 })(window.LO);

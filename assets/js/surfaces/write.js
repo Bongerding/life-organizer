@@ -34,7 +34,7 @@
     render(s) {
       const counts = {};
       FILTERS[0].types.forEach(t => { counts[t] = 0; });
-      s.chronicle.forEach(e => { if (counts[e.type] !== undefined) counts[e.type]++; });
+      store.visibleChronicle().forEach(e => { if (counts[e.type] !== undefined) counts[e.type]++; });
       const mine = Object.values(counts).reduce((a, b) => a + b, 0);
 
       return `
@@ -49,7 +49,7 @@
           <span class="hint">Ctrl + Enter</span>
         </div>
 
-        <div class="lbl">Your record<span class="r">${mine} written</span></div>
+        <div class="lbl">Your record<span class="r" data-recordcount>${mine} written</span></div>
         <div class="chips2">
           ${FILTERS.map(f => `<button class="kpill ${f.id === filter ? 'on' : ''}" data-filter="${f.id}">${f.label}</button>`).join('')}
           <input data-search value="${ui.esc(query)}" placeholder="Search">
@@ -140,6 +140,7 @@
 
       function paintStream() {
         root.querySelector('[data-stream]').outerHTML = stream(store.state);
+        root.querySelector('[data-recordcount]').textContent = store.visibleChronicle().filter(e => FILTERS[0].types.includes(e.type)).length + ' written';
         bindStream();
       }
       function bindStream() {
@@ -147,11 +148,9 @@
         if (more) more.onclick = () => { shown += 21; redraw(); };
         root.querySelectorAll('[data-del]').forEach(b => {
           b.onclick = () => {
-            const ev = store.state.chronicle.find(x => x.id === b.dataset.del);
-            if (ev && ev.meta && ev.meta.ref) store.drop('scribe.entries', ev.meta.ref);
-            const i = store.state.chronicle.findIndex(x => x.id === b.dataset.del);
-            if (i > -1) store.state.chronicle.splice(i, 1);
-            store.save(); redraw();
+            store.hideEntry(b.dataset.del);
+            LO.companion.undoEntry(b.dataset.del);
+            paintStream();
           };
         });
       }
@@ -192,7 +191,7 @@
   function stream(s) {
     const f = FILTERS.find(x => x.id === filter);
     const q = query.trim().toLowerCase();
-    let evs = s.chronicle;
+    let evs = store.visibleChronicle();
     if (f && f.types) evs = evs.filter(e => f.types.includes(e.type));
     if (q) evs = evs.filter(e => (e.text || '').toLowerCase().includes(q));
 
@@ -221,7 +220,7 @@
             return `<div class="entry ${written ? '' : 'thin'}">
               <div class="meta"><span class="k">${LABELS[e.type] || e.type}</span><span class="tm">${time(e.ts)}</span></div>
               <div class="body">${ui.esc(e.text)}</div>
-              ${written ? `<button class="x" data-del="${e.id}" title="Delete">×</button>` : ''}
+              ${written ? `<button class="x" data-del="${e.id}" aria-label="Remove entry from view" title="Remove from view (recoverable)">×</button>` : ''}
             </div>`;
           }).join('')}
         </div>`;

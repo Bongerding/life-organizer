@@ -1,5 +1,24 @@
 # Decisions
 
+## 2026-09-08 · Lumen game direction supersedes the hexagon-only identity
+
+The user requested the glass-sphere mascot, player card, friends sidebar,
+playful practices, learning moments and adaptive guidance, and authorized the
+design pivot. The earlier prohibition on replacing the crest no longer applies.
+Lumen keeps a visible level and routes to Me. The four-tab structure remains.
+See [LUMEN-GUIDE.md](LUMEN-GUIDE.md) for scope, implementation, limits and trajectory.
+
+Guidance runs locally with evidence thresholds, explicit feedback and a pause
+switch. It changes recommendation weights, not source code or personal goals.
+Journal removal uses append-only hide/restore events; it is recoverable and does
+not claim to erase the original text from backups. Birthday/contact schedules
+stay inside the existing state object. No automatic messages are sent.
+
+The mascot is an AI-generated bitmap, not a Blender scene. Its exact prompt and
+asset workflow are preserved in [MASCOT.md](MASCOT.md). Personal occupational
+context informed the choice of educational topics but is not seeded into public
+code or recorded in this public handoff as a claim about the user.
+
 Why the system is shaped the way it is. Newest first.
 
 This file exists so that a model picking the project up cold does not undo a

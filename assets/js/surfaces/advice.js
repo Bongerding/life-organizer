@@ -23,9 +23,9 @@
       if (!drill) drill = dealDrill(s);
 
       return `
-        <h1 class="hd">${sit ? ui.esc(sit.label) : 'What to do about it.'}</h1>
+        <h1 class="hd">${sit ? ui.esc(sit.label) : 'Find your next spark.'}</h1>
         <p class="lede">${sit ? 'Three or four steps. Do them in order.'
-          : 'One thing for today, and a protocol for whatever you are in the middle of.'}</p>
+          : 'A little curiosity. A small challenge. Room for how you feel.'}</p>
 
         ${sit ? `
           <div class="proto">
@@ -56,12 +56,14 @@
 
           <div class="lbl">Right now I feel<span class="ln"></span></div>
           <div class="sits">
-            ${advice.SITUATIONS.map(x =>
+            ${advice.moods().map(x =>
               `<button class="sit" data-sit="${x.id}"><i>${x.icon}</i>${ui.esc(x.label)}</button>`).join('')}
           </div>
+          <details class="all-moods"><summary>All feelings</summary><div class="sits">${advice.SITUATIONS.map(x => `<button class="sit" data-sit="${x.id}"><i>${x.icon}</i>${ui.esc(x.label)}</button>`).join('')}</div></details>
 
-          <div class="lbl">Practice<span class="r">${s.rewire.reps.length} done</span></div>
-          <div class="panel" style="text-align:left">
+          <div class="lbl">The practice arcade<span class="r">${s.rewire.reps.length} explored</span></div>
+          <div class="panel practice-card" style="text-align:left">
+            <div class="eyebrow">✦ A small quest · ${LO.adaptive.analyze(s).mode}</div>
             <div class="lbl" style="margin:0 0 10px;justify-content:flex-start">
               ${ui.esc(drill.kind)} · ${ui.esc(traitLabel(drill.trait))}</div>
             <div style="font-size:17px;color:var(--ink-0);font-weight:600;margin-bottom:10px">${ui.esc(drill.title)}</div>
@@ -70,11 +72,11 @@
             ${drillDone
               ? `<div class="note" style="border-top:1px solid var(--line);padding-top:14px;color:var(--ink-1);margin:0">
                    ${ui.esc(drill.reinforce)}</div>
-                 <div class="acts" style="justify-content:flex-start"><button class="flat" data-newdrill>Another</button></div>`
-              : `<textarea data-drill rows="4" placeholder="Write the answer. Half an answer does nothing."></textarea>
+                 <div class="acts" style="justify-content:flex-start"><button class="flat" data-feedback="yes">That helped ☀</button><button class="flat" data-feedback="no">Try a different approach</button><button class="flat" data-newdrill>Next quest →</button></div>`
+              : `<textarea data-drill rows="3" placeholder="Try one honest sentence. You can build on it."></textarea>
                  <div class="acts" style="justify-content:flex-start">
-                   <button class="go" data-commit>Save it</button>
-                   <button class="flat" data-newdrill>Another</button>
+                   <button class="go" data-commit>Complete this quest ✦</button>
+                   <button class="flat" data-newdrill>Deal another ↻</button>
                  </div>`}
           </div>`}`;
     },
@@ -110,10 +112,15 @@
       };
 
       const commit = root.querySelector('[data-commit]');
+      root.querySelectorAll('[data-feedback]').forEach(b => b.onclick = () => {
+        LO.adaptive.feedback(drill.kind, b.dataset.feedback === 'yes');
+        root.querySelectorAll('[data-feedback]').forEach(x => { x.disabled = true; });
+        ui.toast('Noted. This shapes future practices.');
+      });
       if (commit) commit.onclick = () => {
         const box = root.querySelector('[data-drill]');
         const text = box.value.trim();
-        if (text.length < 12) { ui.toast('Write a bit more'); return box.focus(); }
+        if (text.length < 3) { ui.toast('One small thought is enough'); return box.focus(); }
         store.add('rewire.reps', { date: D.today(), drillId: drill.id, trait: drill.trait, response: text });
         store.win('practice', drill.title, 0, 'drill_' + drill.id);
         drillDone = true;
@@ -131,8 +138,10 @@
     const wanted = s.rewire.targets.map(t => t.trait);
     const recent = s.rewire.reps.slice(0, 10).map(r => r.drillId);
     const scored = bank.map(d => {
-      let w = 1;
-      if (wanted.includes(d.trait)) w += 4;
+      let w = LO.adaptive.preference(d.kind, s);
+      if (wanted.includes(d.trait)) w *= 5;
+      const mode = LO.adaptive.analyze(s).mode;
+      if (mode === 'gentle') w *= /exposure/i.test(d.kind) ? 0.6 : 1.4;
       if (recent.includes(d.id)) w *= 0.12;
       if (avoid && d.id === avoid) w = 0;
       return { d, w };

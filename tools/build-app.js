@@ -14,10 +14,11 @@ const path = require('path');
 const root = process.cwd();
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 
-const css = ['assets/css/core.css', 'assets/css/app.css'].map(read).join('\n\n');
+const css = ['assets/css/core.css', 'assets/css/app.css', 'assets/css/companion.css'].map(read).join('\n\n');
 
 const js = [
   'assets/js/store.js',
+  'assets/js/level.js',
   'assets/js/library.js',
   'assets/js/ui.js',
   'assets/js/quotes.js',
@@ -28,6 +29,8 @@ const js = [
   'assets/js/advice.js',
   'assets/js/sync.js',
   'assets/js/shell.js',
+  'assets/js/adaptive.js',
+  'assets/js/companion.js',
   'assets/js/surfaces/do.js',
   'assets/js/surfaces/write.js',
   'assets/js/surfaces/advice.js',
@@ -48,7 +51,8 @@ ${js}
 </script>
 <script>LO.machine.boot();</script>`;
 
-const inner = `${head}\n\n${markup}\n\n${scripts}\n`;
+const inlineAssets = text => text.replace(/assets\/icons\/lumen-(192|512)\.png/g, file => 'data:image/png;base64,' + fs.readFileSync(path.join(root, file)).toString('base64'));
+const inner = inlineAssets(`${head}\n\n${markup}\n\n${scripts}\n`);
 
 const standalone = `<!DOCTYPE html>
 <html lang="en">
@@ -71,6 +75,6 @@ ${scripts}
 
 fs.mkdirSync(path.join(root, 'build'), { recursive: true });
 fs.writeFileSync(path.join(root, 'build/life-organizer.html'), inner);
-fs.writeFileSync(path.join(root, 'build/life-organizer-standalone.html'), standalone);
+fs.writeFileSync(path.join(root, 'build/life-organizer-standalone.html'), inlineAssets(standalone));
 console.log('build/life-organizer.html', (inner.length / 1024).toFixed(1) + 'kb');
-console.log('build/life-organizer-standalone.html', (standalone.length / 1024).toFixed(1) + 'kb');
+console.log('build/life-organizer-standalone.html', (inlineAssets(standalone).length / 1024).toFixed(1) + 'kb');

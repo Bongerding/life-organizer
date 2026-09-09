@@ -18,6 +18,12 @@ without changes.
 
 ## The shape
 
+Current direction: read `docs/LUMEN-GUIDE.md` and `docs/MASCOT.md` alongside
+the decision log. The user explicitly replaced the hexagon-only identity with
+a glass companion, a player card, and a friends drawer. Preserve the local,
+explainable guidance engine and its pause/motion controls. Never publish private
+handoff files under `personal/`.
+
 **Four tabs: Do · Write · Advice · Me. There is never a fifth.** A new idea goes
 inside one of the four or it does not ship. If you think you need a fifth tab,
 you have found a feature that belongs somewhere else.

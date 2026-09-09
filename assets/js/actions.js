@@ -126,7 +126,8 @@ window.LO = window.LO || {};
     /* --- the motorcycle: the thing he actually loves, so it gets tracked --- */
     const lastRide = s.wins.find(w => w.kind === 'ride');
     const sinceRide = lastRide ? D.daysBetween(lastRide.date, today) : 999;
-    if (sinceRide >= 5) {
+    const ridingIsKnown = !!lastRide || /motorcycl/i.test(s.identity.northStar + ' ' + s.goals.map(g => g.title).join(' '));
+    if (ridingIsKnown && sinceRide >= 5) {
       push({
         id: 'ride', kind: 'the good part', when: 'any', weight: sinceRide > 12 ? 9 : 6, minutes: 20,
         label: 'Get the motorcycle out',
@@ -139,7 +140,7 @@ window.LO = window.LO || {};
     /* --- deep work: two minutes, never "work on the business" --- */
     push({
       id: 'deepwork', kind: 'two minutes', when: 'midday', weight: 6, minutes: 2,
-      label: 'Two minutes on the business',
+      label: 'Two minutes on meaningful work',
       sub: 'Open the file. Write one line. That is the entire task and you are allowed to stop after it.',
       winKind: 'craft'
     });
@@ -226,7 +227,7 @@ window.LO = window.LO || {};
     const pool = build(s)
       .filter(a => !doneRefs.includes(a.id) && a.id !== avoidId)
       .map(a => {
-        let w = a.weight || 1;
+        let w = (a.weight || 1) * LO.adaptive.weight(a, s);
         if (a.when === now) w *= 2;
         else if (a.when && a.when !== 'any') w *= 0.35;
         return { a, w };

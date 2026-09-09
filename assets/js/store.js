@@ -90,6 +90,7 @@ window.LO = window.LO || {};
       // CHRONICLE — append-only. Every event, in order, forever.
       // This is the logbook, and it is the one array nothing may rewrite.
       chronicle: [],         // [{id,ts,date,type,text,meta}]
+      guidance: { enabled: true, feedback: [], interests: ['springs'], motion: true },
 
       // WHO — the reference frame every other number is judged against
       identity: {
@@ -280,6 +281,19 @@ window.LO = window.LO || {};
     /* ---------- the chronicle ----------
        Append-only. Never edited, never reordered, never migrated.
        Every surface that shows you your own history reads this. */
+    visibleChronicle() {
+      const hidden = new Set();
+      this.state.chronicle.forEach(e => {
+        if (e.type === 'entry-hidden') hidden.add(e.meta.ref);
+        if (e.type === 'entry-restored') hidden.delete(e.meta.ref);
+      });
+      return this.state.chronicle.filter(e => !hidden.has(e.id) && !['entry-hidden', 'entry-restored'].includes(e.type));
+    },
+    hideEntry(id, restore) {
+      if (!this.state.chronicle.some(e => e.id === id)) return;
+      this.log(restore ? 'entry-restored' : 'entry-hidden', restore ? 'Restored a journal entry' : 'Removed a journal entry from view', { ref: id });
+      this.save();
+    },
     log(type, text, meta, date) {
       const now = new Date();
       this.state.chronicle.push({
@@ -609,7 +623,8 @@ window.LO = window.LO || {};
     /** most overdue relative to their own cadence, or null */
     mostOverdue() {
       const ranked = this.state.people
-        .map(p => ({ p, over: this.daysSince(p) - (p.cadence || 21) }))
+        .filter(p => !p.nextReach || p.nextReach <= D.today())
+        .map(p => ({ p, over: p.nextReach ? D.daysBetween(p.nextReach, D.today()) : this.daysSince(p) - (p.cadence || 21) }))
         .filter(x => x.over >= 0)
         .sort((a, b) => b.over - a.over);
       return ranked.length ? ranked[0].p : null;
@@ -617,7 +632,7 @@ window.LO = window.LO || {};
     contacted(id, how) {
       const p = this.state.people.find(x => x.id === id);
       const gap = p ? this.daysSince(p) : null;
-      this.patch('people', id, { lastContact: D.today() });
+      this.patch('people', id, { lastContact: D.today(), nextReach: D.shift(p ? p.cadence || 14 : 14) });
       if (p) this.log('person', (how === 'saw' ? 'Saw ' : 'Reached ') + p.name,
         { ref: id, gap: gap === 999 ? null : gap });
     },

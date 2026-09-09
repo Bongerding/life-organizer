@@ -282,16 +282,16 @@ window.LO = window.LO || {};
     if (proven.length) out.push(proven[0].claim + ' ' + proven[0].evidence);
 
     const habits = s.habits.slice().sort((a, b) => st.adherence(b, 28) - st.adherence(a, 28));
-    if (habits.length) {
+    if (habits.length && st.adherence(habits[0], 28) > 0) {
       const h = habits[0];
       out.push('Strongest habit is ' + h.name.toLowerCase() + ', ' + st.adherence(h, 28) + '% over four weeks.');
     }
 
-    const series = st.indexSeries(21).filter(p => p.v !== null);
+    const series = st.indexSeries(21).filter(p => p.v !== null && p.date >= s.meta.created);
     if (series.length >= 6) {
       const first = series[0].v, last = series[series.length - 1].v;
       const dir = last - first;
-      out.push('Trajectory over three weeks: ' +
+      out.push('Trajectory across ' + series.length + ' recorded dates: ' +
         (dir > 4 ? 'rising, ' + first + ' to ' + last + '.'
          : dir < -4 ? 'falling, ' + first + ' to ' + last + '.'
          : 'flat around ' + last + '.'));

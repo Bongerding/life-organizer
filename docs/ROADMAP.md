@@ -1,5 +1,12 @@
 # Roadmap
 
+The 2026-09-08 Lumen pivot is implemented: glass companion and app icons, raised
+player card, friends drawer with birthdays/contact plans, recoverable Write
+removal, mixed mood choices, practice feedback, and a local adaptive engine.
+The current prospective direction is [LUMEN-GUIDE.md](LUMEN-GUIDE.md): field
+journal → shareable discoveries → weekly experiments. Hosted AI, calendar sync,
+and background notifications are future work, not claims about this release.
+
 The end state: a system that holds everything about your life, calculates your
 trajectory, and trains you toward the person you have decided to become —
 reachable from a phone in two seconds.

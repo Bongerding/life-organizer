@@ -1,0 +1,116 @@
+/* Lumen: a glass companion, a circle of friends, and small discoveries. No remote profiling. */
+(function (LO) {
+  'use strict';
+  const { store, ui, D } = LO;
+  let returnFocus, discoveryOffset = 0;
+  const facts = [
+    { topic: 'springs', title: 'A spring with its own thermostat', text: 'Rock Springs at Kelly Park flows at about 68°F year-round. The cool water you feel is groundwater arriving at the surface.', source: 'Orange County', url: 'https://newsroom.ocfl.net/2025/07/spotlight-on-kelly-park-an-apopka-landmark-and-natural-treasure/', ask: 'How would you explain that cool water to someone on their first paddle?' },
+    { topic: 'springs', title: 'Two springs, two temperatures', text: 'Wekiwa Springs is described by Florida State Parks as 72°F year-round. Nearby springs do not necessarily share the same temperature.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/parks-and-trails/wekiwa-springs-state-park', ask: 'Try asking someone to guess the temperature before sharing the answer.' },
+    { topic: 'nature', title: 'A window into the ground', text: 'Sinkholes at Lafayette Blue Springs provide openings through which water can recharge the aquifer. What happens at the surface matters underground.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/learn/springs-lafayette-blue-springs', ask: 'What can you see around you that connects surface water and groundwater?' },
+    { topic: 'nature', title: 'The spring has a larger story', text: 'Florida DEP identifies lower groundwater levels and excess nutrients as pressures on springs. Protecting a spring involves more than its visible pool.', source: 'Florida DEP', url: 'https://floridadep.gov/springs', ask: 'Tell the story in one friendly sentence, without turning it into a lecture.' }
+  ];
+  function discovery() {
+    const selected = store.state.guidance.interests;
+    const pool = facts.filter(f => selected.includes(f.topic));
+    if (!pool.length) return '';
+    const f = pool[(Math.floor(Date.now() / 14400000) + discoveryOffset) % pool.length];
+    return `<aside class="discovery"><div class="eyebrow">A little wonder · ${ui.esc(f.topic)}</div><h3>${ui.esc(f.title)}</h3><p>${ui.esc(f.text)}</p><a href="${f.url}" target="_blank" rel="noopener noreferrer">${f.source} ↗</a><details><summary>Make it a conversation</summary><p>${ui.esc(f.ask)}</p></details><button class="flat" data-discover>Another discovery ↻</button></aside>`;
+  }
+  function birthday(p) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.birthday || '')) return '';
+    const md = p.birthday.slice(5), year = new Date().getFullYear();
+    let next = year + '-' + md;
+    if (next < D.today()) next = (year + 1) + '-' + md;
+    const days = D.daysBetween(D.today(), next);
+    return days === 0 ? 'Birthday today 🎂' : 'Birthday in ' + days + ' days';
+  }
+  function due(p) {
+    return p.nextReach || (p.lastContact ? D.shift(Number(p.cadence) || 14, p.lastContact) : D.today());
+  }
+  function friendsBody() {
+    const list = store.state.people.slice().sort((a, b) => due(a).localeCompare(due(b)));
+    return `<header class="drawer-heading"><div><div class="eyebrow">Your circle</div><h2>Friends to keep</h2></div><button class="flat" data-closefriends aria-label="Close friends">×</button></header>
+      <p class="note">Real people. Small moments. A reason to reach out.</p>
+      <form data-friendform class="friend-form"><label>Name<input name="name" required maxlength="80" autocomplete="off"></label><label>Birthday <small>(optional)</small><input name="birthday" type="date"></label><label>Reach out every<select name="cadence"><option value="7">Week</option><option value="14" selected>Two weeks</option><option value="30">Month</option><option value="90">Three months</option></select></label><label>Next reach-out<input name="nextReach" type="date"></label><label>Good time / shared interests<input name="note" maxlength="240" placeholder="Weekend afternoons, a walk…"></label><button class="go" type="submit">Add to my circle</button></form>
+      <div class="friend-list">${list.length ? list.map(p => `<article class="friend-card"><span class="friend-avatar">${ui.esc(p.name.slice(0, 1).toUpperCase())}</span><div><h3>${ui.esc(p.name)}</h3><p class="note">${due(p) <= D.today() ? 'A good day to reach out' : 'Next: ' + D.pretty(due(p))}</p>${birthday(p) ? `<p class="birthday">${birthday(p)}</p>` : ''}<p>${ui.esc(p.note || '')}</p></div><div class="acts"><button class="flat" data-contact="${p.id}">We connected ✓</button><button class="flat" data-snooze="${p.id}">Tomorrow</button></div><details><summary>Edit friend</summary><form data-editfriend="${p.id}" class="friend-form"><label>Name<input name="name" required maxlength="80" value="${ui.esc(p.name)}"></label><label>Birthday<input type="date" name="birthday" value="${ui.esc(p.birthday || '')}"></label><label>Days between contact<input name="cadence" type="number" min="1" max="365" required value="${Number(p.cadence) || 14}"></label><label>Next reach-out<input name="nextReach" type="date" value="${ui.esc(due(p))}"></label><label>Good time / shared interests<input name="note" maxlength="240" value="${ui.esc(p.note || '')}"></label><button class="flat">Save friend</button></form></details></article>`).join('') : '<p class="note">Your circle starts with one name. No invitations are sent.</p>'}</div>`;
+  }
+  function bindFriends() {
+    const el = document.getElementById('friends-drawer');
+    el.querySelector('[data-closefriends]').onclick = closeFriends;
+    function fields(form) {
+      const f = Object.fromEntries(new FormData(form));
+      return { name: f.name.trim(), birthday: f.birthday, cadence: Math.max(1, Math.min(365, Number(f.cadence) || 14)), nextReach: f.nextReach, note: f.note.trim() };
+    }
+    el.querySelector('[data-friendform]').onsubmit = e => {
+      e.preventDefault(); const data = fields(e.target); if (!data.name) return;
+      store.add('people', Object.assign(data, { lastContact: '', created: D.today() })); paintFriends();
+    };
+    el.querySelectorAll('[data-editfriend]').forEach(form => form.onsubmit = e => {
+      e.preventDefault(); const data = fields(form); if (!data.name) return;
+      store.patch('people', form.dataset.editfriend, data); paintFriends();
+    });
+    el.querySelectorAll('[data-contact]').forEach(b => b.onclick = () => {
+      const p = store.state.people.find(x => x.id === b.dataset.contact);
+      store.contacted(p.id, 'connected'); store.patch('people', p.id, { nextReach: D.shift(p.cadence || 14) }); paintFriends();
+    });
+    el.querySelectorAll('[data-snooze]').forEach(b => b.onclick = () => { store.patch('people', b.dataset.snooze, { nextReach: D.shift(1) }); paintFriends(); });
+  }
+  function paintFriends() { document.getElementById('friends-drawer').innerHTML = friendsBody(); bindFriends(); }
+  function openFriends() {
+    const el = document.getElementById('friends-drawer');
+    if (el.open) return;
+    returnFocus = document.activeElement; paintFriends(); el.showModal(); document.getElementById('friends-handle').setAttribute('aria-expanded', 'true');
+  }
+  function closeFriends() { document.getElementById('friends-drawer').close(); }
+  function launch(button) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !store.state.guidance.motion || store.state.settings.reduceMotion) return Promise.resolve();
+    button.classList.add('launching');
+    const flare = document.createElement('div'); flare.className = 'launch-flare'; flare.setAttribute('aria-hidden', 'true'); document.body.appendChild(flare);
+    return new Promise(resolve => setTimeout(() => { flare.remove(); button.classList.remove('launching'); resolve(); }, 680));
+  }
+  function playerStats() {
+    const a = LO.adaptive.analyze(store.state);
+    return `<div class="player-ribbon">LUMEN / PLAYER RECORD</div><div class="player-stats"><div><b>${a.current}</b><span>Actions · 7 days</span></div><div><b>${store.state.people.length}</b><span>Friends kept</span></div><div><b>${store.state.rewire.reps.length}</b><span>Practices</span></div></div>`;
+  }
+  function guidancePanel() {
+    const a = LO.adaptive.analyze(store.state);
+    return `<div class="guidance-card"><div class="eyebrow">Companion compass · ${a.mode}</div><p>${ui.esc(a.reason)}</p><p class="note">Recorded activity is a partial picture, not a judgement of your life.</p><label><input type="checkbox" data-adaptive ${store.state.guidance.enabled ? 'checked' : ''}> Adapt my guidance</label><label><input type="checkbox" data-motion ${store.state.guidance.motion ? 'checked' : ''}> Companion motion</label><fieldset><legend>Discoveries I enjoy</legend>${['springs','nature'].map(t => `<label><input type="checkbox" data-interest="${t}" ${store.state.guidance.interests.includes(t) ? 'checked' : ''}> ${t}</label>`).join('')}</fieldset><button class="flat" data-restore>Restore removed writes</button></div>`;
+  }
+  function undoEntry(id) {
+    const t = document.createElement('div'); t.className = 'toast';
+    t.innerHTML = 'Removed from view. <button class="flat">Undo</button>'; document.getElementById('toast').appendChild(t);
+    t.querySelector('button').onclick = () => { store.hideEntry(id, true); t.remove(); LO.machine.refresh(); }; setTimeout(() => t.remove(), 12000);
+  }
+  function boot() {
+    const handle = document.createElement('button'); handle.id = 'friends-handle'; handle.innerHTML = '<span>◈</span> Friends'; handle.setAttribute('aria-expanded', 'false'); handle.setAttribute('aria-controls', 'friends-drawer');
+    const drawer = document.createElement('dialog'); drawer.id = 'friends-drawer'; drawer.setAttribute('aria-label', 'Close friends');
+    document.body.append(handle, drawer); handle.onclick = openFriends;
+    let startY = null;
+    handle.onpointerdown = e => { startY = e.clientY; handle.setPointerCapture(e.pointerId); };
+    handle.onpointermove = e => { if (startY !== null) handle.style.transform = 'translateY(' + Math.max(-50, Math.min(0, e.clientY - startY)) + 'px)'; };
+    handle.onpointerup = e => { handle.style.transform = ''; if (startY !== null && startY - e.clientY > 25) { openFriends(); e.preventDefault(); } startY = null; };
+    handle.onpointercancel = () => { startY = null; handle.style.transform = ''; };
+    drawer.addEventListener('close', () => { handle.setAttribute('aria-expanded', 'false'); if (returnFocus && returnFocus.isConnected) returnFocus.focus(); });
+    drawer.onclick = e => { if (e.target === drawer) { const r = drawer.getBoundingClientRect(); if (e.clientX < r.left || e.clientY < r.top) closeFriends(); } };
+    document.body.insertAdjacentHTML('beforeend', '<div class="lumen-trail" aria-hidden="true"><svg viewBox="0 0 700 1000" preserveAspectRatio="none"><defs><linearGradient id="beam"><stop stop-color="#e5b965" stop-opacity="0"/><stop offset="1" stop-color="#fff2bb" stop-opacity=".65"/></linearGradient></defs><path d="M0 920 C600 950 720 680 670 440 S470 220 620 20 L632 20 C477 223 707 295 682 440 S605 954 0 920" fill="url(#beam)"/></svg></div>');
+    document.addEventListener('click', e => {
+      if (e.target.closest('[data-discover]')) { discoveryOffset++; LO.machine.refresh(); }
+      if (e.target.closest('[data-friends]')) openFriends();
+      if (e.target.closest('[data-restore]')) {
+        const visible = new Set(store.visibleChronicle().map(x => x.id));
+        const ids = new Set(store.state.chronicle.filter(x => x.type === 'entry-hidden' && !visible.has(x.meta.ref)).map(x => x.meta.ref));
+        ids.forEach(id => store.hideEntry(id, true)); ui.toast('Restored ' + ids.size + ' entries'); LO.machine.refresh();
+      }
+    });
+    document.addEventListener('change', e => {
+      if (e.target.matches('[data-adaptive]')) store.state.guidance.enabled = e.target.checked;
+      else if (e.target.matches('[data-motion]')) store.state.guidance.motion = e.target.checked;
+      else if (e.target.matches('[data-interest]')) {
+        const t = e.target.dataset.interest, set = new Set(store.state.guidance.interests); e.target.checked ? set.add(t) : set.delete(t); store.state.guidance.interests = [...set];
+      } else return;
+      store.save(); document.body.classList.toggle('still', !store.state.guidance.motion || store.state.settings.reduceMotion); LO.machine.refresh();
+    });
+    document.body.classList.toggle('still', !store.state.guidance.motion || store.state.settings.reduceMotion);
+  }
+  LO.companion = { boot, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
+})(window.LO);
