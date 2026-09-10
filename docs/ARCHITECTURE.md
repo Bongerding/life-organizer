@@ -28,6 +28,13 @@ redeals rather than leaving a morning instruction on screen all afternoon.
 regardless of classifier kind. Daily task lifecycle events use `day-task` and
 `day-task-done`, which are outside the default written-record filters.
 
+Advice's joysticks are a finite quest resolver in `advice.quest()`, not a prose
+or personality generator. The surface records the resolved action and raw axes
+only after the user marks the action done. `aims.resolve()` repairs semantic
+trackers at read time for acquisition and sale goals, including goals saved by
+older releases. Write recategorization appends `entry-reclassified`; the visible
+chronicle projects the latest category without mutating the source event.
+
 Design rationale is in [DECISIONS.md](DECISIONS.md); the working rules for
 changing this codebase are in [CLAUDE.md](../CLAUDE.md).
 

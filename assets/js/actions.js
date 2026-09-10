@@ -180,10 +180,41 @@ window.LO = window.LO || {};
       });
     }
 
-    /* --- the motorcycle: the thing he actually loves, so it gets tracked --- */
+    /* --- acquisition and sale goals need market actions, not ride counts --- */
+    const buying = s.goals.find(g => g.status === 'live' && /\b(motorcycl|motorbike)/i.test(g.title) && /\b(buy|purchase|shop|find|acquire|get)\b/i.test(g.title));
+    if (buying) {
+      push({
+        id: 'market_' + buying.id, kind: 'scan the market', source: 'Aim · acquisition',
+        when: ['morning', 'midday', 'afternoon'], weight: 8, minutes: 8,
+        label: 'Check one marketplace for a viable motorcycle',
+        sub: 'Open your saved search. Compare three listings against your limits. Save or message only when one actually fits.',
+        why: 'This aim advances through informed market checks, not through rides on a bike you do not own yet.',
+        winKind: 'market-check'
+      });
+    }
+    const selling = s.goals.find(g => g.status === 'live' && /\b(motorcycl|motorbike)/i.test(g.title) && /\b(sell|list|sale|selling)\b/i.test(g.title));
+    if (selling) {
+      const saleSteps = [
+        ['Fix one sale blocker on the motorcycle', 'Inspect it and handle one concrete issue a buyer would notice. Stop after one issue.'],
+        ['Take the motorcycle’s sale photos', 'Clean the visible surfaces, move it into clear light, and take front, rear, side, odometer, and detail photos.'],
+        ['Create or improve the motorcycle listing', 'Add the useful facts, honest condition, clear price, and strongest photos. Publish it or improve the live listing.']
+      ];
+      const saleCount = s.wins.filter(w => w.kind === 'sale-prep').length;
+      const step = saleSteps[saleCount % saleSteps.length];
+      push({
+        id: 'sale_' + selling.id + '_' + (saleCount % saleSteps.length), kind: 'prepare the sale', source: 'Aim · sale',
+        when: ['morning', 'midday', 'afternoon'], weight: 8, minutes: 10,
+        label: step[0], sub: step[1],
+        why: 'This aim moves through condition, photographs, and a truthful listing—not through marketplace browsing.',
+        winKind: 'sale-prep'
+      });
+    }
+
+    /* --- riding is tracked only when the goal is actually to ride --- */
     const lastRide = s.wins.find(w => w.kind === 'ride');
     const sinceRide = lastRide ? D.daysBetween(lastRide.date, today) : 999;
-    const ridingIsKnown = !!lastRide || /motorcycl/i.test(s.identity.northStar + ' ' + s.goals.map(g => g.title).join(' '));
+    const ridingGoals = s.goals.filter(g => !/\b(buy|purchase|shop|find|acquire|get|sell|list|sale|selling)\b/i.test(g.title));
+    const ridingIsKnown = !!lastRide || /motorcycl/i.test(s.identity.northStar + ' ' + ridingGoals.map(g => g.title).join(' '));
     if (ridingIsKnown && sinceRide >= 5) {
       push({
         id: 'ride', kind: 'the good part', when: 'any', weight: sinceRide > 12 ? 9 : 6, minutes: 20,
@@ -260,7 +291,8 @@ window.LO = window.LO || {};
     });
 
     /* --- an untouched goal is a quiet source of guilt; make it a 2-minute ask --- */
-    const stale = s.goals.filter(g => g.status === 'live' && !g.progress);
+    const stale = s.goals.filter(g => g.status === 'live' && !g.progress &&
+      !(/\b(motorcycl|motorbike)/i.test(g.title) && /\b(buy|purchase|shop|find|acquire|get|sell|list|sale|selling)\b/i.test(g.title)));
     if (stale.length) {
       const g = stale[Math.floor(Math.random() * stale.length)];
       push({

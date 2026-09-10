@@ -9,8 +9,9 @@
   const { ui, store, lib, D, advice, insight } = LO;
 
   let open = null;      // situation id currently showing
-  let drill = null;
-  let drillDone = false;
+  let questLocked = false;
+  let lockedQuest = null;
+  let questDone = false;
   let sticks = freshSticks();
 
   LO.machine.register({
@@ -21,7 +22,7 @@
       const tip = advice.today(s);
       const noticed = insight.messages(s).filter(m => m.tone !== 'quiet').slice(0, 3);
       const sit = open ? advice.situation(open) : null;
-      if (!drill) drill = dealDrill(s);
+      const shaped = lockedQuest || advice.quest(sticks, s);
 
       return `
         <h1 class="hd">${sit ? ui.esc(sit.label) : 'Find your next spark.'}</h1>
@@ -62,28 +63,23 @@
           </div>
           <details class="all-moods"><summary>All feelings</summary><div class="sits">${advice.SITUATIONS.map(x => `<button class="sit" data-sit="${x.id}"><i>${x.icon}</i>${ui.esc(x.label)}</button>`).join('')}</div></details>
 
-          <div class="lbl">The practice arcade<span class="r">${s.rewire.reps.length} explored</span></div>
+          <div class="lbl">The practice arcade<span class="r">${s.rewire.reps.length} completed</span></div>
           <div class="panel practice-card" style="text-align:left">
-            <div class="eyebrow">✦ A small quest · ${LO.adaptive.analyze(s).mode}</div>
-            <div class="lbl" style="margin:0 0 10px;justify-content:flex-start">
-              ${ui.esc(drill.kind)} · ${ui.esc(traitLabel(drill.trait))}</div>
-            <div style="font-size:17px;color:var(--ink-0);font-weight:600;margin-bottom:10px">${ui.esc(drill.title)}</div>
-            <div class="note" style="max-width:58ch;margin:0 0 14px">${ui.esc(drill.situation)}</div>
-            <div style="font-size:14px;color:var(--accent);margin-bottom:10px">${ui.esc(drill.ask)}</div>
-            ${drillDone
-              ? `<div class="note" style="border-top:1px solid var(--line);padding-top:14px;color:var(--ink-1);margin:0">
-                   ${ui.esc(drill.reinforce)}</div>
-                 <div class="acts" style="justify-content:flex-start"><button class="flat" data-feedback="yes">That helped ☀</button><button class="flat" data-feedback="no">Try a different approach</button><button class="flat" data-newdrill>Next quest →</button></div>`
-              : `<p class="stick-instruction">Move both sticks until the live sentence feels closest to your answer.</p>
-                 <div class="stick-deck">
-                   ${stick('sense', 'Instinct', 'energized', 'gentle', 'away', 'toward')}
-                   ${stick('move', 'Next move', 'together', 'solo', 'pause', 'act')}
-                 </div>
-                 <div class="stick-answer" aria-live="polite"><span>Your answer</span><p data-stickanswer>${ui.esc(stickAnswer())}</p></div>
-                 <div class="acts" style="justify-content:flex-start">
-                   <button class="go" data-commit disabled>Complete this quest ✦</button>
-                   <button class="flat" data-newdrill>Deal another ↻</button>
-                 </div>`}
+            <div class="eyebrow">✦ Steer a real-world rep · ${LO.adaptive.analyze(s).mode}</div>
+            ${questDone
+              ? `<div class="quest-complete"><b>Quest banked.</b><p>${ui.esc(shaped.title)}</p></div>
+                 <div class="acts" style="justify-content:flex-start"><button class="flat" data-feedback="yes">That helped ☀</button><button class="flat" data-feedback="no">Change the method</button><button class="flat" data-newquest>Next quest →</button></div>`
+              : questLocked
+                ? `${questCard(shaped)}<div class="acts" style="justify-content:flex-start"><button class="go" data-finishquest>I did it ✦</button><button class="flat" data-resteer>Re-steer</button></div>`
+                : `<p class="stick-instruction">Choose the arena with the left stick and the method with the right. The quest changes under your hands.</p>
+                   <div class="stick-deck">
+                     ${stick('sense', 'Arena', 'settle', 'activate', 'self', 'work')}
+                     ${stick('move', 'Method', 'solo', 'together', 'prepare', 'do')}
+                   </div>
+                   <div data-stickquest aria-live="polite">${questCard(shaped)}</div>
+                   <div class="acts" style="justify-content:flex-start">
+                     <button class="go" data-choosequest disabled>Choose this quest</button>
+                   </div>`}
           </div>`}`;
     },
 
@@ -117,52 +113,40 @@
         redraw();
       };
 
-      const commit = root.querySelector('[data-commit]');
       root.querySelectorAll('[data-feedback]').forEach(b => b.onclick = () => {
-        LO.adaptive.feedback(drill.kind, b.dataset.feedback === 'yes');
+        LO.adaptive.feedback(lockedQuest.kind, b.dataset.feedback === 'yes');
         root.querySelectorAll('[data-feedback]').forEach(x => { x.disabled = true; });
         ui.toast('Noted. This shapes future practices.');
       });
-      if (commit) {
-        bindSticks(root, commit);
-        commit.onclick = () => {
-          if (!sticks.sense.touched || !sticks.move.touched) return ui.toast('Move both sticks to shape your answer');
-          const text = stickAnswer();
-          store.add('rewire.reps', {
-            date: D.today(), drillId: drill.id, trait: drill.trait, response: text,
-            signal: { sense: { x: sticks.sense.x, y: sticks.sense.y }, move: { x: sticks.move.x, y: sticks.move.y } }
-          });
-          store.win('practice', drill.title, 0, 'drill_' + drill.id);
-          drillDone = true;
-          ui.toast('Saved');
+      const choose = root.querySelector('[data-choosequest]');
+      if (choose) {
+        bindSticks(root, choose);
+        choose.onclick = () => {
+          if (!sticks.sense.touched || !sticks.move.touched) return ui.toast('Move both sticks to choose a quest');
+          lockedQuest = advice.quest(sticks, store.state);
+          questLocked = true;
           redraw();
         };
       }
-      root.querySelectorAll('[data-newdrill]').forEach(b => {
-        b.onclick = () => { drill = dealDrill(store.state, drill && drill.id); drillDone = false; sticks = freshSticks(); redraw(); };
+      const finish = root.querySelector('[data-finishquest]');
+      if (finish) finish.onclick = () => {
+        store.add('rewire.reps', {
+          date: D.today(), drillId: lockedQuest.id, trait: lockedQuest.trait, response: lockedQuest.title,
+          action: { steps: lockedQuest.steps.slice(), minutes: lockedQuest.minutes },
+          signal: { sense: { x: sticks.sense.x, y: sticks.sense.y }, move: { x: sticks.move.x, y: sticks.move.y } }
+        });
+        store.win('practice', lockedQuest.title, lockedQuest.minutes, 'quest_' + lockedQuest.id);
+        questDone = true;
+        ui.toast('Quest completed');
+        redraw();
+      };
+      const resteer = root.querySelector('[data-resteer]');
+      if (resteer) resteer.onclick = () => { questLocked = false; lockedQuest = null; redraw(); };
+      root.querySelectorAll('[data-newquest]').forEach(b => {
+        b.onclick = () => { questLocked = false; lockedQuest = null; questDone = false; sticks = freshSticks(); redraw(); };
       });
     }
   });
-
-  function dealDrill(s, avoid) {
-    const bank = lib.drills;
-    const wanted = s.rewire.targets.map(t => t.trait);
-    const recent = s.rewire.reps.slice(0, 10).map(r => r.drillId);
-    const scored = bank.map(d => {
-      let w = LO.adaptive.preference(d.kind, s);
-      if (wanted.includes(d.trait)) w *= 5;
-      const mode = LO.adaptive.analyze(s).mode;
-      if (mode === 'gentle') w *= /exposure/i.test(d.kind) ? 0.6 : 1.4;
-      if (recent.includes(d.id)) w *= 0.12;
-      if (avoid && d.id === avoid) w = 0;
-      return { d, w };
-    }).filter(x => x.w > 0);
-    if (!scored.length) return bank[0];
-    const total = scored.reduce((a, x) => a + x.w, 0);
-    let r = Math.random() * total;
-    for (const x of scored) { r -= x.w; if (r <= 0) return x.d; }
-    return scored[0].d;
-  }
   function freshSticks() {
     return { sense: { x: 0, y: 0, touched: false }, move: { x: 0, y: 0, touched: false } };
   }
@@ -175,9 +159,11 @@
         <i class="stick-knob"></i>
       </div></div>`;
   }
-  function stickAnswer() { return advice.signalAnswer(sticks); }
+  function questCard(q) {
+    return `<div class="stick-answer quest-card"><span>${ui.esc(q.kind)} · about ${q.minutes} min</span><p data-questtitle>${ui.esc(q.title)}</p><ol>${q.steps.map(x => `<li>${ui.esc(x)}</li>`).join('')}</ol><small>${ui.esc(q.reason)}</small></div>`;
+  }
   function bindSticks(root, commit) {
-    const answer = root.querySelector('[data-stickanswer]');
+    const host = root.querySelector('[data-stickquest]');
     const update = (pad, x, y) => {
       const mag = Math.hypot(x, y) || 1;
       if (mag > 1) { x /= mag; y /= mag; }
@@ -187,7 +173,7 @@
       pad.style.setProperty('--jy', (p.y * 38).toFixed(1) + 'px');
       pad.setAttribute('aria-valuenow', String(Math.round(p.x * 100)));
       pad.setAttribute('aria-valuetext', 'horizontal ' + Math.round(p.x * 100) + ', vertical ' + Math.round(-p.y * 100));
-      answer.textContent = stickAnswer();
+      host.innerHTML = questCard(advice.quest(sticks, store.state));
       commit.disabled = !sticks.sense.touched || !sticks.move.touched;
     };
     root.querySelectorAll('[data-stick]').forEach(pad => {
@@ -207,5 +193,4 @@
       };
     });
   }
-  function traitLabel(id) { const t = lib.traits.find(x => x.id === id); return t ? t.label : id; }
 })(window.LO);

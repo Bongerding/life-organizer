@@ -164,7 +164,10 @@ window.LO = window.LO || {};
     const age = c.last ? (Date.now() - new Date(c.last).getTime()) / 3600000 : Infinity;
     if (age < MIN_GAP_HOURS) return;
     clearTimeout(pending);
-    pending = setTimeout(() => push(reason || 'auto'), 4000);
+    pending = setTimeout(async () => {
+      const result = await push(reason || 'auto');
+      LO.ui.toast(result.ok ? 'Automatic backup complete' : 'Backup failed: ' + result.error, result.ok ? 2600 : 5000);
+    }, 4000);
   }
 
   function status() {

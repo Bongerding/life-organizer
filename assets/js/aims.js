@@ -34,6 +34,14 @@ window.LO = window.LO || {};
     const t = (title || '').toLowerCase();
     const c = cadence(t);
 
+    const motorcycle = /\b(motorcycl|motorbike)/.test(t);
+    if (motorcycle && /\b(buy|purchase|shop|find|acquire|get)\b/.test(t)) {
+      return { kind: 'wins', winKind: 'market-check', per: c ? c.per : 3, unit: c ? c.unit : 'week', what: 'marketplace checks', current: true };
+    }
+    if (motorcycle && /\b(sell|list|sale|selling)\b/.test(t)) {
+      return { kind: 'wins', winKind: 'sale-prep', per: c ? c.per : 3, unit: c ? c.unit : 'week', what: 'sale steps', current: true };
+    }
+
     if (/\b(motorcycl|motorbike|ride out|bike out)/.test(t)) {
       return { kind: 'wins', winKind: 'ride', per: c ? c.per : 1, unit: c ? c.unit : 'week', what: 'rides' };
     }
@@ -68,7 +76,7 @@ window.LO = window.LO || {};
 
   /** count events in the last `days`, from the right source */
   function rate(track, s) {
-    const win = Math.max(28, (DAYS[track.unit] || 7) * 4);   // at least four periods
+    const win = track.current ? (DAYS[track.unit] || 7) : Math.max(28, (DAYS[track.unit] || 7) * 4);
     const since = D.shift(-win + 1);
     let n = 0;
     if (track.kind === 'habit') {
@@ -82,14 +90,14 @@ window.LO = window.LO || {};
         /^(Reached|Saw)/.test(e.text || '')).length;
     } else return null;
 
-    const periods = win / (DAYS[track.unit] || 7);
+    const periods = track.current ? 1 : win / (DAYS[track.unit] || 7);
     const expected = track.per * periods;
     return { n, expected, periods, win };
   }
 
   /** {pct, label, auto} for one goal */
   function progress(goal, s) {
-    const track = goal.track || detect(goal.title, goal.domain);
+    const track = resolve(goal);
 
     if (track.kind === 'manual') {
       return { pct: +goal.progress || 0, label: 'set by hand', auto: false };
@@ -121,12 +129,18 @@ window.LO = window.LO || {};
     const perPeriod = (r.n / r.periods);
     return {
       pct,
-      label: fmt(perPeriod) + ' of ' + track.per + ' ' + track.what + ' a ' + track.unit,
+      label: fmt(perPeriod) + ' of ' + track.per + ' ' + track.what + (track.current ? ' this ' : ' a ') + track.unit,
       auto: true
     };
   }
 
+  /** New semantic rules repair old saved trackers without rewriting history. */
+  function resolve(goal) {
+    const fresh = detect(goal.title, goal.domain);
+    return fresh.winKind === 'market-check' || fresh.winKind === 'sale-prep' ? fresh : (goal.track || fresh);
+  }
+
   function fmt(n) { return n >= 10 ? Math.round(n) : Math.round(n * 10) / 10; }
 
-  LO.aims = { detect, progress, cadence };
+  LO.aims = { detect, resolve, progress, cadence };
 })(window.LO);

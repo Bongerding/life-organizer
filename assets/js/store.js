@@ -283,16 +283,28 @@ window.LO = window.LO || {};
        Every surface that shows you your own history reads this. */
     visibleChronicle() {
       const hidden = new Set();
+      const category = new Map();
       this.state.chronicle.forEach(e => {
         if (e.type === 'entry-hidden') hidden.add(e.meta.ref);
         if (e.type === 'entry-restored') hidden.delete(e.meta.ref);
+        if (e.type === 'entry-reclassified' && e.meta && e.meta.ref) category.set(e.meta.ref, e.meta.to);
       });
-      return this.state.chronicle.filter(e => !hidden.has(e.id) && !['entry-hidden', 'entry-restored'].includes(e.type));
+      return this.state.chronicle
+        .filter(e => !hidden.has(e.id) && !['entry-hidden', 'entry-restored', 'entry-reclassified'].includes(e.type))
+        .map(e => category.has(e.id) ? Object.assign({}, e, { type: category.get(e.id) }) : e);
     },
     hideEntry(id, restore) {
       if (!this.state.chronicle.some(e => e.id === id)) return;
       this.log(restore ? 'entry-restored' : 'entry-hidden', restore ? 'Restored a journal entry' : 'Removed a journal entry from view', { ref: id });
       this.save();
+    },
+    reclassifyEntry(id, kind) {
+      const allowed = ['task', 'chore', 'activity', 'plan', 'feeling', 'thought'];
+      const current = this.visibleChronicle().find(e => e.id === id);
+      if (!current || !allowed.includes(kind) || current.type === kind) return current;
+      this.log('entry-reclassified', 'Refiled a written entry', { ref: id, from: current.type, to: kind });
+      this.save();
+      return Object.assign({}, current, { type: kind });
     },
     log(type, text, meta, date) {
       const now = new Date();
@@ -503,7 +515,7 @@ window.LO = window.LO || {};
       let aim = null;
       if (live.length) {
         const feeds = !LO.aims ? live : live.filter(g => {
-          const t = g.track || LO.aims.detect(g.title, g.domain);
+          const t = LO.aims.resolve ? LO.aims.resolve(g) : (g.track || LO.aims.detect(g.title, g.domain));
           return t.kind !== 'index' && t.kind !== 'pillar';
         });
         if (feeds.length) {

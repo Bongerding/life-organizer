@@ -19,6 +19,8 @@ window.LO = window.LO || {};
     toast(msg, ms) {
       const host = document.getElementById('toast');
       if (!host) return;
+      host.setAttribute('role', 'status');
+      host.setAttribute('aria-live', 'polite');
       const el = document.createElement('div');
       el.className = 'toast';
       el.textContent = msg;

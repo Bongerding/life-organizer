@@ -475,16 +475,16 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.45)}
 }
 
 /* ---------- 15. TOAST ---------- */
-#toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 72px);bottom:auto;transform:translateX(-50%);z-index:180;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(420px,calc(100vw - 28px))}
 .toast{
-  padding:10px 18px;border-radius:999px;font-size:12px;letter-spacing:.05em;
+  box-sizing:border-box;width:100%;padding:11px 16px;border-radius:4px 4px 14px 14px;font-size:12px;letter-spacing:.05em;text-align:center;
   border:1px solid var(--accent);background:rgba(11,15,24,.94);color:var(--ink-0);
   box-shadow:0 12px 40px -14px var(--accent);backdrop-filter:blur(10px);
   animation:toastin 320ms var(--spring) both;
 }
 .toast.out{animation:toastout 300ms var(--swift) both}
-@keyframes toastin{from{opacity:0;transform:translateY(16px) scale(.9)}}
-@keyframes toastout{to{opacity:0;transform:translateY(-10px) scale(.96)}}
+@keyframes toastin{from{opacity:0;transform:translateY(-18px) scale(.96)}}
+@keyframes toastout{to{opacity:0;transform:translateY(-12px) scale(.98)}}
 
 /* ---------- 16. BOOT VEIL ---------- */
 #veil{

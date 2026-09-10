@@ -57,3 +57,12 @@ live answer card and full-width completion target. Performance was checked
 structurally rather than reported as an invented FPS number: one trail-group
 animation replaces the per-path animations, wedge writes are capped near 24fps,
 and off-screen mascots are skipped.
+
+Quest/record refinement: automated checks now cover joystick-to-concrete-quest
+resolution, semantic repair of buy/sell motorcycle goals, and append-only Write
+reclassification. All changed JavaScript passes `node --check`. Source checks
+also keep the practice free of a textarea and identity-sentence generator. The
+friends form defaults collapsed, automatic backup reports its result through the
+top notification rail, and the reward transition creates twenty-eight temporary
+glass wedges before returning to Do. Browser automation was unavailable for this
+pass, so no unobserved visual interaction is claimed here.

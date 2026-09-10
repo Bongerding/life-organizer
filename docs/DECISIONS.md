@@ -1,5 +1,31 @@
 # Decisions
 
+## 2026-09-09 · The joysticks choose a quest, not an identity sentence
+
+The two controls now resolve to one small physical action across four arenas:
+work, self, connection, or environment. The second stick selects preparation
+versus direct action and solo versus together. The player locks the generated
+quest, does its two visible steps, and only then banks the practice. Coordinates,
+the chosen action, and its steps are recorded as evidence; the app does not turn
+them into a personality claim. The discarded “I am the kind of person who” copy
+must not return.
+
+Write corrections are projections over an append-only record. Holding an entry
+opens a category rail; dropping it appends `entry-reclassified` and teaches the
+classifier, while the original event remains byte-for-byte unchanged. Backup and
+routine action confirmations descend from the hotbar so background success is
+never ambiguous.
+
+Goal tracking follows the verb, not merely the noun. Buying a motorcycle counts
+marketplace checks; selling one counts repair, photo, and listing steps. Existing
+saved goals with the old ride tracker are repaired at read time. Current-period
+counts are shown as integers, not misleading four-week fractions.
+
+The Circle's empty form is disclosure UI: one round Add control expands the form
+and the friend list remains the first content below it. On a reward screen, a
+second press keeps the gold target briefly, clears the surrounding copy, and
+breaks the target into glass wedges before returning to Do.
+
 ## 2026-09-09 · Time chooses the category; evidence chooses the action
 
 The Do dealer now reads local clock time in seven phases instead of treating an

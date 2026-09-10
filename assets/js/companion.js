@@ -2,7 +2,7 @@
 (function (LO) {
   'use strict';
   const { store, ui, D } = LO;
-  let returnFocus, discoveryOffset = 0, lumenId = 0;
+  let returnFocus, discoveryOffset = 0, lumenId = 0, friendFormOpen = false;
   const animated = new WeakSet();
   const movers = new Set();
   const moverOf = new WeakMap();
@@ -140,35 +140,39 @@
     const list = store.state.people.slice().sort((a, b) => due(a).localeCompare(due(b)));
     return `<header class="drawer-heading"><div><div class="eyebrow">Your circle</div><h2>Friends to keep</h2></div><button class="flat" data-closefriends aria-label="Close friends">×</button></header>
       <p class="note">Real people. Small moments. A reason to reach out.</p>
-      <form data-friendform class="friend-form"><label>Name<input name="name" required maxlength="80" autocomplete="off"></label><label>Birthday <small>(optional)</small><input name="birthday" type="date"></label><label>Reach out every<select name="cadence"><option value="7">Week</option><option value="14" selected>Two weeks</option><option value="30">Month</option><option value="90">Three months</option></select></label><label>Next reach-out<input name="nextReach" type="date"></label><label>Good time / shared interests<input name="note" maxlength="240" placeholder="Weekend afternoons, a walk…"></label><button class="go" type="submit">Add to my circle</button></form>
+      <button class="friend-add-orb${friendFormOpen ? ' open' : ''}" data-togglefriend aria-expanded="${friendFormOpen}"><span>+</span><b>Add to my circle</b></button>
+      ${friendFormOpen ? `<div class="friend-form-shell"><form data-friendform class="friend-form"><label>Name<input name="name" required maxlength="80" autocomplete="off"></label><label>Birthday <small>(optional)</small><input name="birthday" type="date"></label><label>Reach out every<select name="cadence"><option value="7">Week</option><option value="14" selected>Two weeks</option><option value="30">Month</option><option value="90">Three months</option></select></label><label>Next reach-out<input name="nextReach" type="date"></label><label>Good time / shared interests<input name="note" maxlength="240" placeholder="Weekend afternoons, a walk…"></label><button class="go" type="submit">Add friend</button></form></div>` : ''}
       <div class="friend-list">${list.length ? list.map(p => `<article class="friend-card"><span class="friend-avatar">${ui.esc(p.name.slice(0, 1).toUpperCase())}</span><div><h3>${ui.esc(p.name)}</h3><p class="note">${due(p) <= D.today() ? 'A good day to reach out' : 'Next: ' + D.pretty(due(p))}</p>${birthday(p) ? `<p class="birthday">${birthday(p)}</p>` : ''}<p>${ui.esc(p.note || '')}</p></div><div class="acts"><button class="flat" data-contact="${p.id}">We connected ✓</button><button class="flat" data-snooze="${p.id}">Tomorrow</button></div><details><summary>Edit friend</summary><form data-editfriend="${p.id}" class="friend-form"><label>Name<input name="name" required maxlength="80" value="${ui.esc(p.name)}"></label><label>Birthday<input type="date" name="birthday" value="${ui.esc(p.birthday || '')}"></label><label>Days between contact<input name="cadence" type="number" min="1" max="365" required value="${Number(p.cadence) || 14}"></label><label>Next reach-out<input name="nextReach" type="date" value="${ui.esc(due(p))}"></label><label>Good time / shared interests<input name="note" maxlength="240" value="${ui.esc(p.note || '')}"></label><button class="flat">Save friend</button></form></details></article>`).join('') : '<p class="note">Your circle starts with one name. No invitations are sent.</p>'}</div>`;
   }
   function bindFriends() {
     const el = document.getElementById('friends-drawer');
     el.querySelector('[data-closefriends]').onclick = closeFriends;
+    el.querySelector('[data-togglefriend]').onclick = () => { friendFormOpen = !friendFormOpen; paintFriends(); };
     function fields(form) {
       const f = Object.fromEntries(new FormData(form));
       return { name: f.name.trim(), birthday: f.birthday, cadence: Math.max(1, Math.min(365, Number(f.cadence) || 14)), nextReach: f.nextReach, note: f.note.trim() };
     }
-    el.querySelector('[data-friendform]').onsubmit = e => {
+    const add = el.querySelector('[data-friendform]');
+    if (add) add.onsubmit = e => {
       e.preventDefault(); const data = fields(e.target); if (!data.name) return;
-      store.add('people', Object.assign(data, { lastContact: '', created: D.today() })); paintFriends();
+      store.add('people', Object.assign(data, { lastContact: '', created: D.today() }));
+      friendFormOpen = false; ui.toast('Added to your circle'); paintFriends();
     };
     el.querySelectorAll('[data-editfriend]').forEach(form => form.onsubmit = e => {
       e.preventDefault(); const data = fields(form); if (!data.name) return;
-      store.patch('people', form.dataset.editfriend, data); paintFriends();
+      store.patch('people', form.dataset.editfriend, data); ui.toast('Friend updated'); paintFriends();
     });
     el.querySelectorAll('[data-contact]').forEach(b => b.onclick = () => {
       const p = store.state.people.find(x => x.id === b.dataset.contact);
-      store.contacted(p.id, 'connected'); store.patch('people', p.id, { nextReach: D.shift(p.cadence || 14) }); paintFriends();
+      store.contacted(p.id, 'connected'); store.patch('people', p.id, { nextReach: D.shift(p.cadence || 14) }); ui.toast('Connection logged'); paintFriends();
     });
-    el.querySelectorAll('[data-snooze]').forEach(b => b.onclick = () => { store.patch('people', b.dataset.snooze, { nextReach: D.shift(1) }); paintFriends(); });
+    el.querySelectorAll('[data-snooze]').forEach(b => b.onclick = () => { store.patch('people', b.dataset.snooze, { nextReach: D.shift(1) }); ui.toast('Moved to tomorrow'); paintFriends(); });
   }
   function paintFriends() { document.getElementById('friends-drawer').innerHTML = friendsBody(); bindFriends(); }
   function openFriends() {
     const el = document.getElementById('friends-drawer');
     if (el.open) return;
-    returnFocus = document.activeElement; paintFriends(); el.showModal(); document.getElementById('friends-handle').setAttribute('aria-expanded', 'true');
+    returnFocus = document.activeElement; friendFormOpen = false; paintFriends(); el.showModal(); document.getElementById('friends-handle').setAttribute('aria-expanded', 'true');
   }
   function closeFriends() { document.getElementById('friends-drawer').close(); }
   function launch(button) {
@@ -176,6 +180,20 @@
     button.classList.add('launching');
     const flare = document.createElement('div'); flare.className = 'launch-flare'; flare.setAttribute('aria-hidden', 'true'); document.body.appendChild(flare);
     return new Promise(resolve => setTimeout(() => { flare.remove(); button.classList.remove('launching'); resolve(); }, 680));
+  }
+  function shatter(button) {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !store.state.guidance.motion || store.state.settings.reduceMotion) return Promise.resolve();
+    button.classList.add('glass-shatter');
+    for (let i = 0; i < 28; i++) {
+      const shard = document.createElement('i');
+      const angle = i * (360 / 28) + (i % 3) * 4;
+      shard.className = 'button-shard';
+      shard.style.setProperty('--a', angle + 'deg');
+      shard.style.setProperty('--r', (70 + (i % 6) * 13) + 'px');
+      shard.style.setProperty('--delay', (i % 5) * 22 + 'ms');
+      button.appendChild(shard);
+    }
+    return new Promise(resolve => setTimeout(resolve, 1850));
   }
   function playerStats() {
     const a = LO.adaptive.analyze(store.state);
@@ -222,5 +240,5 @@
     });
     document.body.classList.toggle('still', !store.state.guidance.motion || store.state.settings.reduceMotion);
   }
-  LO.companion = { boot, lumen, trail, hydrate, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
+  LO.companion = { boot, lumen, trail, hydrate, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, shatter, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
 })(window.LO);

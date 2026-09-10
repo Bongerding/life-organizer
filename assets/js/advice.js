@@ -293,14 +293,66 @@ window.LO = window.LO || {};
     const a = rotate(original, Math.floor(day / 3)), b = rotate(positive, Math.floor(day / 3));
     return a.slice(0, 6).flatMap((x, i) => day % 2 ? [b[i], x] : [x, b[i]]);
   }
-  function signalAnswer(signal) {
-    const band = (v, low, middle, high) => v < -.33 ? low : v > .33 ? high : middle;
+  function quest(signal, state) {
     const s = signal.sense, m = signal.move;
-    const stance = band(s.x, 'I need a little distance from this', 'I can stay curious about this', 'I am willing to move toward this');
-    const tone = band(s.y, 'with real energy', 'at a steady pace', 'gently');
-    const action = band(m.x, 'pause and observe', 'take one small step', 'act directly');
-    const company = band(m.y, 'with someone', 'and keep it visible', 'on my own');
-    return stance + ', ' + tone + '. I choose to ' + action + ' ' + company + '.';
+    const open = state.mind.load.find(x => x.status !== 'closed');
+    const person = LO.store.mostOverdue();
+    const doNow = m.x > .15;
+    let q;
+    if (m.y > .34) {
+      q = doNow ? {
+        id: 'connect-now', trait: 'connection', kind: 'social', minutes: 3,
+        title: person ? 'Send a real check-in to ' + person.name : 'Send one real check-in',
+        steps: ['Choose one person you genuinely want to keep.', 'Send a specific message: mention one thing that made you think of them.'],
+        reason: 'You steered toward action with another person.'
+      } : {
+        id: 'connect-plan', trait: 'connection', kind: 'social', minutes: 3,
+        title: person ? 'Make a specific plan with ' + person.name : 'Put one connection on the calendar',
+        steps: ['Choose the person.', 'Offer one real day and time instead of “sometime.”'],
+        reason: 'You steered toward preparation with another person.'
+      };
+    } else if (s.x > .34) {
+      const title = open ? open.title : 'your most important open task';
+      q = doNow ? {
+        id: 'work-now', trait: 'focus', kind: 'action', minutes: s.y > .25 ? 8 : 4,
+        title: 'Move: ' + title,
+        steps: ['Open the exact place where this task lives.', 'Change one visible piece before switching away.'],
+        reason: 'You steered toward work and direct action.'
+      } : {
+        id: 'work-ready', trait: 'focus', kind: 'setup', minutes: 3,
+        title: 'Build the runway for: ' + title,
+        steps: ['Put the needed file, tool, or object in front of you.', 'Remove one obstacle so starting later takes one tap or motion.'],
+        reason: 'You steered toward work and preparation.'
+      };
+    } else if (s.x < -.34) {
+      q = s.y > .2 ? {
+        id: 'body-activate', trait: 'drive', kind: 'physical', minutes: 5,
+        title: 'Go outside and move for five minutes',
+        steps: ['Leave the phone behind.', 'Walk quickly enough to feel your body wake up, then return.'],
+        reason: 'You steered toward yourself and more energy.'
+      } : {
+        id: 'body-settle', trait: 'calm', kind: 'physical', minutes: 2,
+        title: 'Lower the physical noise',
+        steps: ['Unclench your jaw and drop your shoulders.', 'Take five breaths with an easy inhale and a longer exhale.'],
+        reason: 'You steered toward yourself and less pressure.'
+      };
+    } else if (doNow) {
+      q = {
+        id: 'space-now', trait: 'discipline', kind: 'environment', minutes: 5,
+        title: 'Clear one surface completely',
+        steps: ['Choose one desk, counter, seat, or floor patch.', 'Put every object on it where it actually belongs. Stop at that surface.'],
+        reason: 'You steered toward immediate action without choosing a larger arena.'
+      };
+    } else {
+      q = {
+        id: 'space-ready', trait: 'discipline', kind: 'environment', minutes: 2,
+        title: 'Prepare one obvious next move',
+        steps: ['Choose one thing you want tomorrow to contain.', 'Place its first tool or object where you cannot miss it.'],
+        reason: 'You steered toward preparation and kept the scope small.'
+      };
+    }
+    if (m.y < -.34) q.reason += ' You chose to do it solo.';
+    return q;
   }
-  LO.advice = { SITUATIONS, DAILY, today, situation, moods, signalAnswer };
+  LO.advice = { SITUATIONS, DAILY, today, situation, moods, quest };
 })(window.LO);

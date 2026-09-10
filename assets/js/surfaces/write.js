@@ -54,7 +54,11 @@
           ${FILTERS.map(f => `<button class="kpill ${f.id === filter ? 'on' : ''}" data-filter="${f.id}">${f.label}</button>`).join('')}
           <input data-search value="${ui.esc(query)}" placeholder="Search">
         </div>
-        ${stream(s)}`;
+        ${stream(s)}
+        <aside class="category-dock" data-categorydock aria-label="Move writing to a category">
+          <span>File as</span>
+          ${['task', 'chore', 'activity', 'plan', 'feeling', 'thought'].map(k => `<button data-dropkind="${k}">${LABELS[k]}</button>`).join('')}
+        </aside>`;
     },
 
     mount(root) {
@@ -153,6 +157,7 @@
             paintStream();
           };
         });
+        bindRefiling(root, paintStream);
       }
       bindStream();
     }
@@ -217,7 +222,7 @@
             : D.label(d) + ' ' + D.pretty(d)}</div>
           ${byDay.get(d).map(e => {
             const written = WRITTEN.includes(e.type);
-            return `<div class="entry ${written ? '' : 'thin'}">
+            return `<div class="entry ${written ? '' : 'thin'}"${written ? ` data-recat="${e.id}" data-entry-kind="${e.type}"` : ''}>
               <div class="meta"><span class="k">${LABELS[e.type] || e.type}</span><span class="tm">${time(e.ts)}</span></div>
               <div class="body">${ui.esc(e.text)}</div>
               ${written ? `<button class="x" data-del="${e.id}" aria-label="Remove entry from view" title="Remove from view (recoverable)">×</button>` : ''}
@@ -227,6 +232,57 @@
       }).join('')}
       ${days.length > shown ? `<div class="acts"><button class="flat" data-more">Show more</button></div>` : ''}
     </div>`;
+  }
+
+  function bindRefiling(root, repaint) {
+    const dock = root.querySelector('[data-categorydock]');
+    if (!dock) return;
+    root.querySelectorAll('[data-recat]').forEach(row => {
+      let timer = null, active = false, start = null, over = null;
+      const clean = () => {
+        clearTimeout(timer); timer = null; active = false; start = null;
+        row.classList.remove('refiling'); dock.classList.remove('open');
+        dock.querySelectorAll('.over').forEach(x => x.classList.remove('over'));
+        over = null;
+      };
+      row.onpointerdown = e => {
+        if (e.target.closest('button')) return;
+        start = { x: e.clientX, y: e.clientY };
+        timer = setTimeout(() => {
+          active = true; row.classList.add('refiling'); dock.classList.add('open');
+          row.setPointerCapture(e.pointerId);
+          if (navigator.vibrate) navigator.vibrate(15);
+        }, 420);
+      };
+      row.onpointermove = e => {
+        if (!start) return;
+        if (!active && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 9) return clean();
+        if (!active) return;
+        e.preventDefault();
+        const hit = document.elementFromPoint(e.clientX, e.clientY);
+        const next = hit && hit.closest('[data-dropkind]');
+        if (over !== next) {
+          if (over) over.classList.remove('over');
+          over = next;
+          if (over) over.classList.add('over');
+        }
+      };
+      row.onpointerup = () => {
+        clearTimeout(timer);
+        if (active && over) {
+          const next = over.dataset.dropkind, before = row.dataset.entryKind;
+          const entry = store.visibleChronicle().find(x => x.id === row.dataset.recat);
+          if (entry && next !== before) {
+            classify.learn(entry.text, next, before, store.state);
+            store.reclassifyEntry(entry.id, next);
+            ui.toast('Moved to ' + LABELS[next]);
+            clean(); repaint(); return;
+          }
+        }
+        clean();
+      };
+      row.onpointercancel = clean;
+    });
   }
 
   const LABELS = {

@@ -64,10 +64,23 @@ the middle of the day, open rows from “What can be done today?” receive the
 largest weight and are rephrased as a concrete first move. The source and reason
 are visible; crossing a phase boundary replaces stale advice.
 
-Advice quests no longer ask for prose. Two thumb-sized joysticks generate a live
-answer from four readable axes: away/toward, energized/gentle, pause/act, and
-together/solo. Both must be moved. Saving records the displayed sentence and
-the coordinate evidence; the app makes no personality inference from it.
+Advice quests no longer ask for prose or complete identity sentences. Two
+thumb-sized joysticks generate a concrete, two-step action across work, self,
+connection, and environment. Both must be moved; the player chooses the quest,
+does it, and then banks it. The resolved action and coordinate evidence are
+recorded, but the app makes no personality inference from either.
+
+Write history now has a long-hold filing gesture. Holding a written entry lights
+an orange rail on the right; dropping onto a category teaches the classifier and
+appends a reclassification event. The source chronicle entry is never edited.
+Goal semantics also prioritize intent: motorcycle acquisition suggests and
+counts marketplace checks, while a sale suggests repair, photos, and listing
+work. Saved legacy trackers are corrected when read.
+
+Routine confirmations now descend from the top bar, including manual and
+automatic backup outcomes. The Circle's add form is collapsed into one round
+orange control until requested. The post-reward One more target performs a
+glass-wedge shatter before Do deals the next action.
 
 The same pass removes the main performance hazards: 77 per-path animations and
 large full-screen SVG filters. The trail now animates by group, while all glass

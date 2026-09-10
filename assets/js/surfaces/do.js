@@ -84,7 +84,11 @@
 
       if (timer) { mountTimer(root, redraw); return; }
       if (won) {
-        root.querySelector('[data-again]').onclick = () => {
+        root.querySelector('[data-again]').onclick = async e => {
+          const button = e.currentTarget;
+          button.disabled = true;
+          root.classList.add('reward-clearing');
+          await LO.companion.shatter(button);
           won = null; action = LO.actions.pick(store.state); redraw();
         };
         root.querySelector('[data-stop]').onclick = () => { won = null; redraw(); };
@@ -120,6 +124,7 @@
           if (!title) return box.focus();
           store.capture(title, LO.level.estimate(title));
           box.value = '';
+          ui.toast('Added to today');
           redraw();
           const fresh = document.querySelector('.pane[data-pane="do"] [data-newtask]');
           if (fresh) fresh.focus();
@@ -136,14 +141,15 @@
           if (!l || l.status === 'closed') return;
           const next = ((+l.effort || 2) % 3) + 1;
           store.patch('mind.load', l.id, { effort: next, weight: next });
+          ui.toast(LO.level.tier(next).name + ' effort · +' + LO.level.tier(next).points);
           redraw();
         };
       });
       root.querySelectorAll('[data-drop]').forEach(b => {
-        b.onclick = () => { store.drop('mind.load', b.dataset.drop); redraw(); };
+        b.onclick = () => { store.drop('mind.load', b.dataset.drop); ui.toast('Removed from today'); redraw(); };
       });
       root.querySelectorAll('[data-habit]').forEach(b => {
-        b.onclick = () => { store.toggleHabit(b.dataset.habit); redraw(); };
+        b.onclick = () => { store.toggleHabit(b.dataset.habit); ui.toast('Habit updated'); redraw(); };
       });
     }
   });
