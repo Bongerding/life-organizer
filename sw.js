@@ -10,7 +10,7 @@
    IndexedDB, not in this cache. Clearing the cache costs you
    nothing but a reload.
    ============================================================ */
-const CACHE = 'life-organizer-202609100605';
+const CACHE = 'life-organizer-202609102100';
 
 const SHELL = [
   './',
@@ -37,6 +37,7 @@ const SHELL = [
   './assets/js/insight.js',
   './assets/js/advice.js',
   './assets/js/sync.js',
+  './assets/js/notifications.js',
   './assets/js/shell.js',
   './assets/js/surfaces/do.js',
   './assets/js/surfaces/write.js',
@@ -80,4 +81,31 @@ self.addEventListener('fetch', e => {
           .then(hit => hit || caches.match('./index.html', { ignoreSearch: true }))
       )
   );
+});
+
+/* The receiving half of Web Push. The static app intentionally does not
+   pretend it can schedule the sending half; that belongs on a VAPID-backed
+   application server when one is added. */
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (_) { data = { body: e.data ? e.data.text() : '' }; }
+  const title = String(data.title || 'Life Organizer').slice(0, 80);
+  const body = String(data.body || 'A quiet update is ready.').slice(0, 240);
+  const path = /^#[a-z-]+$/.test(data.path || '') ? data.path : '#do';
+  e.waitUntil(self.registration.showNotification(title, {
+    body, tag: String(data.tag || 'life-organizer-update').slice(0, 80), renotify: false,
+    icon: './assets/icons/lumen-ball-192.png', badge: './assets/icons/lumen-ball-192.png',
+    data: { path }
+  }));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const path = e.notification.data && /^#[a-z-]+$/.test(e.notification.data.path || '')
+    ? e.notification.data.path : '#do';
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const open = list[0];
+    if (open) return open.focus().then(() => open.navigate('./index.html' + path));
+    return clients.openWindow('./index.html' + path);
+  }));
 });

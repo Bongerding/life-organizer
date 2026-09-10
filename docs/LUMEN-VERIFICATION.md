@@ -72,3 +72,10 @@ its prompt, source, and `field-story` tag into the append-only chronicle. Source
 checks cover both discovery-to-Write routing and the dedicated Write filter.
 Story capture itself pays zero; the “shared” action is separately guarded to one
 10-point award per story per local day.
+
+Notification/widget refinement: syntax checks cover the new notification module,
+shell, and service worker. Regression checks verify conservative default times;
+source checks require push/click listeners, explicit permission controls, and the
+three widget previews. This pass does not claim closed-app scheduling or installed
+Android widgets: those require the external sender and native shell documented in
+the project.

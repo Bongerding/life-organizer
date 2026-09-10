@@ -157,7 +157,15 @@ window.LO = window.LO || {};
       // CLASSIFIER — what it has learned about how you write
       classifier: { weights: {}, corrections: 0 },
 
-      settings: { reduceMotion: false, weekStart: 1 }
+      settings: {
+        reduceMotion: false, weekStart: 1,
+        notifications: {
+          enabled: false, morning: true, update: true,
+          morningTime: '08:00', updateTime: '17:30',
+          quietStart: '21:30', quietEnd: '07:00', minGapHours: 6,
+          last: { morning: '', update: '', sentAt: 0 }
+        }
+      }
     };
   }
 

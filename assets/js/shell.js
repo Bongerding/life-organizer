@@ -20,6 +20,7 @@ window.LO = window.LO || {};
       await LO.store.load();
       const fresh = LO.store.seed();
       LO.companion.boot();
+      LO.notify.start();
       LO.ui.startField(document.getElementById('field'));
 
       this.paintTop();
@@ -178,6 +179,8 @@ window.LO = window.LO || {};
       const info = await LO.store.storageInfo();
       const sy = LO.sync.status();
       const cur = LO.sync.cfg();
+      const ns = LO.notify.status();
+      const nc = ns.config;
       const size = n => n == null ? '—' : n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB';
       const back = LO.store.daysSinceBackup();
 
@@ -233,6 +236,27 @@ window.LO = window.LO || {};
           <b>Fine-grained tokens</b> → only the backup repo → <b>Repository permissions → Contents:
           Read and write</b>. Nothing else. It is stored on this device only and is stripped out of every
           export, so it can never end up inside the backup it just made.</p>
+
+        <div class="lbl">Quiet notifications<span class="r">${ns.permission === 'granted' && nc.enabled ? 'on' : ns.permission}</span></div>
+        <p class="note" style="margin:0 0 12px">At most a morning brief and one stale-state update. No guilt copy, no repeated nudges, and nothing during quiet hours.</p>
+        ${ns.supported ? `<div class="notify-settings">
+          <label><input type="checkbox" data-nmorning ${nc.morning ? 'checked' : ''}> Good morning <input type="time" data-nmorningtime value="${LO.ui.esc(nc.morningTime)}"></label>
+          <label><input type="checkbox" data-nupdate ${nc.update ? 'checked' : ''}> Quiet update <input type="time" data-nupdatetime value="${LO.ui.esc(nc.updateTime)}"></label>
+          <div class="quiet-row"><span>Quiet hours</span><input type="time" data-nquietstart value="${LO.ui.esc(nc.quietStart)}"><i>to</i><input type="time" data-nquietend value="${LO.ui.esc(nc.quietEnd)}"></div>
+        </div><div class="bars">
+          ${ns.permission === 'granted' ? `<button class="fullbtn ${nc.enabled ? '' : 'hot'}" data-s="${nc.enabled ? 'notifoff' : 'notifon'}">${nc.enabled ? 'Pause notifications' : 'Turn notifications on'}</button>` : `<button class="fullbtn hot" data-s="notifon">Allow notifications</button>`}
+          <button class="fullbtn" data-s="notifsave">Save notification times</button>
+          ${ns.permission === 'granted' ? '<button class="fullbtn" data-s="notiftest">Send a quiet test</button>' : ''}
+        </div>` : '<p class="note">This browser does not expose system notifications.</p>'}
+        <p class="note" style="margin-top:12px">These scheduled checks run while the PWA is open. The service worker is ready for true closed-app push, which requires a small private sending service.</p>
+
+        <div class="lbl">Android widget designs<span class="r">native shell required</span></div>
+        <div class="widget-previews">
+          <article class="widget focus-widget"><div class="widget-orb"></div><small>NOW</small><b>${LO.ui.esc((LO.store.dayList().find(x => x.status !== 'closed') || { title: 'One clear next move' }).title)}</b><span>Tap to open Do</span></article>
+          <article class="widget today-widget"><div><small>TODAY</small><b>${LO.store.winsOn().filter(w => LO.level.pointsOf(w) > 0).length} done · ${LO.store.dayList().filter(x => x.status !== 'closed').length} open</b></div><div class="widget-level">LV ${LO.level.stats().level}</div></article>
+          <article class="widget circle-widget"><div class="widget-orb mini"></div><small>CIRCLE</small><b>${LO.store.state.people.filter(p => LO.companion.due(p) <= LO.D.today()).length} ready to reconnect</b><span>Tap to open Friends</span></article>
+        </div>
+        <p class="note">Three useful types: Focus Orb (control), Today Strip (information), and Circle Pulse (hybrid). They are the native-widget specification; the installed PWA cannot register Android home-screen widgets by itself.</p>
 
         <div class="lbl">Elsewhere<span class="ln"></span></div>
         <div class="bars">
@@ -310,6 +334,29 @@ window.LO = window.LO || {};
           LO.store.save();
           LO.ui.toast(c.on ? 'Automatic backup on' : 'Automatic backup off');
           this.sheet();
+        },
+        notifon: async () => {
+          const r = await LO.notify.enable();
+          LO.ui.toast(r.ok ? 'Quiet notifications on' : r.error, 4200);
+          this.sheet();
+        },
+        notifoff: () => {
+          LO.notify.cfg().enabled = false; LO.notify.stop(); LO.store.save();
+          LO.ui.toast('Notifications paused'); this.sheet();
+        },
+        notifsave: () => {
+          const c = LO.notify.cfg();
+          c.morning = box.querySelector('[data-nmorning]').checked;
+          c.update = box.querySelector('[data-nupdate]').checked;
+          c.morningTime = box.querySelector('[data-nmorningtime]').value || '08:00';
+          c.updateTime = box.querySelector('[data-nupdatetime]').value || '17:30';
+          c.quietStart = box.querySelector('[data-nquietstart]').value || '21:30';
+          c.quietEnd = box.querySelector('[data-nquietend]').value || '07:00';
+          LO.store.save(); if (c.enabled) LO.notify.start(); LO.ui.toast('Notification times saved'); this.sheet();
+        },
+        notiftest: async () => {
+          const sent = await LO.notify.test();
+          LO.ui.toast(sent ? 'Quiet test sent' : 'Notifications are not allowed');
         },
         lattice: () => { location.href = 'archive/lattice.html'; },
         wipe: () => {

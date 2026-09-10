@@ -1,5 +1,24 @@
 # Decisions
 
+## 2026-09-10 · Notifications inform; they do not pursue
+
+Notification permission is requested only from the Settings button. The default
+cadence is at most two notices: an 8:00 AM brief and a 5:30 PM stale-state
+summary, separated by at least six hours and suppressed from 9:30 PM to 7:00 AM.
+Copy reports counts and says “open when useful” or “no urgency”; it never pleads,
+scolds, or implies that an unfinished list is failure. Times and notice types are
+user-controlled, and pausing them is one tap.
+
+This release is explicit about the static-PWA boundary. It schedules checks while
+the app is running and adds Web Push receive/click handlers to the service worker.
+Closed-app delivery still needs a private sender that stores subscriptions and
+signs messages with VAPID. Do not label local checks as reliable background push.
+
+The app previews three Android widget concepts—Focus Orb, Today Strip, and Circle
+Pulse—but does not claim the PWA installed a native widget. Android widgets require
+an `AppWidgetProvider`/Glance receiver in a native shell. These three cover control,
+information, and hybrid use without putting the whole app on the home screen.
+
 ## 2026-09-10 · Discoveries become field stories
 
 The learning card on Do is now the entrance to a small field-journal loop inside

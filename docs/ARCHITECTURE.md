@@ -8,6 +8,13 @@ owns the friends drawer, discovery cards and shared companion interactions;
 recoverable record removal through `store.visibleChronicle()`. See
 [LUMEN-GUIDE.md](LUMEN-GUIDE.md) for the current release's boundaries.
 
+`notifications.js` owns permission, quiet hours, cadence, and copy for local
+notices. Its configuration lives under `state.settings.notifications`. It checks
+only while the PWA runtime exists. `sw.js` has `push` and `notificationclick`
+handlers so a future VAPID-backed sender can wake the installed app without
+changing the receiving surface. Native widget scope is recorded in
+[ANDROID-WIDGETS.md](ANDROID-WIDGETS.md); no Android runtime is currently shipped.
+
 The runtime mascot is procedural SVG: forty wedge groups plus one moving core.
 `companion.hydrate()` registers instances with one shared 24fps ticker;
 IntersectionObserver pauses off-screen instances, and disconnected instances
