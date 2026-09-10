@@ -1,5 +1,25 @@
 # Decisions
 
+## 2026-09-09 · Time chooses the category; evidence chooses the action
+
+The Do dealer now reads local clock time in seven phases instead of treating an
+entire morning or afternoon as interchangeable. Early morning strongly favors
+body-first instructions; midday and afternoon strongly favor open rows from the
+daily task board. It still uses recorded completions, energy and explicit task
+effort inside that category. The UI shows the time, source, and “why this now” so
+the recommendation is inspectable rather than pretending to be intuition.
+
+Practice answers use two physical joysticks, not a disguised text form. Their
+four axes are deliberately finite—approach, energy, action and support—and the
+derived sentence stays visible before commit. Both raw coordinates and the
+sentence are recorded. The app must not claim those coordinates reveal a hidden
+personality; they are only the response the user selected in that moment.
+
+The visual budget is now explicit. All companion instances share one 24fps
+ticker and pause off-screen; the trail uses two group animations rather than 77
+individual ones, and full-screen SVG blur filters are prohibited. A visual that
+drops input or scroll frames has failed, however attractive it is.
+
 ## 2026-09-09 · The trail is atmosphere, not a ribbon
 
 The companion trail spans beyond the app frame as three softly blurred light

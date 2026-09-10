@@ -19,9 +19,35 @@ window.LO = window.LO || {};
 
   const D = LO.D;
 
-  function slot() {
-    const h = new Date().getHours();
-    return h < 11 ? 'morning' : h < 17 ? 'midday' : 'evening';
+  const PHASES = [
+    { id: 'night', start: 0, label: 'Night', note: 'Protect tomorrow. Choose something that settles the system.' },
+    { id: 'early', start: 300, label: 'Early morning', note: 'Body first: water, light, air, then decisions.' },
+    { id: 'morning', start: 540, label: 'Morning', note: 'Use the clearest hours on one meaningful beginning.' },
+    { id: 'midday', start: 720, label: 'Middle of the day', note: 'Pull one concrete item from today’s board and move it.' },
+    { id: 'afternoon', start: 960, label: 'Afternoon', note: 'Close a loop or restore enough energy for the next one.' },
+    { id: 'evening', start: 1140, label: 'Evening', note: 'Close gently: people, order, and a record of the day.' },
+    { id: 'late', start: 1320, label: 'Late night', note: 'Make the next morning easier; do not start a new battle.' }
+  ];
+
+  function clock(at) {
+    const d = at || new Date();
+    const mins = d.getHours() * 60 + d.getMinutes();
+    let phase = PHASES[0];
+    for (const p of PHASES) if (mins >= p.start) phase = p;
+    return Object.assign({}, phase, {
+      mins,
+      time: d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    });
+  }
+
+  function slot(at) {
+    const id = clock(at).id;
+    return id === 'early' || id === 'morning' ? 'morning'
+      : id === 'midday' || id === 'afternoon' ? 'midday' : 'evening';
+  }
+
+  function matches(when, phase) {
+    return when === 'any' || !when || (Array.isArray(when) ? when.includes(phase) : when === phase);
   }
 
   /* ------------------------------------------------------------
@@ -34,6 +60,32 @@ window.LO = window.LO || {};
     const today = D.today();
     const st = LO.store;
 
+    /* --- body before decisions in the first hours of the day --- */
+    push({
+      id: 'morning_water', kind: 'wake the system', source: 'Morning reset',
+      when: 'early', weight: 9, minutes: 1,
+      label: 'Drink one full glass of water now',
+      sub: 'Stand up, fill the glass, and finish it before opening anything else.',
+      why: 'A concrete physical action is easier to begin than planning the whole day.',
+      winKind: 'reset'
+    });
+    push({
+      id: 'morning_light', kind: 'light and air', source: 'Morning reset',
+      when: 'early', weight: 8, minutes: 3,
+      label: 'Step outside for three minutes',
+      sub: 'No phone. Look at the farthest thing you can see and let the day become real.',
+      why: 'This is the early-morning window, before the task board gets the floor.',
+      winKind: 'reset'
+    });
+    push({
+      id: 'morning_breath', kind: 'lower the noise', source: 'Morning reset',
+      when: ['early', 'morning'], weight: 6, minutes: 2,
+      label: 'Take five breaths with a longer exhale',
+      sub: 'In gently. Exhale slowly. Count five complete breaths, then stop.',
+      why: 'A two-minute reset can make the next choice less noisy.',
+      winKind: 'reset'
+    });
+
     /* --- open loops: the single biggest procrastination lever --- */
     const open = s.mind.load
       .filter(l => l.status !== 'closed')
@@ -42,25 +94,30 @@ window.LO = window.LO || {};
     if (open.length) {
       const l = open[0];
       push({
-        id: 'loop_' + l.id, kind: 'close one loop', when: 'any', weight: 7, minutes: 2,
-        label: l.title,
-        sub: 'Two minutes on it. Not finished — moved. If two minutes gets it done, close it and take the win.',
+        id: 'loop_' + l.id, kind: 'move one task', source: 'Your task board',
+        when: ['morning', 'midday', 'afternoon'], weight: 9, minutes: 2,
+        label: 'Start: ' + l.title,
+        sub: 'Open whatever this lives in and change one visible piece. Stop after two minutes if you want.',
+        why: 'It is open on your board and currently carries the highest effort estimate.',
         done() { st.patch('mind.load', l.id, { status: 'closed', closedOn: today }); }
       });
       if (open.length > 2) {
         const light = [...open].sort((a, b) => (+a.weight || 1) - (+b.weight || 1))[0];
         push({
-          id: 'loop_light_' + light.id, kind: 'the easy one', when: 'any', weight: 4, minutes: 2,
-          label: light.title,
-          sub: 'The lightest thing on your list. Momentum is the only goal here.',
+          id: 'loop_light_' + light.id, kind: 'build momentum', source: 'Your task board',
+          when: ['midday', 'afternoon'], weight: 6, minutes: 2,
+          label: 'Finish the lightest task: ' + light.title,
+          sub: 'Give this one two focused minutes. If it closes, check it off immediately.',
+          why: 'The board is crowded, so the smallest clean win may unlock the next move.',
           done() { st.patch('mind.load', light.id, { status: 'closed', closedOn: today }); }
         });
       }
     } else {
       push({
-        id: 'capture', kind: 'clear your head', when: 'any', weight: 5, minutes: 2,
+        id: 'capture', kind: 'clear your head', source: 'Empty task board', when: ['morning', 'midday', 'afternoon'], weight: 5, minutes: 2,
         label: 'Empty your head onto the list',
         sub: 'Everything that is open, unfinished, or nagging. Do not solve any of it — writing it down is the whole task.',
+        why: 'There is nothing open on today’s board yet, so the next useful move is capture.',
         tab: 'loops'
       });
     }
@@ -139,9 +196,10 @@ window.LO = window.LO || {};
 
     /* --- deep work: two minutes, never "work on the business" --- */
     push({
-      id: 'deepwork', kind: 'two minutes', when: 'midday', weight: 6, minutes: 2,
-      label: 'Two minutes on meaningful work',
-      sub: 'Open the file. Write one line. That is the entire task and you are allowed to stop after it.',
+      id: 'deepwork', kind: 'two minutes', source: 'Workday focus', when: ['morning', 'midday'], weight: 6, minutes: 2,
+      label: 'Open the most important work and change one thing',
+      sub: 'Open the file, message, or tool. Produce one visible change. You may stop there.',
+      why: 'This part of the day is reserved for beginning work, not designing a perfect plan.',
       winKind: 'craft'
     });
     push({
@@ -221,15 +279,16 @@ window.LO = window.LO || {};
      anything already done today removed entirely.
      ------------------------------------------------------------ */
   function pick(s, avoidId) {
-    const now = slot();
+    const now = clock();
     const doneRefs = LO.store.winsOn().filter(w => LO.level.pointsOf(w) > 0).map(w => w.ref).filter(Boolean);
 
     const pool = build(s)
       .filter(a => !doneRefs.includes(a.id) && a.id !== avoidId)
       .map(a => {
         let w = (a.weight || 1) * LO.adaptive.weight(a, s);
-        if (a.when === now) w *= 2;
-        else if (a.when && a.when !== 'any') w *= 0.35;
+        if (matches(a.when, now.id)) w *= 2.35;
+        else if (a.when && a.when !== 'any') w *= 0.22;
+        if ((now.id === 'midday' || now.id === 'afternoon') && a.source === 'Your task board') w *= 1.7;
         return { a, w };
       });
 
@@ -237,14 +296,18 @@ window.LO = window.LO || {};
       return {
         id: 'nothing', kind: 'nothing owed', minutes: 0,
         label: 'You are done for today',
-        sub: 'Everything the system had for you is struck. Go and ride something.'
+        sub: 'Everything the system had for you is struck. Go and live the rest of the day.',
+        phase: now.id, phaseLabel: now.label, clockNote: now.note
       };
     }
 
     const total = pool.reduce((x, y) => x + y.w, 0);
     let r = Math.random() * total;
-    for (const x of pool) { r -= x.w; if (r <= 0) return x.a; }
-    return pool[0].a;
+    for (const x of pool) {
+      r -= x.w;
+      if (r <= 0) return Object.assign({}, x.a, { phase: now.id, phaseLabel: now.label, clockNote: now.note });
+    }
+    return Object.assign({}, pool[0].a, { phase: now.id, phaseLabel: now.label, clockNote: now.note });
   }
 
   /* the rumination interrupt — dealt by the "spinning" button, not the bank */
@@ -257,5 +320,5 @@ window.LO = window.LO || {};
     winKind: 'reset'
   };
 
-  LO.actions = { build, pick, slot, SPIN };
+  LO.actions = { build, pick, clock, slot, matches, SPIN };
 })(window.LO);

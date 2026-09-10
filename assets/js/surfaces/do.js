@@ -20,7 +20,8 @@
       if (timer) return timerView();
       if (won) return rewardView(s);
 
-      if (!action) action = LO.actions.pick(s);
+      const phase = LO.actions.clock();
+      if (!action || action.phase !== phase.id) action = LO.actions.pick(s);
       const list = store.dayList();
       const t = D.today();
       const q = LO.quotes.today();
@@ -32,9 +33,11 @@
           <figcaption><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(q.who.replace(/ /g, '_'))}" target="_blank" rel="noopener noreferrer">${ui.esc(q.who)}</a></figcaption>
         </figure>
 
-        <div class="k">${ui.esc(action.kind)}</div>
+        <div class="action-clock"><time>${ui.esc(phase.time)}</time><span>${ui.esc(phase.label)}</span></div>
+        <div class="k">${ui.esc(action.source || action.kind)}</div>
         <h2 class="deed">${ui.esc(action.label)}</h2>
         ${action.sub ? `<p class="deed-sub">${ui.esc(action.sub)}</p>` : ''}
+        <p class="why-now"><b>Why this now</b>${ui.esc(action.why || action.clockNote || phase.note)}</p>
 
         ${action.id === 'nothing' ? '' : `
           <button class="bigstart" data-start>
@@ -258,7 +261,7 @@
     const a = {
       id: 'urge_surf', kind: 'ride it out', label: 'Ten minutes, then decide',
       sub: 'Out of the room. Water. Move. Do not negotiate with it, outlast it.',
-      minutes: 10, winKind: 'clarity',
+      minutes: 10, winKind: 'clarity', phase: LO.actions.clock().id,
       done() { LO.store.logUrge({ intensity: intensity, rode: true, instead: '' }); }
     };
     action = a;

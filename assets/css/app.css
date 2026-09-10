@@ -621,6 +621,10 @@ input,textarea,select{font-size:16px}
 .deed-sub{
   margin:0 auto;font-size:13.5px;line-height:1.55;color:var(--ink-2);max-width:36ch;
 }
+.action-clock{display:flex;align-items:center;justify-content:center;gap:9px;margin:4px auto 13px;font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.action-clock time{color:var(--gold);font-size:12px;letter-spacing:.04em}.action-clock span{padding-left:9px;border-left:1px solid var(--line-2)}
+.why-now{display:flex;gap:8px;justify-content:center;max-width:46ch;margin:13px auto 0;font-size:11px;line-height:1.5;color:var(--ink-3)}
+.why-now b{flex:0 0 auto;color:var(--lumen);font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding-top:2px}
 
 .bigstart{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;

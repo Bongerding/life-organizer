@@ -293,5 +293,14 @@ window.LO = window.LO || {};
     const a = rotate(original, Math.floor(day / 3)), b = rotate(positive, Math.floor(day / 3));
     return a.slice(0, 6).flatMap((x, i) => day % 2 ? [b[i], x] : [x, b[i]]);
   }
-  LO.advice = { SITUATIONS, DAILY, today, situation, moods };
+  function signalAnswer(signal) {
+    const band = (v, low, middle, high) => v < -.33 ? low : v > .33 ? high : middle;
+    const s = signal.sense, m = signal.move;
+    const stance = band(s.x, 'I need a little distance from this', 'I can stay curious about this', 'I am willing to move toward this');
+    const tone = band(s.y, 'with real energy', 'at a steady pace', 'gently');
+    const action = band(m.x, 'pause and observe', 'take one small step', 'act directly');
+    const company = band(m.y, 'with someone', 'and keep it visible', 'on my own');
+    return stance + ', ' + tone + '. I choose to ' + action + ' ' + company + '.';
+  }
+  LO.advice = { SITUATIONS, DAILY, today, situation, moods, signalAnswer };
 })(window.LO);

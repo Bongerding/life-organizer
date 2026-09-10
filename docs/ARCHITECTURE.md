@@ -9,10 +9,19 @@ recoverable record removal through `store.visibleChronicle()`. See
 [LUMEN-GUIDE.md](LUMEN-GUIDE.md) for the current release's boundaries.
 
 The runtime mascot is procedural SVG: forty wedge groups plus one moving core.
-`companion.hydrate()` starts each instance and stops naturally when its DOM node
-is replaced. Core displacement is projected onto every wedge's radial axis,
-which makes the shards respond individually to the light. Static launcher icons
-come from the photorealistic source render and use versioned filenames.
+`companion.hydrate()` registers instances with one shared 24fps ticker;
+IntersectionObserver pauses off-screen instances, and disconnected instances
+are removed. Core displacement is projected onto every wedge's radial axis,
+which makes the shards respond individually to the light. The full-screen trail
+uses two group animations and no SVG blur filters. Static launcher icons come
+from the photorealistic source render and use versioned filenames.
+
+`actions.clock()` divides local time into seven human phases. The action dealer
+uses those phases as evidence: early morning heavily favors water, outdoor light
+and breathing; morning favors beginnings; midday and afternoon prioritize the
+open task board; evening and late night favor closure. Every dealt action carries
+its phase, source, and a short “why now” explanation. Crossing a phase boundary
+redeals rather than leaving a morning instruction on screen all afternoon.
 
 `store.capture()` is the only writer of daily tasks. Those rows carry
 `origin: 'do'`; `dayList()` filters on it. `store.write()` writes only to Scribe,
@@ -313,9 +322,14 @@ The part that does the reprogramming, and the part most likely to grow.
   live rewire target; ×0.12 if it appears in the last 10 reps; 0 for the drill
   currently on the table. Variable-ratio by design — a predictable drill stops
   landing.
-- **Reinforcement is earned, not given.** `reinforce` is withheld until a
-  response of real length is committed. This is the deliberate operant loop:
-  situation → response → reinforcement → banked rep → visible trait load.
+- **Two-stick response:** no text is required. The left stick combines
+  away/toward with energized/gentle; the right combines pause/act with
+  together/solo. `advice.signalAnswer()` turns the four coordinates into the
+  sentence shown live. Both sticks must move before commit. The rep stores that
+  sentence and the raw coordinates alongside the existing drill/trait fields.
+- **Reinforcement is earned, not given.** `reinforce` is withheld until both
+  sticks have shaped and committed a response. The loop remains situation →
+  embodied choice → reinforcement → banked rep → visible trait load.
 - Growth path: per-trait ladders (exposure difficulty rising with rep count),
   scheduled deals (morning rehearsal / evening audit), and drills generated from
   the user's own journal and insights rather than the static bank.

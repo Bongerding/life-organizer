@@ -55,6 +55,24 @@ now a field wider than the app: three low-opacity blurred currents carry more
 than seventy recursively branched light veins. The UI stays crisp above it,
 while the slow drift and flowing highlights keep the haze from feeling static.
 
+## Clock and controls refinement
+
+Do now shows local time and one of seven day phases directly above the dealt
+action. The early-morning bank contains exact physical starts—finish a glass of
+water, step outside for three minutes, or take five longer-exhale breaths. In
+the middle of the day, open rows from “What can be done today?” receive the
+largest weight and are rephrased as a concrete first move. The source and reason
+are visible; crossing a phase boundary replaces stale advice.
+
+Advice quests no longer ask for prose. Two thumb-sized joysticks generate a live
+answer from four readable axes: away/toward, energized/gentle, pause/act, and
+together/solo. Both must be moved. Saving records the displayed sentence and
+the coordinate evidence; the app makes no personality inference from it.
+
+The same pass removes the main performance hazards: 77 per-path animations and
+large full-screen SVG filters. The trail now animates by group, while all glass
+companions share a visibility-aware ticker capped near 24fps.
+
 ## The adaptive engine and its limits
 
 `assets/js/adaptive.js` is the local data/decision layer. It compares seven-day

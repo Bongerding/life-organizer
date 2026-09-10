@@ -11,6 +11,7 @@
   let open = null;      // situation id currently showing
   let drill = null;
   let drillDone = false;
+  let sticks = freshSticks();
 
   LO.machine.register({
     id: 'advice',
@@ -73,9 +74,14 @@
               ? `<div class="note" style="border-top:1px solid var(--line);padding-top:14px;color:var(--ink-1);margin:0">
                    ${ui.esc(drill.reinforce)}</div>
                  <div class="acts" style="justify-content:flex-start"><button class="flat" data-feedback="yes">That helped ☀</button><button class="flat" data-feedback="no">Try a different approach</button><button class="flat" data-newdrill>Next quest →</button></div>`
-              : `<textarea data-drill rows="3" placeholder="Try one honest sentence. You can build on it."></textarea>
+              : `<p class="stick-instruction">Move both sticks until the live sentence feels closest to your answer.</p>
+                 <div class="stick-deck">
+                   ${stick('sense', 'Instinct', 'energized', 'gentle', 'away', 'toward')}
+                   ${stick('move', 'Next move', 'together', 'solo', 'pause', 'act')}
+                 </div>
+                 <div class="stick-answer" aria-live="polite"><span>Your answer</span><p data-stickanswer>${ui.esc(stickAnswer())}</p></div>
                  <div class="acts" style="justify-content:flex-start">
-                   <button class="go" data-commit>Complete this quest ✦</button>
+                   <button class="go" data-commit disabled>Complete this quest ✦</button>
                    <button class="flat" data-newdrill>Deal another ↻</button>
                  </div>`}
           </div>`}`;
@@ -117,18 +123,23 @@
         root.querySelectorAll('[data-feedback]').forEach(x => { x.disabled = true; });
         ui.toast('Noted. This shapes future practices.');
       });
-      if (commit) commit.onclick = () => {
-        const box = root.querySelector('[data-drill]');
-        const text = box.value.trim();
-        if (text.length < 3) { ui.toast('One small thought is enough'); return box.focus(); }
-        store.add('rewire.reps', { date: D.today(), drillId: drill.id, trait: drill.trait, response: text });
-        store.win('practice', drill.title, 0, 'drill_' + drill.id);
-        drillDone = true;
-        ui.toast('Saved');
-        redraw();
-      };
+      if (commit) {
+        bindSticks(root, commit);
+        commit.onclick = () => {
+          if (!sticks.sense.touched || !sticks.move.touched) return ui.toast('Move both sticks to shape your answer');
+          const text = stickAnswer();
+          store.add('rewire.reps', {
+            date: D.today(), drillId: drill.id, trait: drill.trait, response: text,
+            signal: { sense: { x: sticks.sense.x, y: sticks.sense.y }, move: { x: sticks.move.x, y: sticks.move.y } }
+          });
+          store.win('practice', drill.title, 0, 'drill_' + drill.id);
+          drillDone = true;
+          ui.toast('Saved');
+          redraw();
+        };
+      }
       root.querySelectorAll('[data-newdrill]').forEach(b => {
-        b.onclick = () => { drill = dealDrill(store.state, drill && drill.id); drillDone = false; redraw(); };
+        b.onclick = () => { drill = dealDrill(store.state, drill && drill.id); drillDone = false; sticks = freshSticks(); redraw(); };
       });
     }
   });
@@ -151,6 +162,50 @@
     let r = Math.random() * total;
     for (const x of scored) { r -= x.w; if (r <= 0) return x.d; }
     return scored[0].d;
+  }
+  function freshSticks() {
+    return { sense: { x: 0, y: 0, touched: false }, move: { x: 0, y: 0, touched: false } };
+  }
+  function stick(id, title, top, bottom, left, right) {
+    const p = sticks[id];
+    return `<div class="stick-wrap"><div class="stick-title">${title}</div>
+      <div class="joystick" data-stick="${id}" tabindex="0" role="slider" aria-label="${title}" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="center" style="--jx:${(p.x * 38).toFixed(1)}px;--jy:${(p.y * 38).toFixed(1)}px">
+        <span class="stick-label top">${top}</span><span class="stick-label bottom">${bottom}</span>
+        <span class="stick-label left">${left}</span><span class="stick-label right">${right}</span>
+        <i class="stick-knob"></i>
+      </div></div>`;
+  }
+  function stickAnswer() { return advice.signalAnswer(sticks); }
+  function bindSticks(root, commit) {
+    const answer = root.querySelector('[data-stickanswer]');
+    const update = (pad, x, y) => {
+      const mag = Math.hypot(x, y) || 1;
+      if (mag > 1) { x /= mag; y /= mag; }
+      const p = sticks[pad.dataset.stick];
+      p.x = Math.round(x * 100) / 100; p.y = Math.round(y * 100) / 100; p.touched = true;
+      pad.style.setProperty('--jx', (p.x * 38).toFixed(1) + 'px');
+      pad.style.setProperty('--jy', (p.y * 38).toFixed(1) + 'px');
+      pad.setAttribute('aria-valuenow', String(Math.round(p.x * 100)));
+      pad.setAttribute('aria-valuetext', 'horizontal ' + Math.round(p.x * 100) + ', vertical ' + Math.round(-p.y * 100));
+      answer.textContent = stickAnswer();
+      commit.disabled = !sticks.sense.touched || !sticks.move.touched;
+    };
+    root.querySelectorAll('[data-stick]').forEach(pad => {
+      const point = e => {
+        const r = pad.getBoundingClientRect();
+        update(pad, (e.clientX - r.left - r.width / 2) / (r.width * .32), (e.clientY - r.top - r.height / 2) / (r.height * .32));
+      };
+      pad.onpointerdown = e => { pad.setPointerCapture(e.pointerId); pad.dataset.dragging = '1'; point(e); };
+      pad.onpointermove = e => { if (pad.dataset.dragging) point(e); };
+      pad.onpointerup = pad.onpointercancel = e => { delete pad.dataset.dragging; if (pad.hasPointerCapture(e.pointerId)) pad.releasePointerCapture(e.pointerId); };
+      pad.onkeydown = e => {
+        const p = sticks[pad.dataset.stick], step = e.shiftKey ? .25 : .12;
+        const next = { x: p.x, y: p.y };
+        if (e.key === 'ArrowLeft') next.x -= step; else if (e.key === 'ArrowRight') next.x += step;
+        else if (e.key === 'ArrowUp') next.y -= step; else if (e.key === 'ArrowDown') next.y += step; else return;
+        e.preventDefault(); update(pad, next.x, next.y);
+      };
+    });
   }
   function traitLabel(id) { const t = lib.traits.find(x => x.id === id); return t ? t.label : id; }
 })(window.LO);

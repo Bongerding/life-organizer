@@ -48,3 +48,12 @@ drift and vein shimmer stop under the app motion control and reduced-motion CSS.
 The regenerated 512px launcher icon was visually reviewed after downsampling:
 the sphere remains dominant and legible, while the old orbit line is gone and
 the broader fractal field survives at icon scale.
+
+Clock/control refinement: automated checks cover 7:30 AM, 12:30 PM and 11 PM
+phase boundaries, exact task-board action copy, joystick coordinate-to-sentence
+mapping, and the ban on full-screen SVG filters. A 500 × 1400 phone-layout render
+confirmed the clock/source/reason hierarchy, two side-by-side thumb controls,
+live answer card and full-width completion target. Performance was checked
+structurally rather than reported as an invented FPS number: one trail-group
+animation replaces the per-path animations, wedge writes are capped near 24fps,
+and off-screen mascots are skipped.

@@ -4,6 +4,12 @@
   const { store, ui, D } = LO;
   let returnFocus, discoveryOffset = 0, lumenId = 0;
   const animated = new WeakSet();
+  const movers = new Set();
+  const moverOf = new WeakMap();
+  let animationFrame = 0, lastFrame = 0;
+  const observer = window.IntersectionObserver ? new IntersectionObserver(entries => {
+    entries.forEach(entry => { const mover = moverOf.get(entry.target); if (mover) mover.visible = entry.isIntersecting; });
+  }, { rootMargin: '80px' }) : null;
 
   /** A real 2D animation, built from separate optical wedges. The moving
       core repels each wedge by a different amount along its own axis. */
@@ -54,32 +60,40 @@
     return `<div class="lumen-trail" aria-hidden="true"><svg viewBox="0 0 1100 1200" preserveAspectRatio="xMidYMid slice">
       <defs>
         <linearGradient id="trail-light" x1="100%" y1="0" x2="0" y2="100%"><stop stop-color="#fff8d8"/><stop offset=".42" stop-color="#efbd69"/><stop offset="1" stop-color="#8ddce8" stop-opacity="0"/></linearGradient>
-        <filter id="trail-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="44"/></filter>
-        <filter id="trail-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       </defs>
-      <g class="trail-haze" filter="url(#trail-soft)">
+      <g class="trail-haze">
         <path class="haze-wide" d="M1120 20 C810 230 1040 410 690 555 S260 820 -110 1190"/>
         <path class="haze-mid" d="M1190 160 C880 330 990 510 650 650 S220 850 -80 1080"/>
         <path class="haze-fine" d="M970 -80 C760 250 835 430 520 585 S150 680 -120 930"/>
       </g>
-      <g class="trail-fractals" filter="url(#trail-glow)">${veins.join('')}</g>
+      <g class="trail-fractals">${veins.join('')}</g>
     </svg></div>`;
   }
 
   function animateLumen(el) {
     if (animated.has(el)) return;
     animated.add(el);
-    const wedges = [...el.querySelectorAll('.lumen-wedge')];
-    const core = el.querySelector('.lumen-core');
-    const start = performance.now();
-    function frame(now) {
-      if (!el.isConnected) return;
-      const t = (now - start) / 1000;
-      const still = document.body.classList.contains('still') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const mover = {
+      el, wedges: [...el.querySelectorAll('.lumen-wedge')], core: el.querySelector('.lumen-core'),
+      start: performance.now(), visible: true
+    };
+    movers.add(mover); moverOf.set(el, mover); if (observer) observer.observe(el);
+    if (!animationFrame) animationFrame = requestAnimationFrame(moveLumens);
+  }
+
+  function moveLumens(now) {
+    animationFrame = requestAnimationFrame(moveLumens);
+    if (document.hidden || now - lastFrame < 42) return;
+    lastFrame = now;
+    const still = document.body.classList.contains('still') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    movers.forEach(mover => {
+      if (!mover.el.isConnected) { movers.delete(mover); if (observer) observer.unobserve(mover.el); return; }
+      if (!mover.visible) return;
+      const t = (now - mover.start) / 1000;
       const cx = still ? 0 : Math.sin(t * .63) * 2.8;
       const cy = still ? 0 : Math.cos(t * .47) * 2.1;
-      core.setAttribute('transform', `translate(${50 + cx} ${50 + cy})`);
-      wedges.forEach((w, i) => {
+      mover.core.setAttribute('transform', `translate(${50 + cx} ${50 + cy})`);
+      mover.wedges.forEach((w, i) => {
         const angle = Number(w.dataset.angle), rad = angle * Math.PI / 180;
         const phase = Number(w.dataset.phase);
         const pulse = still ? 0 : Math.sin(t * (.72 + (i % 7) * .035) + phase) * (.55 + (i % 4) * .15);
@@ -89,9 +103,7 @@
         w.setAttribute('transform', `translate(50 50) rotate(${angle + turn}) translate(${distance} 0)`);
         w.style.opacity = String(.66 + (still ? 0 : Math.sin(t * .9 + phase) * .13));
       });
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
+    });
   }
 
   function hydrate(root) {
