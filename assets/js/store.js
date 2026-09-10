@@ -130,7 +130,7 @@ window.LO = window.LO || {};
       // MIND
       mind: {
         logs: [],            // [{date,mood,energy,clarity,stress,note,grateful}]
-        load: []             // [{id,title,weight,kind,status,created}]
+        load: []             // [{id,title,weight,effort,kind,origin,status,created,closedOn}]
       },
 
       // PEOPLE — the friendships that quietly decay if nothing tracks them
@@ -338,7 +338,7 @@ window.LO = window.LO || {};
       if (!rec) return rec;
       Object.assign(rec, obj);
       if (path === 'mind.load' && obj.status === 'closed') {
-        this.log('done', rec.title, { ref: id, weight: rec.weight });
+        this.log(rec.origin === 'do' ? 'day-task-done' : 'done', rec.title, { ref: id, weight: rec.weight });
       }
       if (path === 'goals' && obj.progress != null) {
         if (obj.progress >= 100) this.log('goal', 'Finished: ' + rec.title, { ref: id });
@@ -384,21 +384,13 @@ window.LO = window.LO || {};
     },
 
     /* ---------- writing ----------
-       One entry point for everything he writes. `kind` is one of
-       task | feeling | plan | thought. A task also becomes something
-       to do, linked back to the entry it came from. */
+       The Write prompt is a record, even when the sentence describes
+       a task. Today's checklist has its own capture path below. */
     write(kind, text, extra) {
       const rec = this.add('scribe.entries', Object.assign({
         date: D.today(), kind: kind || 'thought', prompt: '', text, tags: []
       }, extra || {}));
-      // tasks and chores become things to do; an activity is already done
-      if (kind === 'task' || kind === 'chore') {
-        const e = kind === 'chore' ? 1 : LO.level.estimate(text);
-        this.state.mind.load.unshift({
-          id: this.id('task'), title: text, kind, weight: e, effort: e,
-          status: 'open', created: D.today(), ts: Date.now(), from: rec.id
-        });
-      }
+      // An activity is already done; everything else remains part of the record.
       if (kind === 'activity') {
         this.win('activity', text, 0, 'logged_activity', LO.level.tier(2).points, true);
       }
@@ -419,19 +411,16 @@ window.LO = window.LO || {};
     },
 
     /* ---------- the day's list ----------
-       What he wrote on the Do tab, plus anything captured on Write.
-       Closed items stay until midnight so the day reads as 4 of 5,
-       and so the line struck through them is visible for a while. */
+       This list belongs only to Do. It never creates a journal entry
+       and Write never creates one of these tasks. */
     capture(title, effort) {
       const e = Math.max(1, Math.min(3, +effort || 2));
-      const entry = this.add('scribe.entries', {
-        date: D.today(), kind: 'task', prompt: '', text: title, tags: []
-      });
       const rec = {
         id: this.id('task'), title, kind: 'task', weight: e, effort: e,
-        status: 'open', created: D.today(), ts: Date.now(), from: entry.id
+        origin: 'do', status: 'open', created: D.today(), ts: Date.now()
       };
       this.state.mind.load.unshift(rec);
+      this.log('day-task', title, { ref: rec.id, effort: e });
       this.save();
       return rec;
     },
@@ -439,6 +428,7 @@ window.LO = window.LO || {};
     dayList() {
       const t = D.today();
       return this.state.mind.load
+        .filter(l => l.origin === 'do')
         .filter(l => (l.status !== 'closed' && (!l.defer || l.defer <= t)) || l.closedOn === t)
         .slice().reverse();
     },

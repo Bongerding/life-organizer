@@ -30,7 +30,7 @@ window.LO = window.LO || {};
     const st = LO.store, out = [];
     const push = (rank, tone, text, extra) => out.push(Object.assign({ rank, tone, text }, extra || {}));
 
-    const wins = st.winsOn().length;
+    const wins = st.winsOn().filter(w => w.kind !== 'day' && LO.level.pointsOf(w) > 0).length;
     const streak = st.winStreak();
     const days = st.daysClear();
     const CLEAR_MARKS = [3, 7, 14, 21, 30, 50, 75, 100, 180, 365];

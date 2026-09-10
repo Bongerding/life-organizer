@@ -4,7 +4,7 @@
   const { D, store } = LO;
   const inDays = (date, n) => date && D.daysBetween(date, D.today()) >= 0 && D.daysBetween(date, D.today()) < n;
   function analyze(s) {
-    const wins = s.wins.filter(w => w.points > 0 && w.kind !== 'day');
+    const wins = s.wins.filter(w => LO.level.pointsOf(w) > 0 && w.kind !== 'day');
     const current = wins.filter(w => inDays(w.date, 7));
     const previous = wins.filter(w => inDays(w.date, 14) && !inDays(w.date, 7));
     const logs = s.mind.logs.filter(r => inDays(r.date, 7));

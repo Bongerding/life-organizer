@@ -3,7 +3,7 @@
    You type; it works out whether that was a task, a chore, an
    activity, a plan, a feeling or a thought, and says why. Tap a
    different one and it remembers the correction.
-   Tasks and chores appear on Do. Everything is kept, in order.
+   This is the written record. The orange daily list on Do is separate.
    ============================================================ */
 (function (LO) {
   'use strict';
@@ -39,7 +39,7 @@
 
       return `
         <h1 class="hd">Write it down.</h1>
-        <p class="lede">One box for all of it. I will work out what it was.</p>
+        <p class="lede">One box for your record. I will work out what kind of thought it was.</p>
 
         <textarea id="writebox" placeholder="A task, a chore, something you did, a plan, how you feel, or just a thought."></textarea>
         <div data-guess>${guessRow(s)}</div>
@@ -123,7 +123,7 @@
         // quiet: what he wrote is already in the chronicle, and a second
         // "did · wrote something down" under every entry is noise
         if (kind !== 'activity') store.win('write', labelFor(kind), 0, 'write_' + kind, 0, true);
-        ui.toast(classify.kind(kind).actionable ? 'Added to Do' : 'Saved');
+        ui.toast('Saved to your record');
         kind = 'thought'; auto = true; why = '';
         redraw();
         const nb = document.querySelector('#writebox');

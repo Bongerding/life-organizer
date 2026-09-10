@@ -1,5 +1,25 @@
 # Decisions
 
+## 2026-09-09 · The companion moves as glass; Do and Write are separate
+
+The in-app mascot is now a generated SVG made from forty independent radial
+glass wedges. A moving central light changes every wedge's radial displacement,
+while each wedge also has its own phase and small rotation. This gives the
+requested physical relationship between the light and pieces without shipping
+a video loop or a Blender runtime. The original photorealistic render remains
+the source for static phone icons, where animation is not supported.
+
+The Do prompt owns a distinct daily checklist. Its tasks carry `origin: 'do'`,
+render immediately under the orange prompt, and never create Scribe entries.
+Write remains a written record even if its classifier labels a sentence as a
+task or chore. Existing chronicle events are not rewritten, and legacy open
+loops remain available to the action engine; only new Do-origin rows appear in
+the daily checklist.
+
+The icon URLs changed to `lumen-ball-*` so installed launchers see a new manifest
+asset rather than retaining an old cached icon. Android may still require the
+installed PWA to be removed and added again before the launcher redraws it.
+
 ## 2026-09-08 · Lumen game direction supersedes the hexagon-only identity
 
 The user requested the glass-sphere mascot, player card, friends sidebar,

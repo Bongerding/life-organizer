@@ -56,7 +56,7 @@ window.LO = window.LO || {};
     /** one plain line: what today looks like */
     paintStatus() {
       const s = LO.store.state, st = LO.store;
-      const done = st.winsOn().filter(w => w.kind !== 'day').length;
+      const done = st.winsOn().filter(w => w.kind !== 'day' && LO.level.pointsOf(w) > 0).length;
       const clear = st.daysClear();
       const bits = [done ? done + ' done today' : 'nothing done yet'];
       if (clear !== null) bits.push(clear + ' days clear');
@@ -101,9 +101,11 @@ window.LO = window.LO || {};
     render(sf) {
       const host = document.querySelector(`.pane[data-pane="${sf.id}"] .col`);
       host.innerHTML = sf.render(LO.store.state);
+      LO.companion.hydrate(host);
       if (sf.mount) sf.mount(host);
       sf.refresh = () => {
         host.innerHTML = sf.render(LO.store.state);
+        LO.companion.hydrate(host);
         if (sf.mount) sf.mount(host);
         this.paintStatus();
       };

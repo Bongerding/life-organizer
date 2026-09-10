@@ -2,7 +2,70 @@
 (function (LO) {
   'use strict';
   const { store, ui, D } = LO;
-  let returnFocus, discoveryOffset = 0;
+  let returnFocus, discoveryOffset = 0, lumenId = 0;
+  const animated = new WeakSet();
+
+  /** A real 2D animation, built from separate optical wedges. The moving
+      core repels each wedge by a different amount along its own axis. */
+  function lumen(kind) {
+    const id = 'lumen-' + (++lumenId);
+    const wedges = Array.from({ length: 40 }, (_, i) => {
+      const a = i * 9;
+      const width = 2.1 + (i % 5) * 0.22;
+      const end = 39 + (i % 4) * 0.8;
+      return `<g class="lumen-wedge" data-angle="${a}" data-phase="${(i * 1.73).toFixed(2)}" transform="translate(50 50) rotate(${a}) translate(1.5 0)">
+        <path d="M8 ${-width / 5} L${end} ${-width} Q44 0 ${end} ${width} L8 ${width / 5} Z" fill="url(#${id}-glass)" stroke="url(#${id}-edge)"/>
+        <path class="wedge-glint" d="M12 0 L${end - 2} ${(-width * .32).toFixed(2)}"/>
+      </g>`;
+    }).join('');
+    return `<span class="lumen lumen-${kind || 'mini'}" data-lumen role="img" aria-label="Lumen, an expanded glass sphere moving around a living light">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <linearGradient id="${id}-glass" x1="0" x2="1"><stop stop-color="#fff" stop-opacity=".08"/><stop offset=".38" stop-color="#aee6ee" stop-opacity=".55"/><stop offset=".62" stop-color="#fff8dd" stop-opacity=".82"/><stop offset="1" stop-color="#efae58" stop-opacity=".25"/></linearGradient>
+          <linearGradient id="${id}-edge"><stop stop-color="#fff" stop-opacity=".85"/><stop offset=".5" stop-color="#8cd7e5" stop-opacity=".42"/><stop offset="1" stop-color="#ffe3a1" stop-opacity=".75"/></linearGradient>
+          <radialGradient id="${id}-core"><stop stop-color="#fff"/><stop offset=".2" stop-color="#fff7cf"/><stop offset=".55" stop-color="#efbd63" stop-opacity=".9"/><stop offset="1" stop-color="#e86636" stop-opacity="0"/></radialGradient>
+          <filter id="${id}-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2.1"/></filter>
+        </defs>
+        <g class="lumen-wedges">${wedges}</g>
+        <g class="lumen-core" transform="translate(50 50)"><circle r="10" fill="url(#${id}-core)" filter="url(#${id}-glow)"/><circle r="3.2" fill="#fff9d5"/><circle class="core-spark" r="1.1" fill="#fff"/></g>
+      </svg>
+    </span>`;
+  }
+
+  function animateLumen(el) {
+    if (animated.has(el)) return;
+    animated.add(el);
+    const wedges = [...el.querySelectorAll('.lumen-wedge')];
+    const core = el.querySelector('.lumen-core');
+    const start = performance.now();
+    function frame(now) {
+      if (!el.isConnected) return;
+      const t = (now - start) / 1000;
+      const still = document.body.classList.contains('still') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const cx = still ? 0 : Math.sin(t * .63) * 2.8;
+      const cy = still ? 0 : Math.cos(t * .47) * 2.1;
+      core.setAttribute('transform', `translate(${50 + cx} ${50 + cy})`);
+      wedges.forEach((w, i) => {
+        const angle = Number(w.dataset.angle), rad = angle * Math.PI / 180;
+        const phase = Number(w.dataset.phase);
+        const pulse = still ? 0 : Math.sin(t * (.72 + (i % 7) * .035) + phase) * (.55 + (i % 4) * .15);
+        const lightPull = cx * Math.cos(rad) + cy * Math.sin(rad);
+        const distance = 1.5 + pulse + lightPull * .42;
+        const turn = still ? 0 : Math.sin(t * .38 + phase) * .55;
+        w.setAttribute('transform', `translate(50 50) rotate(${angle + turn}) translate(${distance} 0)`);
+        w.style.opacity = String(.66 + (still ? 0 : Math.sin(t * .9 + phase) * .13));
+      });
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function hydrate(root) {
+    (root || document).querySelectorAll('[data-lumen-placeholder]').forEach(slot => {
+      slot.outerHTML = lumen(slot.dataset.lumenPlaceholder || 'mini');
+    });
+    (root || document).querySelectorAll('[data-lumen]').forEach(animateLumen);
+  }
   const facts = [
     { topic: 'springs', title: 'A spring with its own thermostat', text: 'Rock Springs at Kelly Park flows at about 68°F year-round. The cool water you feel is groundwater arriving at the surface.', source: 'Orange County', url: 'https://newsroom.ocfl.net/2025/07/spotlight-on-kelly-park-an-apopka-landmark-and-natural-treasure/', ask: 'How would you explain that cool water to someone on their first paddle?' },
     { topic: 'springs', title: 'Two springs, two temperatures', text: 'Wekiwa Springs is described by Florida State Parks as 72°F year-round. Nearby springs do not necessarily share the same temperature.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/parks-and-trails/wekiwa-springs-state-park', ask: 'Try asking someone to guess the temperature before sharing the answer.' },
@@ -82,6 +145,7 @@
     t.querySelector('button').onclick = () => { store.hideEntry(id, true); t.remove(); LO.machine.refresh(); }; setTimeout(() => t.remove(), 12000);
   }
   function boot() {
+    hydrate(document);
     const handle = document.createElement('button'); handle.id = 'friends-handle'; handle.innerHTML = '<span>◈</span> Friends'; handle.setAttribute('aria-expanded', 'false'); handle.setAttribute('aria-controls', 'friends-drawer');
     const drawer = document.createElement('dialog'); drawer.id = 'friends-drawer'; drawer.setAttribute('aria-label', 'Close friends');
     document.body.append(handle, drawer); handle.onclick = openFriends;
@@ -112,5 +176,5 @@
     });
     document.body.classList.toggle('still', !store.state.guidance.motion || store.state.settings.reduceMotion);
   }
-  LO.companion = { boot, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
+  LO.companion = { boot, lumen, hydrate, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
 })(window.LO);

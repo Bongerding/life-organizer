@@ -51,7 +51,7 @@ ${js}
 </script>
 <script>LO.machine.boot();</script>`;
 
-const inlineAssets = text => text.replace(/assets\/icons\/lumen-(192|512)\.png/g, file => 'data:image/png;base64,' + fs.readFileSync(path.join(root, file)).toString('base64'));
+const inlineAssets = text => text.replace(/assets\/icons\/lumen-ball-(192|512)\.png/g, file => 'data:image/png;base64,' + fs.readFileSync(path.join(root, file)).toString('base64'));
 const inner = inlineAssets(`${head}\n\n${markup}\n\n${scripts}\n`);
 
 const standalone = `<!DOCTYPE html>

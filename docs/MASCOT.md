@@ -12,3 +12,10 @@ Final generation prompt:
 Visual review: clear long solid wedges, luminous center, refractive detail and
 tapered curved trail. The generated form is a stylized radial arrangement; it
 is not a literal CAD model of a million mathematically tessellated slices.
+
+On 2026-09-09 the runtime mascot changed from this single bitmap to a procedural
+inline SVG in `assets/js/companion.js`. It contains forty individually addressable
+wedges. `requestAnimationFrame` moves the core on two slow axes; the projection
+of that offset onto each wedge's angle changes its radial distance, combined
+with a per-wedge phase and rotation. The result is small, responsive, and can
+stop instantly for reduced motion. The bitmap remains the app-icon source.

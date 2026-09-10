@@ -33,3 +33,11 @@ sent. Soft-deleted writes remain in backups and source history. Discovery facts
 are curated with source links; the old quote bank's author links are not proof
 of attribution. The local adaptive engine is heuristic, not a clinical model or
 causal analysis, and has no remote backend.
+
+2026-09-09 regression scope: daily Do capture no longer creates a Scribe entry;
+Write entries no longer create daily tasks; the daily list filters on
+`origin: 'do'`; legacy wins still count through `level.pointsOf`; the runtime
+mascot exposes forty wedge groups and respects both motion controls. The
+procedural glass render was also reviewed at 800 × 800: distinct translucent
+wedges, edge glints and the central light remain legible on the app background.
+The completion box is the final control on every daily task row.

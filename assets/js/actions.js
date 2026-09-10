@@ -222,7 +222,7 @@ window.LO = window.LO || {};
      ------------------------------------------------------------ */
   function pick(s, avoidId) {
     const now = slot();
-    const doneRefs = LO.store.winsOn().map(w => w.ref).filter(Boolean);
+    const doneRefs = LO.store.winsOn().filter(w => LO.level.pointsOf(w) > 0).map(w => w.ref).filter(Boolean);
 
     const pool = build(s)
       .filter(a => !doneRefs.includes(a.id) && a.id !== avoidId)

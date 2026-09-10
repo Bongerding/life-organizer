@@ -8,6 +8,17 @@ owns the friends drawer, discovery cards and shared companion interactions;
 recoverable record removal through `store.visibleChronicle()`. See
 [LUMEN-GUIDE.md](LUMEN-GUIDE.md) for the current release's boundaries.
 
+The runtime mascot is procedural SVG: forty wedge groups plus one moving core.
+`companion.hydrate()` starts each instance and stops naturally when its DOM node
+is replaced. Core displacement is projected onto every wedge's radial axis,
+which makes the shards respond individually to the light. Static launcher icons
+come from the photorealistic source render and use versioned filenames.
+
+`store.capture()` is the only writer of daily tasks. Those rows carry
+`origin: 'do'`; `dayList()` filters on it. `store.write()` writes only to Scribe,
+regardless of classifier kind. Daily task lifecycle events use `day-task` and
+`day-task-done`, which are outside the default written-record filters.
+
 Design rationale is in [DECISIONS.md](DECISIONS.md); the working rules for
 changing this codebase are in [CLAUDE.md](../CLAUDE.md).
 

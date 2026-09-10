@@ -58,8 +58,8 @@
         </form>
 
         ${list.length ? `
-          <div class="lbl">Today<span class="r">${todayLine(list)}</span></div>
-          <div class="todo">${list.map(taskRow).join('')}</div>
+          <div class="todo" aria-label="Today's tasks">${list.map(taskRow).join('')}</div>
+          <div class="today-summary">Today · ${todayLine(list)}</div>
           ${list.every(l => l.status === 'closed') && list.length > 1
             ? `<p class="note cleared">Everything you set for today is done.</p>` : ''}
         ` : ''}
@@ -155,8 +155,8 @@
         <span class="td-t">${ui.esc(l.title)}</span>
       </button>
       <button class="td-p" data-eff="${l.id}" title="${LO.level.tier(eff).name} — tap to change">+${pts}</button>
-      <button class="td-box" data-hit="${l.id}" aria-label="Mark done"${done ? ' disabled' : ''}></button>
       ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
+      <button class="td-box" data-hit="${l.id}" aria-label="Mark done"${done ? ' disabled' : ''}></button>
     </div>`;
   }
 
@@ -209,7 +209,7 @@
   /* ---------------- reward ---------------- */
   function rewardView(s) {
     const streak = store.winStreak();
-    const done = store.winsOn().filter(w => w.kind !== 'day').length;
+    const done = store.winsOn().filter(w => w.kind !== 'day' && LO.level.pointsOf(w) > 0).length;
     const lv = LO.level.stats();
     return `
       <div class="reward">

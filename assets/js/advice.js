@@ -205,7 +205,7 @@ window.LO = window.LO || {};
       body: s => LO.store.winStreak() + ' days of starting something. On the days it feels impossible, that number is the argument.' },
 
     { id: 'nothing-today', rank: 5,
-      when: s => !LO.store.winsOn().length,
+      when: s => !LO.store.winsOn().some(w => w.kind !== 'day' && LO.level.pointsOf(w) > 0),
       title: 'One thing is the target',
       body: 'Not a productive day. One. Pick the smallest thing on the Do tab and set the timer.' },
 

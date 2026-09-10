@@ -37,7 +37,7 @@
         <!-- 0 · WHO -->
         <div class="profile">
           ${LO.companion.playerStats()}
-          <div class="bigcrest"><img src="assets/icons/lumen-512.png" alt="Lumen glass companion"><b>${lvl.level}</b></div>
+          <div class="bigcrest">${LO.companion.lumen('profile')}<b>${lvl.level}</b></div>
           <h1 class="pname">${ui.esc(cap(name))}</h1>
           <div class="plvl">Level ${lvl.level}  ·  ${lvl.into} / ${lvl.need}</div>
           <div class="meter" style="max-width:220px;margin:10px auto 0"><i style="width:${lvl.pct}%"></i></div>

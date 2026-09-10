@@ -35,6 +35,21 @@ the previous decision requiring a hexagon instead of a mascot. Four tabs remain.
 - Adds a brief expansion/light animation on Start/Open and motion controls.
 - Fixes the standalone builder's missing level engine and embeds the new image.
 
+## 2026-09-09 refinement
+
+The static mascot inside the app has been replaced by a lightweight SVG
+construction. Forty glass wedges move independently; the drifting core pushes
+each wedge outward according to its angle, so the sphere changes with the
+light rather than merely rotating as one flat picture. Reduced-motion and the
+existing Companion motion control stop the movement. Static app icons use the
+photorealistic glass-ball render because Android and iOS launchers do not animate.
+
+Do and Write now have separate capture semantics. A sentence entered under
+“What can be done today?” becomes only an orange daily checklist row directly
+below that prompt. A sentence entered in Write becomes only part of the written
+record. Classification still helps search and reflection; it no longer moves a
+Write entry into today's task list.
+
 ## The adaptive engine and its limits
 
 `assets/js/adaptive.js` is the local data/decision layer. It compares seven-day
