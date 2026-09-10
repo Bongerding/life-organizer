@@ -37,6 +37,20 @@ store.write('task', 'A written thought that sounds like a task');
 assert.equal(store.dayList().length, 1, 'Write must not add to the daily list');
 assert.equal(store.state.mind.load.length, 1, 'only the Do capture creates a task');
 assert.equal(store.state.scribe.entries.length, 1);
+store.write('thought', 'A detail worth retelling', {
+  tags: ['field-story', 'nature'], prompt: 'What changed?',
+  source: { id: 'example-source', title: 'A useful detail', name: 'Source', url: 'https://example.com' }
+});
+const storyEvent = store.state.chronicle.find(e => e.text === 'A detail worth retelling');
+assert.ok(storyEvent.meta.tags.includes('field-story'), 'field stories need durable chronicle metadata');
+assert.equal(storyEvent.meta.source.title, 'A useful detail');
+const storyId = storyEvent.meta.ref;
+assert.equal(store.shareStory(storyId), 10);
+assert.equal(store.shareStory(storyId), 0, 'one story can pay at most once per day');
+assert.equal(store.winsOn().filter(w => w.ref === 'field_share_' + storyId).length, 1);
+const writeSurface = fs.readFileSync('assets/js/surfaces/write.js', 'utf8');
+assert.ok(writeSurface.includes("label: 'Field stories'"), 'Write needs a separate story collection');
+assert.ok(fs.readFileSync('assets/js/companion.js', 'utf8').includes('data-story="${f.id}"'), 'discoveries need a route into the field journal');
 store.wipe();
 assert.equal(adaptive.analyze(store.state).mode, 'explore');
 store.log('thought', '<script>test</script>');
@@ -77,4 +91,4 @@ const p = store.state.people[0];
 store.contacted(p.id);
 assert.equal(p.nextReach, D.shift(14));
 assert.equal(p.lastContact, D.today());
-console.log('PASS: clock-aware Do, concrete joystick quests, semantic aims, optimized trail, separate capture, append-only refiling, recovery, adaptation, backup, contacts');
+console.log('PASS: clock-aware Do, concrete joystick quests, semantic aims, field stories, optimized trail, separate capture, append-only refiling, recovery, adaptation, backup, contacts');

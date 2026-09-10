@@ -1,5 +1,18 @@
 # Decisions
 
+## 2026-09-10 · Discoveries become field stories
+
+The learning card on Do is now the entrance to a small field-journal loop inside
+Write. A discovery can carry its fact, source, and conversation question into
+the one writing box; Write can also begin a blank field story from an ordinary
+moment. Saved stories are ordinary `scribe.entries` with `field-story` tags and
+source metadata copied into their chronicle event. They gain a dedicated filter
+and visual mark, but not another tab or another data store.
+
+Writing a story pays zero, consistent with every other capture. Actually sharing
+one is a finished action and pays 10 points once per story per day. The app records
+only that it was shared; it does not ask who heard it or transmit the story.
+
 ## 2026-09-09 · The joysticks choose a quest, not an identity sentence
 
 The two controls now resolve to one small physical action across four arenas:

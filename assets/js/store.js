@@ -182,7 +182,8 @@ window.LO = window.LO || {};
     'habits':          { type: 'habit',  text: r => 'Started tracking: ' + r.name },
     'people':          { type: 'person', text: r => 'Added ' + r.name + ' to the people you keep' },
     'mind.load':       { type: 'task',   text: r => r.title, quiet: true },
-    'scribe.entries':  { type: 'entry',  text: r => r.text, kindFrom: true },
+    'scribe.entries':  { type: 'entry',  text: r => r.text, kindFrom: true,
+      meta: r => ({ tags: r.tags || [], prompt: r.prompt || '', source: r.source || null }) },
     'scribe.insights': { type: 'insight', text: r => r.text },
     'rewire.targets':  { type: 'rewire', text: r => 'New target: ' + r.from + ' → ' + r.to },
     'rewire.reps':     { type: 'rep',    text: r => r.response },
@@ -340,7 +341,8 @@ window.LO = window.LO || {};
       arr.unshift(rec);
       const note = ADDED[path];
       if (note && !note.quiet) {
-        this.log(note.kindFrom && rec.kind ? rec.kind : note.type, note.text(rec), { ref: rec.id });
+        this.log(note.kindFrom && rec.kind ? rec.kind : note.type, note.text(rec),
+          Object.assign({ ref: rec.id }, note.meta ? note.meta(rec) : {}));
       }
       this.save();
       return rec;
@@ -410,6 +412,11 @@ window.LO = window.LO || {};
       return rec;
     },
     note(text, tags) { return this.write('thought', text, { tags: tags || [] }); },
+    shareStory(id) {
+      const ref = 'field_share_' + id;
+      if (this.winsOn().some(w => w.ref === ref)) return 0;
+      return this.win('story-shared', 'Shared a field story', 0, ref, 10);
+    },
 
     /** open tasks, heaviest first, hiding anything deferred */
     tasks() {

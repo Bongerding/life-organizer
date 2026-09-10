@@ -66,3 +66,9 @@ friends form defaults collapsed, automatic backup reports its result through the
 top notification rail, and the reward transition creates twenty-eight temporary
 glass wedges before returning to Do. Browser automation was unavailable for this
 pass, so no unobserved visual interaction is claimed here.
+
+Field-story refinement: the isolated suite verifies that a saved story carries
+its prompt, source, and `field-story` tag into the append-only chronicle. Source
+checks cover both discovery-to-Write routing and the dedicated Write filter.
+Story capture itself pays zero; the “shared” action is separately guarded to one
+10-point award per story per local day.

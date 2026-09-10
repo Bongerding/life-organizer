@@ -35,6 +35,12 @@ trackers at read time for acquisition and sale goals, including goals saved by
 older releases. Write recategorization appends `entry-reclassified`; the visible
 chronicle projects the latest category without mutating the source event.
 
+Field stories live in `scribe.entries` and carry `tags: ['field-story', topic]`,
+the prompt, and an optional public-source descriptor. The `ADDED` chronicle rule
+copies that metadata into new events so the Write stream can derive its Field
+stories collection without a second index. “I shared this” writes a 10-point win
+at most once per story per local day; it does not send content anywhere.
+
 Design rationale is in [DECISIONS.md](DECISIONS.md); the working rules for
 changing this codebase are in [CLAUDE.md](../CLAUDE.md).
 

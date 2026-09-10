@@ -113,17 +113,17 @@
     (root || document).querySelectorAll('[data-lumen]').forEach(animateLumen);
   }
   const facts = [
-    { topic: 'springs', title: 'A spring with its own thermostat', text: 'Rock Springs at Kelly Park flows at about 68°F year-round. The cool water you feel is groundwater arriving at the surface.', source: 'Orange County', url: 'https://newsroom.ocfl.net/2025/07/spotlight-on-kelly-park-an-apopka-landmark-and-natural-treasure/', ask: 'How would you explain that cool water to someone on their first paddle?' },
-    { topic: 'springs', title: 'Two springs, two temperatures', text: 'Wekiwa Springs is described by Florida State Parks as 72°F year-round. Nearby springs do not necessarily share the same temperature.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/parks-and-trails/wekiwa-springs-state-park', ask: 'Try asking someone to guess the temperature before sharing the answer.' },
-    { topic: 'nature', title: 'A window into the ground', text: 'Sinkholes at Lafayette Blue Springs provide openings through which water can recharge the aquifer. What happens at the surface matters underground.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/learn/springs-lafayette-blue-springs', ask: 'What can you see around you that connects surface water and groundwater?' },
-    { topic: 'nature', title: 'The spring has a larger story', text: 'Florida DEP identifies lower groundwater levels and excess nutrients as pressures on springs. Protecting a spring involves more than its visible pool.', source: 'Florida DEP', url: 'https://floridadep.gov/springs', ask: 'Tell the story in one friendly sentence, without turning it into a lecture.' }
+    { id: 'spring-thermostat', topic: 'springs', title: 'A spring with its own thermostat', text: 'Rock Springs at Kelly Park flows at about 68°F year-round. The cool water you feel is groundwater arriving at the surface.', source: 'Orange County', url: 'https://newsroom.ocfl.net/2025/07/spotlight-on-kelly-park-an-apopka-landmark-and-natural-treasure/', ask: 'How would you explain that cool water to someone on their first paddle?' },
+    { id: 'spring-temperatures', topic: 'springs', title: 'Two springs, two temperatures', text: 'Wekiwa Springs is described by Florida State Parks as 72°F year-round. Nearby springs do not necessarily share the same temperature.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/parks-and-trails/wekiwa-springs-state-park', ask: 'Try asking someone to guess the temperature before sharing the answer.' },
+    { id: 'aquifer-window', topic: 'nature', title: 'A window into the ground', text: 'Sinkholes at Lafayette Blue Springs provide openings through which water can recharge the aquifer. What happens at the surface matters underground.', source: 'Florida State Parks', url: 'https://www.floridastateparks.org/learn/springs-lafayette-blue-springs', ask: 'What can you see around you that connects surface water and groundwater?' },
+    { id: 'spring-pressure', topic: 'nature', title: 'The spring has a larger story', text: 'Florida DEP identifies lower groundwater levels and excess nutrients as pressures on springs. Protecting a spring involves more than its visible pool.', source: 'Florida DEP', url: 'https://floridadep.gov/springs', ask: 'Tell the story in one friendly sentence, without turning it into a lecture.' }
   ];
   function discovery() {
     const selected = store.state.guidance.interests;
     const pool = facts.filter(f => selected.includes(f.topic));
     if (!pool.length) return '';
     const f = pool[(Math.floor(Date.now() / 14400000) + discoveryOffset) % pool.length];
-    return `<aside class="discovery"><div class="eyebrow">A little wonder · ${ui.esc(f.topic)}</div><h3>${ui.esc(f.title)}</h3><p>${ui.esc(f.text)}</p><a href="${f.url}" target="_blank" rel="noopener noreferrer">${f.source} ↗</a><details><summary>Make it a conversation</summary><p>${ui.esc(f.ask)}</p></details><button class="flat" data-discover>Another discovery ↻</button></aside>`;
+    return `<aside class="discovery"><div class="eyebrow">A little wonder · ${ui.esc(f.topic)}</div><h3>${ui.esc(f.title)}</h3><p>${ui.esc(f.text)}</p><a href="${f.url}" target="_blank" rel="noopener noreferrer">${f.source} ↗</a><details><summary>Make it a conversation</summary><p>${ui.esc(f.ask)}</p></details><div class="acts"><button class="go" data-story="${f.id}">Make this a field story</button><button class="flat" data-discover>Another discovery ↻</button></div></aside>`;
   }
   function birthday(p) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(p.birthday || '')) return '';
@@ -223,6 +223,11 @@
     document.body.insertAdjacentHTML('beforeend', trail());
     document.addEventListener('click', e => {
       if (e.target.closest('[data-discover]')) { discoveryOffset++; LO.machine.refresh(); }
+      const story = e.target.closest('[data-story]');
+      if (story) {
+        const f = facts.find(x => x.id === story.dataset.story);
+        if (f) { LO.machine.get('write').openStory(f); LO.machine.go('write'); }
+      }
       if (e.target.closest('[data-friends]')) openFriends();
       if (e.target.closest('[data-restore]')) {
         const visible = new Set(store.visibleChronicle().map(x => x.id));

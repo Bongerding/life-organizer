@@ -17,6 +17,7 @@
     { id: 'plan',     label: 'Plans',      types: ['plan'] },
     { id: 'feeling',  label: 'Feelings',   types: ['feeling', 'state'] },
     { id: 'thought',  label: 'Thoughts',   types: ['thought', 'entry', 'note'] },
+    { id: 'story',    label: 'Field stories', types: null, story: true },
     { id: 'all',      label: 'All activity', types: null }
   ];
 
@@ -26,10 +27,12 @@
   let filter = 'mine';
   let query = '';
   let shown = 14;
+  let storySeed = null;
 
   LO.machine.register({
     id: 'write',
     name: 'Write',
+    openStory(seed) { storySeed = Object.assign({}, seed); kind = 'thought'; auto = false; why = ''; },
 
     render(s) {
       const counts = {};
@@ -38,14 +41,16 @@
       const mine = Object.values(counts).reduce((a, b) => a + b, 0);
 
       return `
-        <h1 class="hd">Write it down.</h1>
-        <p class="lede">One box for your record. I will work out what kind of thought it was.</p>
+        <h1 class="hd">${storySeed ? 'Bring back a story.' : 'Write it down.'}</h1>
+        <p class="lede">${storySeed ? 'Turn one thing you noticed into something you could tell another person.' : 'One box for your record. I will work out what kind of thought it was.'}</p>
 
-        <textarea id="writebox" placeholder="A task, a chore, something you did, a plan, how you feel, or just a thought."></textarea>
-        <div data-guess>${guessRow(s)}</div>
-        ${kind === 'feeling' ? feelingPanel() : ''}
+        ${storySeed ? storyPrompt(storySeed) : '<button class="field-start" data-fieldblank><span>✦</span><b>Catch a field story</b><small>A detail worth remembering or sharing</small></button>'}
+        <textarea id="writebox" placeholder="${ui.esc(storySeed ? storySeed.ask : 'A task, a chore, something you did, a plan, how you feel, or just a thought.')}"></textarea>
+        ${storySeed ? '<div class="story-rule">One clear detail. One human sentence. Your own words.</div>' : `<div data-guess>${guessRow(s)}</div>`}
+        ${!storySeed && kind === 'feeling' ? feelingPanel() : ''}
         <div class="writefoot">
-          <button class="go" data-save>Save</button>
+          <button class="go" data-save>${storySeed ? 'Keep this story' : 'Save'}</button>
+          ${storySeed ? '<button class="flat" data-cancelstory>Cancel</button>' : ''}
           <span class="hint">Ctrl + Enter</span>
         </div>
 
@@ -65,11 +70,18 @@
       const self = LO.machine.get('write');
       const redraw = () => self.refresh();
       const box = root.querySelector('#writebox');
+      const blankStory = root.querySelector('[data-fieldblank]');
+      if (blankStory) blankStory.onclick = () => {
+        storySeed = { id: 'field-note', topic: 'life', title: 'A moment worth keeping', text: '', source: 'Your day', url: '', ask: 'What did you notice, and how would you tell it to someone?' };
+        kind = 'thought'; auto = false; redraw();
+      };
+      const cancelStory = root.querySelector('[data-cancelstory]');
+      if (cancelStory) cancelStory.onclick = () => { storySeed = null; kind = 'thought'; auto = true; redraw(); };
 
       /* re-guess as he types, without redrawing the box he is typing in */
       let t;
       const reguess = () => {
-        if (!auto) return;
+        if (!auto || storySeed) return;
         const g = classify.guess(box.value, store.state);
         if (g.kind !== kind || g.why !== why) {
           kind = g.kind; why = g.why;
@@ -110,8 +122,12 @@
       function save() {
         const text = box.value.trim();
         if (text.length < 2) return box.focus();
-        store.write(kind, text);
-        if (kind === 'feeling') {
+        const savingStory = storySeed;
+        store.write(savingStory ? 'thought' : kind, text, savingStory ? {
+          tags: ['field-story', savingStory.topic || 'life'], prompt: savingStory.ask || '',
+          source: { id: savingStory.id || '', title: savingStory.title || '', name: savingStory.source || '', url: savingStory.url || '' }
+        } : null);
+        if (!savingStory && kind === 'feeling') {
           const panel = root.querySelector('[data-feel]');
           if (panel) {
             const d = ui.read(panel);
@@ -126,9 +142,9 @@
         // An activity was already banked by store.write().
         // quiet: what he wrote is already in the chronicle, and a second
         // "did · wrote something down" under every entry is noise
-        if (kind !== 'activity') store.win('write', labelFor(kind), 0, 'write_' + kind, 0, true);
-        ui.toast('Saved to your record');
-        kind = 'thought'; auto = true; why = '';
+        if (savingStory || kind !== 'activity') store.win('write', savingStory ? 'Kept a field story' : labelFor(kind), 0, savingStory ? 'field_story' : 'write_' + kind, 0, true);
+        ui.toast(savingStory ? 'Field story kept' : 'Saved to your record');
+        storySeed = null; kind = 'thought'; auto = true; why = '';
         redraw();
         const nb = document.querySelector('#writebox');
         if (nb) nb.focus();
@@ -155,6 +171,12 @@
             store.hideEntry(b.dataset.del);
             LO.companion.undoEntry(b.dataset.del);
             paintStream();
+          };
+        });
+        root.querySelectorAll('[data-sharestory]').forEach(b => {
+          b.onclick = () => {
+            if (!store.shareStory(b.dataset.sharestory)) return;
+            ui.toast('Story shared · +10'); paintStream();
           };
         });
         bindRefiling(root, paintStream);
@@ -188,6 +210,10 @@
     </div>`;
   }
 
+  function storyPrompt(seed) {
+    return `<aside class="story-seed"><div class="eyebrow">Field story · ${ui.esc(seed.topic || 'life')}</div><h2>${ui.esc(seed.title)}</h2>${seed.text ? `<p>${ui.esc(seed.text)}</p>` : ''}<strong>${ui.esc(seed.ask)}</strong>${seed.url ? `<a href="${ui.esc(seed.url)}" target="_blank" rel="noopener noreferrer">${ui.esc(seed.source)} ↗</a>` : '<span>From your day</span>'}</aside>`;
+  }
+
   function labelFor(k) {
     return ({ task: 'Wrote a task', chore: 'Wrote a chore', activity: 'Logged an activity',
       plan: 'Wrote a plan', feeling: 'Wrote how you feel' })[k] || 'Wrote something down';
@@ -198,6 +224,7 @@
     const q = query.trim().toLowerCase();
     let evs = store.visibleChronicle();
     if (f && f.types) evs = evs.filter(e => f.types.includes(e.type));
+    if (f && f.story) evs = evs.filter(e => e.meta && Array.isArray(e.meta.tags) && e.meta.tags.includes('field-story'));
     if (q) evs = evs.filter(e => (e.text || '').toLowerCase().includes(q));
 
     if (!evs.length) {
@@ -222,9 +249,14 @@
             : D.label(d) + ' ' + D.pretty(d)}</div>
           ${byDay.get(d).map(e => {
             const written = WRITTEN.includes(e.type);
-            return `<div class="entry ${written ? '' : 'thin'}"${written ? ` data-recat="${e.id}" data-entry-kind="${e.type}"` : ''}>
+            const story = !!(e.meta && Array.isArray(e.meta.tags) && e.meta.tags.includes('field-story'));
+            const storyId = e.meta && e.meta.ref ? e.meta.ref : e.id;
+            const shared = story && s.wins.some(w => w.date === D.today() && w.ref === 'field_share_' + storyId);
+            return `<div class="entry ${written ? '' : 'thin'}${story ? ' field-story' : ''}"${written ? ` data-recat="${e.id}" data-entry-kind="${e.type}"` : ''}>
               <div class="meta"><span class="k">${LABELS[e.type] || e.type}</span><span class="tm">${time(e.ts)}</span></div>
+              ${story ? `<div class="story-mark">Field story${e.meta.source && e.meta.source.title ? ' · ' + ui.esc(e.meta.source.title) : ''}</div>` : ''}
               <div class="body">${ui.esc(e.text)}</div>
+              ${story ? `<button class="story-shared${shared ? ' on' : ''}" data-sharestory="${storyId}"${shared ? ' disabled' : ''}>${shared ? 'Shared today ✓' : 'I shared this · +10'}</button>` : ''}
               ${written ? `<button class="x" data-del="${e.id}" aria-label="Remove entry from view" title="Remove from view (recoverable)">×</button>` : ''}
             </div>`;
           }).join('')}

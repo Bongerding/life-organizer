@@ -108,17 +108,19 @@ person should be added just because the UI looks like a game.
 
 ## Where this should go next
 
-The strongest next idea is **a field journal that becomes a story collection**.
-A discovery becomes something the user can explain, then a memory of sharing
-it with someone. That ties learning, social contact, and everyday experience
-together more naturally than another points currency.
+The strongest next idea—**a field journal that becomes a story collection**—now
+has its first working loop. A discovery can become a sourced prompt in Write;
+an everyday detail can start there directly; saved stories have their own
+collection; and sharing one can be marked as a finished action. This ties
+learning, social contact, and everyday experience together without another
+points currency or another tab.
 
-1. First, use this release and gather explicit practice feedback. Review which
+1. Use this release and gather explicit practice feedback. Review which
    invitations were useful and where the interface asks for too much work.
 2. Add a weekly expedition recap: actions, connections, and discoveries, each
    traceable to a record. Offer one experiment for next week, with accept/skip.
-3. Expand a curated, source-checked discovery library. Add recall and saved
-   story cards before connecting any generated-fact service.
+3. Expand the curated, source-checked discovery library. Add spaced recall and
+   story resurfacing before connecting any generated-fact service.
 4. After enough observations, compare methods against actual follow-through.
    Show sample counts and uncertainty, distinguish correlation from causation,
    and offer the user a correction whenever an interpretation misses the mark.
