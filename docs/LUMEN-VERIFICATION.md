@@ -41,3 +41,10 @@ mascot exposes forty wedge groups and respects both motion controls. The
 procedural glass render was also reviewed at 800 × 800: distinct translucent
 wedges, edge glints and the central light remain legible on the app background.
 The completion box is the final control on every daily task row.
+
+Trail refinement: the runtime markup contains more than seventy recursively
+generated branch segments inside three broad blurred currents. Both the field
+drift and vein shimmer stop under the app motion control and reduced-motion CSS.
+The regenerated 512px launcher icon was visually reviewed after downsampling:
+the sphere remains dominant and legible, while the old orbit line is gone and
+the broader fractal field survives at icon scale.

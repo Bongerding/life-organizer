@@ -8,6 +8,7 @@ vm.createContext(context);
 for (const file of ['store', 'level', 'adaptive', 'companion']) vm.runInContext(fs.readFileSync('assets/js/' + file + '.js', 'utf8'), context);
 const { store, D, adaptive, level } = context.window.LO;
 assert.equal((context.window.LO.companion.lumen('profile').match(/class="lumen-wedge"/g) || []).length, 40);
+assert.ok((context.window.LO.companion.trail().match(/class="trail-depth-/g) || []).length >= 70, 'trail needs a broad fractal field');
 store.wipe();
 store.capture('A daily task', 2);
 assert.equal(store.dayList().length, 1);

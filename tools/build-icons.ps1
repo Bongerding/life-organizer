@@ -1,6 +1,6 @@
 # Resize the approved mascot render into the app's install and maskable icons.
 Add-Type -AssemblyName System.Drawing
-$source = [System.Drawing.Image]::FromFile((Join-Path $PSScriptRoot '../assets/icons/lumen.png'))
+$source = [System.Drawing.Image]::FromFile((Join-Path $PSScriptRoot '../assets/icons/lumen-fractal.png'))
 try {
   foreach ($spec in @(@('lumen-ball-192.png',192,1.0), @('lumen-ball-512.png',512,1.0), @('lumen-ball-apple.png',180,1.0), @('lumen-ball-maskable-192.png',192,0.78), @('lumen-ball-maskable-512.png',512,0.78))) {
     $size = [int]$spec[1]

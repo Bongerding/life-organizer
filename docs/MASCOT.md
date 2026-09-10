@@ -1,9 +1,10 @@
 # Lumen asset provenance
 
-Generated with the built-in image generation tool on 2026-09-08; no Blender
-scene was produced. The asset is a rendered bitmap, animated in the interface
-with CSS. Source: `assets/icons/lumen.png`. App derivatives are reproducible
-with `tools/build-icons.ps1`, including padded maskable variants.
+Generated with the built-in image generation tool; no Blender scene was
+produced. The current launcher source is `assets/icons/lumen-fractal.png`.
+App derivatives are reproducible with `tools/build-icons.ps1`, including padded
+maskable variants. The original `assets/icons/lumen.png` is retained as visual
+history rather than silently overwritten.
 
 Final generation prompt:
 
@@ -19,3 +20,20 @@ wedges. `requestAnimationFrame` moves the core on two slow axes; the projection
 of that offset onto each wedge's angle changes its radial distance, combined
 with a per-wedge phase and rotation. The result is small, responsive, and can
 stop instantly for reduced motion. The bitmap remains the app-icon source.
+
+## 2026-09-09 trail revision
+
+The first render's single condensed orbit line was rejected. The built-in image
+editing tool preserved the sphere and replaced only that trail with a wide
+volumetric field of self-similar golden-white and faint ice-blue branches.
+
+Final edit prompt:
+
+> Use case: precise-object-edit. Asset type: square app icon source and profile
+> mascot render. Replace only the thin, condensed golden trail with a broad,
+> airy haze made of luminous fractal light. It should begin near the orb, bloom
+> across the lower-left and lower half, and contain delicate self-similar
+> branching filaments like refracted lightning, frost dendrites, or glowing
+> river deltas. Preserve the glass wedges, central entity, material, framing,
+> scale, and black background. Avoid a thin orbit line, solid comet trail,
+> hard-edged ribbon, smoke, fire, text, logos, or watermark.

@@ -16,9 +16,13 @@
 @keyframes orb-launch{0%{transform:scale(1)}30%{transform:scale(.8) rotate(-8deg);filter:brightness(1.2)}70%{transform:scale(1.15) rotate(4deg);filter:brightness(1.8);box-shadow:0 0 0 40px #edd39320,0 0 100px #edd39366}100%{transform:scale(1);filter:brightness(1)}}
 .launch-flare{position:fixed;inset:0;z-index:150;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,#edcf9c25,transparent 60%);animation:flare .68s ease-out}
 @keyframes flare{0%,100%{opacity:0}55%{opacity:1}}
-.lumen-trail{position:fixed;inset:0;max-width:850px;margin:auto;z-index:3;pointer-events:none;opacity:.3;filter:drop-shadow(0 0 8px #f8de9b);animation:beam-drift 14s ease-in-out infinite alternate}
-.lumen-trail svg{width:100%;height:100%}
-@keyframes beam-drift{to{transform:translateY(14px) scaleX(.97);opacity:.25}}
+.lumen-trail{position:fixed;z-index:3;pointer-events:none;left:50%;top:-15vh;width:max(115vw,920px);height:130vh;opacity:.48;mix-blend-mode:screen;transform:translateX(-48%);animation:fractal-drift 18s ease-in-out infinite alternate}
+.lumen-trail svg{display:block;width:100%;height:100%;overflow:visible}
+.trail-haze path{fill:none;stroke:url(#trail-light);stroke-linecap:round}.trail-haze .haze-wide{stroke-width:210;opacity:.25}.trail-haze .haze-mid{stroke-width:130;opacity:.22}.trail-haze .haze-fine{stroke-width:72;opacity:.27}
+.trail-fractals path{fill:none;stroke:url(#trail-light);stroke-linecap:round;stroke-dasharray:100 8;animation:fractal-flow 13s linear infinite;animation-delay:calc(var(--phase) * -.43s)}
+.trail-depth-4{stroke-width:3;opacity:.7}.trail-depth-3{stroke-width:2.2;opacity:.62}.trail-depth-2{stroke-width:1.5;opacity:.53}.trail-depth-1{stroke-width:1;opacity:.44}.trail-depth-0{stroke-width:.6;opacity:.34}
+@keyframes fractal-drift{to{transform:translate(-52%,-2vh) rotate(-1.2deg);opacity:.29}}
+@keyframes fractal-flow{to{stroke-dashoffset:-56}}
 .eyebrow,.player-ribbon{font:10px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--lumen);line-height:1.6}
 .discovery,.guidance-card{margin:30px 0 8px;padding:24px;text-align:left;border:1px solid #eed49a28;border-radius:18px 6px 18px 18px;background:linear-gradient(125deg,#23313870,#1a191d)}
 .discovery h3{font:24px Georgia,serif;color:#f6e7ca;line-height:1.25;margin:10px 0}
@@ -56,6 +60,6 @@ summary{cursor:pointer;color:var(--lumen);padding:9px 0}
 .entry{position:relative;padding-right:42px}.entry>.x{position:absolute;right:8px;top:8px;opacity:1!important;width:30px;height:30px;border:1px solid #eed49a25;border-radius:50%;background:#23272b;color:#ddd;font-size:18px;cursor:pointer}.entry .body{overflow-wrap:anywhere}
 .capture+.todo{margin-top:12px}.capture+.todo .td-t{color:var(--accent);font-weight:650}.capture+.todo .td-box{border-color:#e2603a99}.today-summary{font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);text-align:right;margin-top:10px}
 :focus-visible{outline:2px solid var(--ice)!important;outline-offset:4px}
-.still .bigcrest,.still .lumen-trail,.still .core-spark{animation:none}
+.still .bigcrest,.still .lumen-trail,.still .core-spark,.still .trail-fractals path{animation:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:400px){.col{padding-inline:18px}.player-stats span{font-size:9px}.discovery,.guidance-card{padding:18px}.bigcrest{width:160px;height:160px}}

@@ -32,6 +32,40 @@
     </span>`;
   }
 
+  /** The trail is intentionally much larger than the app frame. Its soft
+      currents carry several deterministic branching trees, so it reads as
+      light breaking through glass instead of a second solid ribbon. */
+  function trail() {
+    const veins = [];
+    function grow(x, y, length, angle, depth, phase) {
+      const bend = (phase % 2 ? -1 : 1) * (5 + depth * 2.5);
+      const x2 = x + Math.cos(angle) * length;
+      const y2 = y + Math.sin(angle) * length;
+      const mx = (x + x2) / 2 + Math.cos(angle + Math.PI / 2) * bend;
+      const my = (y + y2) / 2 + Math.sin(angle + Math.PI / 2) * bend;
+      veins.push(`<path class="trail-depth-${depth}" style="--phase:${phase}" d="M${x.toFixed(1)} ${y.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`);
+      if (!depth) return;
+      grow(x2, y2, length * .64, angle + .31 + (phase % 3) * .025, depth - 1, phase + 1);
+      grow(x2, y2, length * .57, angle - .39 - (phase % 2) * .035, depth - 1, phase + 3);
+    }
+    grow(1010, 65, 205, 2.08, 4, 0);
+    grow(805, 405, 170, 2.34, 4, 4);
+    grow(610, 700, 125, 2.58, 3, 8);
+    return `<div class="lumen-trail" aria-hidden="true"><svg viewBox="0 0 1100 1200" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="trail-light" x1="100%" y1="0" x2="0" y2="100%"><stop stop-color="#fff8d8"/><stop offset=".42" stop-color="#efbd69"/><stop offset="1" stop-color="#8ddce8" stop-opacity="0"/></linearGradient>
+        <filter id="trail-soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="44"/></filter>
+        <filter id="trail-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="3.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g class="trail-haze" filter="url(#trail-soft)">
+        <path class="haze-wide" d="M1120 20 C810 230 1040 410 690 555 S260 820 -110 1190"/>
+        <path class="haze-mid" d="M1190 160 C880 330 990 510 650 650 S220 850 -80 1080"/>
+        <path class="haze-fine" d="M970 -80 C760 250 835 430 520 585 S150 680 -120 930"/>
+      </g>
+      <g class="trail-fractals" filter="url(#trail-glow)">${veins.join('')}</g>
+    </svg></div>`;
+  }
+
   function animateLumen(el) {
     if (animated.has(el)) return;
     animated.add(el);
@@ -156,7 +190,7 @@
     handle.onpointercancel = () => { startY = null; handle.style.transform = ''; };
     drawer.addEventListener('close', () => { handle.setAttribute('aria-expanded', 'false'); if (returnFocus && returnFocus.isConnected) returnFocus.focus(); });
     drawer.onclick = e => { if (e.target === drawer) { const r = drawer.getBoundingClientRect(); if (e.clientX < r.left || e.clientY < r.top) closeFriends(); } };
-    document.body.insertAdjacentHTML('beforeend', '<div class="lumen-trail" aria-hidden="true"><svg viewBox="0 0 700 1000" preserveAspectRatio="none"><defs><linearGradient id="beam"><stop stop-color="#e5b965" stop-opacity="0"/><stop offset="1" stop-color="#fff2bb" stop-opacity=".65"/></linearGradient></defs><path d="M0 920 C600 950 720 680 670 440 S470 220 620 20 L632 20 C477 223 707 295 682 440 S605 954 0 920" fill="url(#beam)"/></svg></div>');
+    document.body.insertAdjacentHTML('beforeend', trail());
     document.addEventListener('click', e => {
       if (e.target.closest('[data-discover]')) { discoveryOffset++; LO.machine.refresh(); }
       if (e.target.closest('[data-friends]')) openFriends();
@@ -176,5 +210,5 @@
     });
     document.body.classList.toggle('still', !store.state.guidance.motion || store.state.settings.reduceMotion);
   }
-  LO.companion = { boot, lumen, hydrate, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
+  LO.companion = { boot, lumen, trail, hydrate, openFriends: () => { if (!document.getElementById('friends-drawer').open) openFriends(); }, launch, discovery, playerStats, guidancePanel, undoEntry, birthday, due };
 })(window.LO);

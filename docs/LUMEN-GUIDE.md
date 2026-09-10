@@ -50,6 +50,11 @@ below that prompt. A sentence entered in Write becomes only part of the written
 record. Classification still helps search and reflection; it no longer moves a
 Write entry into today's task list.
 
+The original narrow light ribbon was rejected after visual review. The trail is
+now a field wider than the app: three low-opacity blurred currents carry more
+than seventy recursively branched light veins. The UI stays crisp above it,
+while the slow drift and flowing highlights keep the haze from feeling static.
+
 ## The adaptive engine and its limits
 
 `assets/js/adaptive.js` is the local data/decision layer. It compares seven-day

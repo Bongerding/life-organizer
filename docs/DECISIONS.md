@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-09-09 · The trail is atmosphere, not a ribbon
+
+The companion trail spans beyond the app frame as three softly blurred light
+currents containing deterministic branching veins. The fractals are generated
+locally once, use no image or video payload, and drift much more slowly than the
+companion. Do not condense this back into one hard-edged curve: the purpose is a
+wide field of refracted light, with the interface remaining the sharp layer.
+
 ## 2026-09-09 · The companion moves as glass; Do and Write are separate
 
 The in-app mascot is now a generated SVG made from forty independent radial
