@@ -136,6 +136,31 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-13 · The keyboard waits to be asked
+
+**Opening a bubble no longer focuses its field.** Tapping a node used to throw
+the keyboard up instantly, which on a phone means half the screen — and the
+paper you are trying to read — disappears before you have decided you want to
+type anything. Most taps on a node are to look at it, drag it, or delete it.
+
+The keyboard now arrives when you tap the field, and only then. That is the one
+moment you have actually said you want it.
+
+**So the field has to look like a field.** A borderless line reads as a label
+when nothing is focused, so inputs and textareas in a bubble now have a border,
+a light fill and a radius, with an ember ring on focus. An empty field also
+starts wide enough to read its own placeholder, because for the six kinds that
+placeholder is the only instruction they ever give.
+
+**And the keyboard must not move the paper under you.** The keyboard opening is
+a `visualViewport` resize, and the resize handler re-centres the locked set —
+which would yank the field out from under the cursor mid-sentence. While a
+bubble is open that re-centring is skipped, and instead `keepFieldVisible()`
+slides the paper just enough that the bubble sits inside whatever height is
+left above the keyboard.
+
+---
+
 ## 2026-09-13 · Never ask the window how big it is
 
 Two complaints, one cause. The exit button was missing on a phone, and tapping

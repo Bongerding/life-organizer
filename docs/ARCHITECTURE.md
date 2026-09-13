@@ -292,6 +292,13 @@ soon as the finger lifts. A **pen button top right** toggles drawing on, so the
 loop never depends on winning a 340ms timing window against the browser's own
 long-press handling — with it on, every drag draws.
 
+**The keyboard is opt-in.** A bubble opens unfocused — most taps on a node are
+not the start of typing — so the field carries a visible border and fill to read
+as tappable. `watchField()` hooks focus/blur; while a bubble is open the
+viewport-resize handler skips re-centring the locked set and calls
+`keepFieldVisible()` instead, which pans the paper so the bubble stays above the
+keyboard.
+
 **Never ask the window for its size.** `screenBox()` measures the surface
 element; `window.innerHeight` is not the visible area on a phone and reported
 double it on a 400×820 test viewport. Everything — framing, locking, the rescue,

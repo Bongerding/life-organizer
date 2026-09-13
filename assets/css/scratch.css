@@ -118,11 +118,19 @@ body.scratch-dragging #scratch{transition:none}
   animation:sc-pop 200ms var(--spring) both;
 }
 @keyframes sc-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+/* The field is not focused when the bubble opens, so it has to look like
+   something you tap. A bare borderless line reads as a label; this reads as
+   a box waiting for you. */
 .sc-bubble input{
-  border:0;background:none;font:inherit;font-size:15.5px;color:#17171b;
-  padding:3px 2px;min-width:112px;
+  border:1px solid rgba(23,23,27,.14);border-radius:9px;
+  background:rgba(23,23,27,.03);font:inherit;font-size:15.5px;color:#17171b;
+  padding:8px 10px;min-width:112px;
+  transition:border-color var(--t-fast),background var(--t-fast);
 }
-.sc-bubble input:focus{outline:none}
+.sc-bubble input:focus{
+  outline:none;border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 3px rgba(226,96,58,.14);
+}
 .sc-bubble input::placeholder{color:rgba(23,23,27,.34)}
 .sc-acts{display:flex;gap:6px}
 .sc-acts button{
@@ -271,10 +279,15 @@ body.scratch-dragging #scratch{transition:none}
 }
 .sc-kind i{font-style:normal;font-size:12px;color:var(--accent)}
 .sc-bubble textarea{
-  border:0;background:none;font:inherit;font-size:14.5px;line-height:1.5;color:#17171b;
-  width:212px;resize:none;padding:3px 2px;
+  border:1px solid rgba(23,23,27,.14);border-radius:9px;
+  background:rgba(23,23,27,.03);font:inherit;font-size:14.5px;line-height:1.5;color:#17171b;
+  width:212px;resize:none;padding:8px 10px;
+  transition:border-color var(--t-fast),background var(--t-fast);
 }
-.sc-bubble textarea:focus{outline:none}
+.sc-bubble textarea:focus{
+  outline:none;border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 3px rgba(226,96,58,.14);
+}
 .sc-bubble.k-plan{border-color:#17171b}
 .sc-bubble.k-plan .sc-kind i{color:#17171b}
 .sc-bubble.k-plan .sc-ok{background:#17171b}

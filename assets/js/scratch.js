@@ -170,6 +170,9 @@
     };
     const reframe = function () {
       set();
+      // the keyboard opening is a viewport resize too; re-centring the set
+      // mid-sentence would yank the field out from under the cursor
+      if (typing || editing) return keepFieldVisible();
       if (!open || !locked) return;
       const s0 = setOf(locked);
       if (s0) { const f = frameOf(s0); const v = view(); v.x = f.x; v.y = f.y; v.z = f.z; applyView(); }
@@ -477,12 +480,19 @@
 
     const input = b.querySelector('[data-in]');
     if (input.tagName === 'INPUT') {
+      // an empty field starts wide enough to read its own prompt, which is
+      // the only instruction the six kinds ever get
       const fit = function () {
-        input.style.width = Math.max(116, Math.min(212, input.value.length * 8.5 + 36)) + 'px';
+        input.style.width =
+          Math.max(input.value ? 150 : 196, Math.min(218, input.value.length * 8.5 + 46)) + 'px';
       };
       input.oninput = fit; fit();
     }
-    setTimeout(function () { input.focus(); if (input.select) input.select(); }, 30);
+    // Deliberately not focused. Opening a bubble should not throw half the
+    // screen away behind a keyboard you did not ask for — you might be here
+    // to read it, rename nothing, and tap Delete. The keyboard arrives when
+    // you tap the field, which is the only moment you have said you want it.
+    watchField(input);
 
     b.onsubmit = function (e) {
       e.preventDefault();
@@ -505,7 +515,34 @@
     b.querySelector('[data-cancel]').onclick = function () { closeBubble(); paint(); };
   }
 
-  function closeBubble() { if (editing) { editing.el.remove(); editing = null; } }
+  function closeBubble() { if (editing) { editing.el.remove(); editing = null; typing = false; } }
+
+  let typing = false;
+
+  /* When the keyboard does come up it eats the bottom half of the screen, and
+     the field you are typing into is often down there. The overlay is already
+     sized to the visible area, so the moment that area shrinks we slide the
+     paper until the bubble sits inside what is left. */
+  function watchField(input) {
+    input.addEventListener('focus', function () {
+      typing = true;
+      setTimeout(keepFieldVisible, 340);   // after the keyboard has finished arriving
+    });
+    input.addEventListener('blur', function () { typing = false; });
+  }
+
+  function keepFieldVisible() {
+    if (!editing || !el) return;
+    const m = screenBox(), host = el.getBoundingClientRect();
+    const b = editing.el.getBoundingClientRect();
+    const top = b.top - host.top, bottom = b.bottom - host.top;
+    const pad = 14;
+    const v = view();
+    if (bottom > m.H - pad) v.y -= bottom - (m.H - pad);
+    else if (top < pad) v.y += pad - top;
+    else return;
+    applyView();
+  }
 
   /* ---------------- the six kinds, on a double tap ---------------- */
 
@@ -588,7 +625,7 @@
 
     const input = b.querySelector('[data-in]');
     input.style.width = '198px';
-    setTimeout(function () { input.focus(); input.select(); }, 30);
+    watchField(input);          // same rule: the keyboard waits to be asked
 
     b.onsubmit = function (e) {
       e.preventDefault();
