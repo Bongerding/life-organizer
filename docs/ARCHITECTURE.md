@@ -136,7 +136,7 @@ people    [{ name, cadence, lastContact, note }]
 clarity   { substance, clearSince, best, urges[{ date, intensity, rode, instead }], uses[{ date, note }] }
 wins      [{ date, kind, label, minutes, ref, points }]   the ledger the level is derived from
 scribe    entries[{ date, prompt, text, tags }], insights[{ date, text, source }]
-scratch   nodes[{ id, text, x, y, created }], links[{ id, from, to, directed }], view{ x, y }
+scratch   nodes[{ id, text, x, y, type, created }], links[{ id, from, to, directed }], view{ x, y, z }
 settings  reduceMotion, weekStart
 ```
 
@@ -247,11 +247,19 @@ action never produces two rows in the logbook.
 left on Do. Do stays mounted underneath; the tab bar slides away with it. It is
 **not a fifth tab** and must not become one.
 
-State lives at `state.scratch`: `nodes` carry text and a world position, `links`
-carry `from`/`to` and a `directed` flag where **`from` is the prerequisite**.
-Nothing here touches `mind.load` — mapping a plan out has to cost nothing and
-commit to nothing, or thinking on paper would start adding to the day's
-obligations.
+State lives at `state.scratch`: `nodes` carry text, a kind and a world position,
+`links` carry `from`/`to` and a `directed` flag where **`from` is the
+prerequisite**, and `view` carries the pan and the zoom. Putting a single node
+down never touches `mind.load` — mapping has to cost nothing and commit to
+nothing, or thinking on paper would start adding to the day's obligations.
+**Circling a group is the one act that crosses over**, and it creates one
+`mind.load` item of `kind: 'plan'` carrying the node ids it was drawn around.
+
+**The six kinds** (`LO.scratch.TYPES`): step, outcome, blocker, resource, habit,
+note. They are a vocabulary for taking a goal apart, not colours — the palette
+teaches it by saying in one line when you would reach for each, and the line a
+plan shows on Do is written out of them (`describe()`). Extending the list is
+cheap; making them decorative is what would waste them.
 
 The gestures, all on one surface, separated by movement and time rather than by
 chrome:
@@ -259,17 +267,43 @@ chrome:
 | Gesture | What it does |
 |---|---|
 | Tap empty paper | the bubble you type into; Confirm puts a node down |
+| Double tap | the palette of six kinds |
 | Drag empty paper | pans, and the dot grid pans with it |
+| Pinch | zooms 0.45×–2.2× about the midpoint of the two fingers |
 | Drag a bubble | moves it, snapped to the half-grid |
-| Hold a bubble (340ms) then drag | a wire follows the thumb; release on another to join |
+| Hold a bubble (340ms) then drag | a **straight** wire follows the thumb; release on another to join |
+| Hold empty paper (340ms) | ink, and it follows the thumb like a pen |
+| Circle a bubble or a group with ink | names it and puts one larger task on Do |
 | Swipe along a wire | sets the order — **you swipe away from whatever comes first** |
 | Tap a bubble, tap again | select, then open it to rename or delete |
 | Tap a wire | selects it and offers the cut badge |
 
+**Straight while you aim, curved once it exists.** One cubic does both: the
+control points push out perpendicular in opposite directions, which is an S; when
+`avoid()` finds a node sitting in the middle of the run it pushes both the same
+way instead and the S opens into a C around it. Same formula, sliding between the
+two as the paper fills up.
+
+**Ink is never stored.** Its whole job is the loop you draw with it; it fades as
+soon as the finger lifts.
+
+**Pointer bookkeeping.** `pointerup`/`pointercancel` listen on the *window*, not
+the surface. Releasing over an element that has just been removed — the bubble
+you tapped twice, a wire you cut — never bubbles back to the surface, and a
+pointer left behind makes the next touch read as the second finger of a pinch.
+Every gesture after it dies. Do not move those listeners back.
+
 `store.scratchOpeners()` returns the nodes nothing directed points at — the
 things that are actually startable — and the canvas fades everything else. That
 feedback is the whole reason to draw an arrow; without it the arrows are
-decoration.
+decoration. Notes never count either way: context is not work.
+
+A plan on Do renders `LO.scratch.thumb(ids)` (a 46×30 SVG of the actual shape,
+arrowheads and all) and `LO.scratch.describe(ids)` (one line, written from the
+kinds, saying nothing twice). Both read the live nodes, so the row keeps up with
+the paper. Tapping the thumbnail calls `LO.scratch.focus(ids)`, which centres and
+fits those nodes and flashes them. A plan is `effort: 3`, and it needs
+`origin: 'do'` or `dayList()` filters it out.
 
 ---
 

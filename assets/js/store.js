@@ -159,9 +159,9 @@ window.LO = window.LO || {};
       // an intention with a position; it is not on today's list until it
       // is sent there.
       scratch: {
-        nodes: [],           // [{id,text,x,y,created}]
-        links: [],           // [{id,from,to,directed}] — `from` is the prerequisite
-        view: { x: 0, y: 0 } // where the paper was left
+        nodes: [],                  // [{id,text,x,y,type,created}]
+        links: [],                  // [{id,from,to,directed}] — `from` is the prerequisite
+        view: { x: 0, y: 0, z: 1 }  // where the paper was left, and how far in
       },
 
       // CLASSIFIER — what it has learned about how you write
@@ -482,9 +482,9 @@ window.LO = window.LO || {};
        Kept out of `mind.load` on purpose. Mapping out a plan should cost
        nothing and commit to nothing — the moment a node became a task,
        thinking on paper would start adding to the day's obligations. */
-    scratchAdd(text, x, y) {
+    scratchAdd(text, x, y, type) {
       const rec = {
-        id: this.id('sn'), text: text, x: x, y: y, created: D.today()
+        id: this.id('sn'), text: text, x: x, y: y, type: type || 'step', created: D.today()
       };
       this.state.scratch.nodes.push(rec);
       this.log('scratch', 'Put down: ' + text, { ref: rec.id });
@@ -528,11 +528,29 @@ window.LO = window.LO || {};
       this.save();
     },
     /** nodes with nothing pointing at them that is still on the paper —
-        the things that are actually startable right now */
+        the things that are actually startable right now. Notes are context,
+        not work, so they never count either way. */
     scratchOpeners() {
       const sc = this.state.scratch;
       const blocked = new Set(sc.links.filter(l => l.directed).map(l => l.to));
-      return sc.nodes.filter(n => !blocked.has(n.id));
+      return sc.nodes.filter(n => n.type !== 'note' && !blocked.has(n.id));
+    },
+
+    /** the one door from the paper to the day's list: a circled group
+        becomes a single larger task that carries its own map. */
+    capturePlan(title, nodeIds) {
+      const entry = this.add('scribe.entries', {
+        date: D.today(), kind: 'task', prompt: '', text: title, tags: ['plan']
+      });
+      const rec = {
+        id: this.id('task'), title: title, kind: 'plan', weight: 3, effort: 3,
+        nodes: (nodeIds || []).slice(), origin: 'do', status: 'open',
+        created: D.today(), ts: Date.now(), from: entry.id
+      };
+      this.state.mind.load.unshift(rec);
+      this.log('scratch', 'Circled a plan: ' + title, { ref: rec.id, nodes: rec.nodes.length });
+      this.save();
+      return rec;
     },
 
     /** call after a successful export so the system can nag about backups */

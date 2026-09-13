@@ -10,20 +10,26 @@
 #scratch{
   position:fixed;inset:0;z-index:60;
   background:#fbfaf7;color:#17171b;
-  transform:translateX(100%);
+  transform:translateX(-100%);
   transition:transform 330ms var(--spring);
-  overscroll-behavior:none;
+  overscroll-behavior:none;overflow:hidden;
 }
 body.scratch-open #scratch{transform:none}
 
 /* the desk slides out of the way as the paper comes in */
 #app,#tabs{transition:transform 330ms var(--spring)}
-body.scratch-open #app{transform:translateX(-100%)}
-body.scratch-open #tabs{transform:translateX(calc(-50% - 100vw))}
+body.scratch-open #app{transform:translateX(100%)}
+body.scratch-open #tabs{transform:translateX(calc(-50% + 100vw))}
 /* while a thumb is actually on it, the transform is the thumb's job */
 body.scratch-dragging #app,
 body.scratch-dragging #tabs,
 body.scratch-dragging #scratch{transition:none}
+
+/* The gesture only survives on a phone if the browser is told it may
+   keep the vertical axis and nothing else. Without this it claims any
+   drag starting on a scrolling list, fires pointercancel, and the swipe
+   dies halfway across. */
+.pane[data-pane="do"]{touch-action:pan-y}
 
 /* ---------- the paper ---------- */
 .sc-surface{
@@ -36,15 +42,18 @@ body.scratch-dragging #scratch{transition:none}
 .sc-links{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 
 /* ---------- wires ---------- */
-.sc-wire{stroke:rgba(23,23,27,.30);stroke-width:1.6;stroke-linecap:round}
+.sc-wire{stroke:rgba(23,23,27,.32);stroke-width:1.7;stroke-linecap:round;
+  vector-effect:non-scaling-stroke}
 .sc-wire.flow{stroke:var(--accent);stroke-width:2.1}
 /* selection thickens a wire — it must not recolour one, or a directed
    wire would stop reading as directed the moment you touched it */
 .sc-wire.on{stroke-width:3.2}
 .sc-wire.on:not(.flow){stroke:rgba(23,23,27,.55)}
-.sc-live{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 5;stroke-linecap:round}
+.sc-live{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 5;stroke-linecap:round;
+  vector-effect:non-scaling-stroke}
 /* a fat invisible line so a thumb can find a 2px wire */
-.sc-hit{stroke:transparent;stroke-width:30;pointer-events:stroke;cursor:pointer}
+.sc-hit{stroke:transparent;stroke-width:30;pointer-events:stroke;cursor:pointer;
+  vector-effect:non-scaling-stroke}
 #sc-arrow path{fill:var(--accent)}
 
 .sc-kill{pointer-events:all;cursor:pointer}
@@ -54,6 +63,7 @@ body.scratch-dragging #scratch{transition:none}
 /* ---------- bubbles ---------- */
 .sc-node{
   position:absolute;transform:translate(-50%,-50%);
+  display:flex;align-items:baseline;
   max-width:190px;padding:10px 15px;border-radius:16px;
   background:#fff;border:1.5px solid rgba(23,23,27,.16);
   box-shadow:0 2px 10px -4px rgba(20,20,28,.28);
@@ -77,7 +87,7 @@ body.scratch-dragging #scratch{transition:none}
   border-color:var(--accent);background:#fff4f0;
   transform:translate(-50%,-50%) scale(1.07);
 }
-.sc-text{pointer-events:none;display:block;overflow-wrap:anywhere}
+.sc-text{flex:1 1 auto;pointer-events:none;display:block;overflow-wrap:anywhere}
 
 /* ---------- the bubble you type into ---------- */
 .sc-bubble{
@@ -136,3 +146,108 @@ body.scratch-dragging #scratch{transition:none}
   #scratch,#app,#tabs,.sc-node,.sc-exit{transition-duration:1ms}
   .sc-bubble{animation-duration:1ms}
 }
+
+
+/* ============================================================
+   INK — holding the paper starts a line, the way a pen would.
+   It is not stored: its whole job is the loop you draw with it.
+   ============================================================ */
+.sc-ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.sc-stroke{
+  stroke:rgba(23,23,27,.62);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  transition:opacity 300ms var(--swift);
+}
+.sc-stroke.gone{opacity:0}
+
+/* ============================================================
+   THE SIX KINDS
+   A tint and a glyph each, no new shapes. The vocabulary has to
+   be readable at a glance without turning the paper into a chart.
+   ============================================================ */
+.sc-g{
+  flex:0 0 auto;font-style:normal;font-size:11px;line-height:1;margin-right:7px;
+  opacity:.85;font-weight:700;
+}
+.sc-node.k-outcome{border-color:rgba(226,96,58,.55);background:#fffaf8}
+.sc-node.k-outcome .sc-g{color:var(--accent)}
+.sc-node.k-blocker{border-color:rgba(138,42,26,.4);background:#fdf6f4}
+.sc-node.k-blocker .sc-g{color:#8a2a1a}
+.sc-node.k-resource{border-color:rgba(150,112,24,.38);background:#fdfaf0}
+.sc-node.k-resource .sc-g{color:#8a6a16}
+.sc-node.k-habit{border-color:rgba(31,122,88,.38);background:#f3faf6}
+.sc-node.k-habit .sc-g{color:#1f7a58}
+.sc-node.k-note{
+  border-style:dotted;border-color:rgba(23,23,27,.26);background:#faf8f2;
+  max-width:230px;font-size:13.5px;line-height:1.5;color:rgba(23,23,27,.78);
+}
+.sc-node.k-note .sc-g{color:rgba(23,23,27,.45)}
+
+/* arriving from a plan on Do */
+.sc-node.flash{animation:sc-flash 1.5s var(--swift) 2}
+@keyframes sc-flash{
+  0%,100%{box-shadow:0 2px 10px -4px rgba(20,20,28,.28)}
+  45%{box-shadow:0 0 0 6px rgba(226,96,58,.22), 0 4px 16px -6px rgba(20,20,28,.4)}
+}
+
+/* the kind label on the bubble you type into */
+.sc-kind{
+  display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:rgba(23,23,27,.5);
+}
+.sc-kind i{font-style:normal;font-size:12px;color:var(--accent)}
+.sc-bubble textarea{
+  border:0;background:none;font:inherit;font-size:14.5px;line-height:1.5;color:#17171b;
+  width:212px;resize:none;padding:3px 2px;
+}
+.sc-bubble textarea:focus{outline:none}
+.sc-bubble.k-plan{border-color:#17171b}
+.sc-bubble.k-plan .sc-kind i{color:#17171b}
+.sc-bubble.k-plan .sc-ok{background:#17171b}
+
+/* ============================================================
+   THE PALETTE — a double tap asks what you are putting down.
+   Each line says when you would reach for it, because the point
+   of having six is that they teach the decomposition.
+   ============================================================ */
+.sc-palette{
+  position:absolute;left:0;right:0;bottom:0;z-index:6;
+  background:#fff;border-top:1px solid rgba(23,23,27,.12);
+  border-radius:18px 18px 0 0;padding:16px 14px calc(env(safe-area-inset-bottom) + 14px);
+  box-shadow:0 -12px 36px -14px rgba(20,20,28,.4);
+  animation:sc-rise 240ms var(--spring) both;
+  max-height:74vh;overflow-y:auto;
+}
+@keyframes sc-rise{from{transform:translateY(100%)}}
+.sc-p-head{
+  font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
+  color:rgba(23,23,27,.45);margin:0 4px 12px;
+}
+.sc-p-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sc-p-kind{
+  display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;
+  gap:2px 9px;text-align:left;font:inherit;cursor:pointer;
+  padding:11px 12px;border-radius:14px;
+  border:1.5px solid rgba(23,23,27,.14);background:#fff;color:#17171b;
+  transition:border-color var(--t-fast),transform var(--t-fast) var(--spring);
+}
+.sc-p-kind:active{transform:scale(.96)}
+.sc-p-kind i{
+  grid-row:1;font-style:normal;font-size:13px;font-weight:700;color:var(--accent);
+  width:18px;text-align:center;
+}
+.sc-p-kind b{grid-row:1;font-size:14px;font-weight:650}
+.sc-p-kind span{
+  grid-column:2;grid-row:2;font-size:11.5px;line-height:1.4;color:rgba(23,23,27,.5);
+}
+.sc-p-kind.k-outcome{border-color:rgba(226,96,58,.4)}
+.sc-p-kind.k-blocker i{color:#8a2a1a}
+.sc-p-kind.k-resource i{color:#8a6a16}
+.sc-p-kind.k-habit i{color:#1f7a58}
+.sc-p-kind.k-note i{color:rgba(23,23,27,.5)}
+.sc-p-kind.k-step i{color:rgba(23,23,27,.7)}
+.sc-p-close{
+  width:100%;margin-top:10px;padding:12px;border-radius:999px;cursor:pointer;font:inherit;
+  font-size:13px;font-weight:600;border:1px solid rgba(23,23,27,.16);
+  background:none;color:rgba(23,23,27,.6);
+}
+@media (max-width:360px){.sc-p-grid{grid-template-columns:1fr}}

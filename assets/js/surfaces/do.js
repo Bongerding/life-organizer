@@ -145,6 +145,12 @@
           redraw();
         };
       });
+      root.querySelectorAll('[data-open]').forEach(b => {
+        b.onclick = () => {
+          const l = store.state.mind.load.find(x => x.id === b.dataset.open);
+          if (l) LO.scratch.focus(l.nodes);
+        };
+      });
       root.querySelectorAll('[data-drop]').forEach(b => {
         b.onclick = () => { store.drop('mind.load', b.dataset.drop); ui.toast('Removed from today'); redraw(); };
       });
@@ -159,9 +165,15 @@
     const done = l.status === 'closed';
     const eff = +l.effort || +l.weight || 2;
     const pts = LO.level.tier(eff).points;
-    return `<div class="td${done ? ' done' : ''}" data-row="${l.id}">
+    // a plan carries the shape it was circled out of, and one line
+    // written from the kinds on the paper. Tapping the map goes back to it.
+    const plan = l.kind === 'plan' && l.nodes && l.nodes.length;
+    return `<div class="td${done ? ' done' : ''}${plan ? ' plan' : ''}" data-row="${l.id}">
+      ${plan ? `<button class="td-open" data-open="${l.id}" aria-label="Open on the paper"
+        >${LO.scratch.thumb(l.nodes)}</button>` : ''}
       <button class="td-hit" data-hit="${l.id}"${done ? ' disabled' : ''}>
         <span class="td-t">${ui.esc(l.title)}</span>
+        ${plan ? `<span class="td-sub">${ui.esc(LO.scratch.describe(l.nodes))}</span>` : ''}
       </button>
       <button class="td-p" data-eff="${l.id}" title="${LO.level.tier(eff).name} — tap to change">+${pts}</button>
       ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}

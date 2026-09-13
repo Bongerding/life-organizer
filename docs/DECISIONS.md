@@ -136,6 +136,59 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-13 · The paper gets a vocabulary, and one door to the list
+
+Second pass on Scratch, all of it asked for directly.
+
+**The swipe goes right, and it had to be fixed to work at all.** The first cut
+had it backwards. More importantly it barely fired on a real phone: the Do pane
+is a scrolling list, so the browser claimed any drag starting on it, fired
+`pointercancel`, and the gesture died halfway. `touch-action: pan-y` on that pane
+is the fix — the browser keeps the vertical axis, we get the horizontal. The
+commit threshold is now distance **or** speed, so a flick counts as much as a
+haul. **Do not remove the `touch-action` line**; without it the whole gesture
+silently stops working on touch and keeps working on a desktop mouse, which is
+the worst way for a bug to hide.
+
+**Straight while you aim, curved once it exists.** A wire being dragged is
+straight because you are pointing it at something. Once it exists it becomes a
+cubic, because a page of straight lines through a field of bubbles reads as a
+mess. One formula covers both shapes it needs: control points pushed
+perpendicular in opposite directions make an S, and when something is sitting in
+the middle of the run both get pushed the same way instead, opening the S into a
+C around it.
+
+**Six kinds, and they had to earn it.** Step, Outcome, Blocker, Resource, Habit,
+Note, on a double tap. The brief was "don't make it complicated and don't make it
+useless", and the resolution is that they are a *vocabulary for taking a goal
+apart*, not colours. The palette teaches it — one line each on when you would
+reach for it — and the line a plan shows on Do is composed from them, so
+choosing the right kind is what makes the summary read like a plan rather than a
+pile. A kind that only tinted a bubble would be the useless version.
+
+**Circling is the door to the list, and the only one.** Holding the paper starts
+ink like a pen; a loop around a group makes one larger task on Do, `effort: 3`,
+carrying a thumbnail of the actual shape and a one-line description. This is the
+"separate act" left unbuilt last time. Individual nodes still never become tasks
+— that stays true, and the reasoning below still holds. What crosses over is a
+whole shape you deliberately drew a circle around.
+
+**Ink is not stored.** Its only job is the loop. Persisting freehand annotation
+is a different feature and was not asked for; storing it would have meant an
+eraser, layers, and a lot of surface for no gain.
+
+**Pinch zooms**, 0.45× to 2.2×, about the midpoint of the two fingers, and the
+dot grid scales with it.
+
+**One bug worth remembering.** `pointerup` and `pointercancel` now listen on the
+window rather than the surface. Release over an element that was removed mid-
+gesture — the bubble you tapped twice, a wire you just cut — and the event never
+bubbles back; the pointer stays in the live map, and the *next* touch is read as
+the second finger of a pinch. Every gesture after it dies. This is invisible
+until it happens and maddening afterwards.
+
+---
+
 ## 2026-09-13 · Scratch is paper, and it is not a fifth tab
 
 **Decided.** Swiping left on Do slides the desk aside and brings in a white
@@ -157,8 +210,9 @@ say which mode you are in, and it costs no chrome to say it.
 **Nodes are not tasks.** They are deliberately kept out of `mind.load`. Mapping
 a plan has to cost nothing and commit to nothing — the moment putting a node
 down added a row to today's list, thinking on paper would start adding
-obligations, and he would stop doing it. Sending a node to the list is a
-separate act, not yet built.
+obligations, and he would stop doing it. Sending work to the list is a separate,
+deliberate act: as of the entry above, that act is circling a group with ink,
+and it makes one task, not one per bubble.
 
 **The arrow has to change something.** An order you can draw but that the system
 ignores is decoration. Anything with a directed arrow pointing at it renders

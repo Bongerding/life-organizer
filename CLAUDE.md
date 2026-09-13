@@ -33,10 +33,17 @@ you have found a feature that belongs somewhere else.
 - **Advice** — the daily line and twelve situational protocols.
 - **Me** — the profile, the numbers, and the question that fills the profile in.
 
-**Scratch is not a fifth tab.** Swiping left on Do slides the desk aside and
-brings in a white grid you can put things down on and draw the order between.
+**Scratch is not a fifth tab.** Swiping **right** on Do slides the desk aside
+and brings in a white grid you put things down on and draw the order between.
 It is an overlay on the `#scratch` route with Do still mounted underneath, it is
-not in the tab bar, and it must not be promoted into one. See DECISIONS.md.
+not in the tab bar, and it must not be promoted into one. A single node is never
+a task; circling a group with your thumb is the one act that crosses over, and it
+makes one larger task on Do carrying its own map. See DECISIONS.md.
+
+The swipe only survives on a real phone because `.pane[data-pane="do"]` is
+`touch-action: pan-y`. Without it the browser claims any drag that starts on a
+scrolling list, fires `pointercancel`, and the gesture dies halfway. Do not
+remove it.
 
 ## Invariants — do not break these
 
