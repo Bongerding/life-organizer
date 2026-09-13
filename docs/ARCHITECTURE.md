@@ -292,6 +292,14 @@ soon as the finger lifts. A **pen button top right** toggles drawing on, so the
 loop never depends on winning a 340ms timing window against the browser's own
 long-press handling — with it on, every drag draws.
 
+**Never ask the window for its size.** `screenBox()` measures the surface
+element; `window.innerHeight` is not the visible area on a phone and reported
+double it on a 400×820 test viewport. Everything — framing, locking, the rescue,
+the lasso — is computed from the measured box. The overlay's height is the
+smallest of `visualViewport.height`, `innerHeight` and `clientHeight`, and
+`guardExit()` re-anchors the exit button after every paint if it has ended up
+outside that box.
+
 **Two lines that are load-bearing.** `.sc-world` must keep
 `transform-origin: 0 0`, because the entire coordinate model is
 `screen = world × zoom + pan` and the default 50% origin makes that true only at

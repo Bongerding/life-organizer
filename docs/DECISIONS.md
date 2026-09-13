@@ -136,6 +136,42 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-13 · Never ask the window how big it is
+
+Two complaints, one cause. The exit button was missing on a phone, and tapping
+a set framed it down and right, half off the screen. Both came from
+`window.innerWidth` / `innerHeight`, which on a phone is **not** the visible
+area — iOS counts the space behind translucent chrome, Android counts the URL
+bar until it hides. Measured on a 400×820 handset viewport, `innerHeight`
+reported **1640**. Framing a set at `H/2` therefore centred it a full screen too
+low, and sizing the overlay to it put the bottom strip — where the only way out
+lives — under the browser.
+
+**The rule now: nothing in Scratch asks the window for its size.** `screenBox()`
+measures the surface, a real element with a real box, and every frame, every
+lock and every rescue is computed from that. The overlay's own height takes the
+*smallest* of `visualViewport.height`, `innerHeight` and
+`documentElement.clientHeight` — the smallest honest number, never the largest,
+because being slightly short is invisible and being slightly tall hides the exit.
+
+`focus()` used to frame the view before the overlay was on screen, measuring an
+element that had no box yet. It now stores what to look at and frames it in
+`show()`, once there is something real to measure.
+
+**And the exit gets a runtime guard.** After every paint, `guardExit()` checks
+the button is actually inside the visible box and drags it back in if it is not.
+Belt and braces for the one control whose failure mode is being trapped.
+
+**A patching lesson, recorded because it cost real time.** A scripted
+find-and-replace on `.sc-exit{` also matched inside
+`@media (prefers-reduced-motion:reduce){ #scratch,#app,#tabs,.sc-node,.sc-exit{`
+and injected a whole block into the middle of that selector list, nesting the
+sets and pen styles inside the media query. It stayed valid CSS and therefore
+stayed silent. When patching stylesheets by string match, anchor on something
+that cannot appear inside a selector list.
+
+---
+
 ## 2026-09-13 · The camera belongs to a set, not to the page
 
 **You arrive inside a set.** Opening the paper used to drop you wherever you

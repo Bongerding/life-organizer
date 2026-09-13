@@ -62,6 +62,30 @@
   let peeking = false;        // dragged off a locked set; it springs back
   let forget = function () {};   // drop any pointer the surface still thinks is down
 
+  /* ------------------------------------------------------------
+     THE ONE MEASUREMENT
+
+     window.innerHeight is not the visible area on a phone. iOS counts
+     the space behind the translucent chrome, Android counts the URL
+     bar until it hides. Framing a set against it centres the set
+     below and right of where you are actually looking, and sizing
+     the overlay to it puts the exit button under the browser.
+
+     So nothing here asks the window how big it is. Everything asks
+     the surface, which is a real element with a real box, and the
+     overlay itself is sized to the smallest honest number we have.
+     ------------------------------------------------------------ */
+  function screenBox() {
+    const surf = el && el.querySelector('.sc-surface');
+    const r = surf ? surf.getBoundingClientRect() : null;
+    if (r && r.width > 0 && r.height > 0) return { W: r.width, H: r.height };
+    const vv = window.visualViewport;
+    return {
+      W: Math.min(vv ? vv.width : Infinity, window.innerWidth),
+      H: Math.min(vv ? vv.height : Infinity, window.innerHeight)
+    };
+  }
+
   const data = () => store.state.scratch;
   const node = id => data().nodes.find(n => n.id === id);
   const snap = v => Math.round(v / (GRID / 2)) * (GRID / 2);
@@ -133,12 +157,26 @@
   function trackViewport() {
     const vv = window.visualViewport;
     const set = function () {
-      const h = vv ? vv.height : window.innerHeight;
+      // the smallest honest number, never the largest: an overlay taller than
+      // the visible area hides its own bottom strip, and the only way out of
+      // here lives in that strip
+      const h = Math.min(
+        vv ? vv.height : Infinity,
+        window.innerHeight || Infinity,
+        document.documentElement.clientHeight || Infinity
+      );
       document.documentElement.style.setProperty('--sc-h', Math.round(h) + 'px');
+      if (open) { paintSets(); guardExit(); }
     };
-    if (vv) { vv.addEventListener('resize', set); vv.addEventListener('scroll', set); }
-    addEventListener('resize', set);
-    addEventListener('orientationchange', set);
+    const reframe = function () {
+      set();
+      if (!open || !locked) return;
+      const s0 = setOf(locked);
+      if (s0) { const f = frameOf(s0); const v = view(); v.x = f.x; v.y = f.y; v.z = f.z; applyView(); }
+    };
+    if (vv) { vv.addEventListener('resize', reframe); vv.addEventListener('scroll', set); }
+    addEventListener('resize', reframe);
+    addEventListener('orientationchange', reframe);
     set();
   }
 
@@ -153,17 +191,15 @@
       open = true;
       // you arrive inside a set, not hovering over the whole page
       const all = sets();
-      if (all.length && !arriving) {
+      if (!applyPending() && all.length) {
         const want = (locked && setOf(locked)) || nearest() || all[0];
         locked = want.key;
         const f = frameOf(want);
         const v = view(); v.x = f.x; v.y = f.y; v.z = f.z;
       }
-      arriving = false;
       paint();
     });
   }
-  let arriving = false;
 
   function close() {
     if (!open) return;
@@ -179,27 +215,36 @@
     setTimeout(function () { if (!open && el) el.hidden = true; }, 340);
   }
 
-  /** arrive from a plan on Do: centre what it was made of and light it up */
+  /** arrive from a plan on Do: centre what it was made of and light it up.
+      The framing waits until the overlay is actually on screen — an element
+      that is still hidden has no box to measure, and guessing is what put the
+      view in the wrong place to begin with. */
   function focus(ids) {
     build();
-    const list = (ids || []).map(node).filter(Boolean);
-    if (list.length) {
-      const xs = list.map(n => n.x), ys = list.map(n => n.y);
-      const cx = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2;
-      const cy = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
-      const w = (Math.max.apply(null, xs) - Math.min.apply(null, xs)) + 260;
-      const h = (Math.max.apply(null, ys) - Math.min.apply(null, ys)) + 320;
-      const v = view();
-      v.z = clamp(Math.min(window.innerWidth / w, window.innerHeight / h), ZMIN, 1.2);
-      v.x = window.innerWidth / 2 - cx * v.z;
-      v.y = window.innerHeight / 2 - cy * v.z;
-      flash = list.map(n => n.id);
-      store.save();
-    }
-    arriving = true;                 // focus() has already chosen the view
-    locked = null;
+    pending = (ids || []).slice();
     location.hash = 'scratch';
     setTimeout(function () { flash = []; if (open) paint(); }, 2600);
+  }
+  let pending = null;
+
+  function applyPending() {
+    const list = (pending || []).map(node).filter(Boolean);
+    pending = null;
+    if (!list.length) return false;
+    const m = screenBox();
+    const xs = list.map(n => n.x), ys = list.map(n => n.y);
+    const cx = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2;
+    const cy = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+    const w = (Math.max.apply(null, xs) - Math.min.apply(null, xs)) + 300;
+    const h = (Math.max.apply(null, ys) - Math.min.apply(null, ys)) + 340;
+    const v = view();
+    v.z = clamp(Math.min(m.W / w, m.H / h), ZMIN, 1.25);
+    v.x = m.W / 2 - cx * v.z;
+    v.y = m.H / 2 - cy * v.z;
+    flash = list.map(n => n.id);
+    locked = null;
+    store.save();
+    return true;
   }
 
   /* ------------------------------------------------------------
@@ -239,10 +284,30 @@
     surf.style.backgroundPosition = v.x + 'px ' + v.y + 'px';
   }
 
+  /* The exit is the only way out, so it does not get to rely on `bottom`
+     and `env()` resolving the way they should. After every paint we check
+     it is actually inside the visible box, and drag it back in if it is not.
+     Cheap, and it turns "I am trapped" into a non-event. */
+  function guardExit() {
+    const ex = el.querySelector('.sc-exit');
+    if (!ex) return;
+    const m = screenBox(), host = el.getBoundingClientRect(), b = ex.getBoundingClientRect();
+    if (!b.height) return;
+    if ((b.bottom - host.top) > m.H - 4) {
+      ex.style.bottom = 'auto';
+      ex.style.top = Math.max(8, m.H - b.height - 18) + 'px';
+    }
+    if ((b.right - host.left) > m.W - 4) {
+      ex.style.right = 'auto';
+      ex.style.left = Math.max(8, m.W - b.width - 16) + 'px';
+    }
+  }
+
   function paint() {
     if (!el) return;
     const d = data();
     applyView();
+    guardExit();
 
     // anything with an arrow pointing at it is waiting on something else.
     // Drawing the arrow has to change what you see, or it is decoration.
@@ -694,7 +759,7 @@
      the buttons down the left put you back into any set you like.
      ------------------------------------------------------------ */
   function frameOf(s0) {
-    const W = window.innerWidth, H = window.innerHeight;
+    const m = screenBox(), W = m.W, H = m.H;
     const b = s0.box;
     const w = (b.x1 - b.x0) + 320;          // room for the widest bubble, twice
     const h = (b.y1 - b.y0) + 360;
@@ -723,7 +788,7 @@
   function nearest() {
     const all = sets();
     if (!all.length) return null;
-    const v = view(), W = window.innerWidth, H = window.innerHeight;
+    const v = view(), m = screenBox(), W = m.W, H = m.H;
     const cx = (W / 2 - v.x) / v.z, cy = (H / 2 - v.y) / v.z;
     return all.slice().sort(function (a, b) {
       return Math.hypot(a.c.x - cx, a.c.y - cy) - Math.hypot(b.c.x - cx, b.c.y - cy);
@@ -740,7 +805,7 @@
       locked = null;
     }
     // free camera: the one thing it will not do is leave you staring at nothing
-    const v = view(), W = window.innerWidth, H = window.innerHeight;
+    const v = view(), m = screenBox(), W = m.W, H = m.H;
     const onScreen = data().nodes.some(function (n) {
       const sz = sizes[n.id] || { hw: 60, hh: 22 };
       const x = n.x * v.z + v.x, y = n.y * v.z + v.y;

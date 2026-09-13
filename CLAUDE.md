@@ -52,6 +52,11 @@ on a phone, after looking fine on a desktop:
   overlay sized to the layout viewport hides its bottom strip under Android's
   browser chrome, and that strip holds the only way out.
 
+- Nothing in Scratch may use `window.innerWidth` / `innerHeight`. On a phone
+  those are not the visible area — measured at double it on one test viewport —
+  and using them puts content off screen and the exit button under the browser
+  chrome. Measure the element with `screenBox()`.
+
 **Test full-screen and gesture work on an actual handset.** Every one of these
 behaved perfectly under a desktop mouse.
 

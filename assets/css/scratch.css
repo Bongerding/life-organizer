@@ -217,62 +217,9 @@ body.scratch-dragging #scratch{transition:none}
 .sc-exit:active{transform:scale(.9)}
 
 @media (prefers-reduced-motion:reduce){
-  #scratch,#app,#tabs,.sc-node,/* ============================================================
-   THE SETS — one button per group of nodes, down the left, in the
-   order they sit on the paper. Tapping one puts the camera back
-   inside that set. This is the way home, so it is always visible.
-   ============================================================ */
-.sc-sets{
-  position:absolute;left:14px;top:calc(env(safe-area-inset-top) + 40px);z-index:5;
-  display:flex;flex-direction:column;gap:6px;
-  max-width:min(62vw,220px);
-}
-.sc-set{
-  display:flex;align-items:center;gap:8px;text-align:left;font:inherit;cursor:pointer;
-  padding:7px 12px 7px 7px;border-radius:999px;
-  border:1.5px solid rgba(23,23,27,.13);background:rgba(255,255,255,.93);
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  font-size:12.5px;color:rgba(23,23,27,.68);
-  box-shadow:0 2px 8px -5px rgba(20,20,28,.4);
-  transition:border-color var(--t-fast),color var(--t-fast),transform var(--t-fast) var(--spring);
-  -webkit-tap-highlight-color:transparent;
-}
-.sc-set:active{transform:scale(.95)}
-.sc-set i{
-  flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
-  background:rgba(23,23,27,.08);color:rgba(23,23,27,.6);
-  font-style:normal;font-family:var(--mono);font-size:11px;font-weight:700;
-}
-.sc-set b{
-  flex:1 1 auto;min-width:0;font-weight:600;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.sc-set span{flex:0 0 auto;font-family:var(--mono);font-size:10px;opacity:.45}
-.sc-set.on{border-color:var(--accent);color:#17171b;background:#fff}
-.sc-set.on i{background:var(--accent);color:#fff}
-
-/* the pen: opaque, top right, and obviously on or off */
-.sc-pen{
-  position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 12px);z-index:5;
-  width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;
-  border:1.5px solid rgba(23,23,27,.16);background:#fff;color:rgba(23,23,27,.62);
-  box-shadow:0 2px 10px -4px rgba(20,20,28,.3);
-  transition:transform var(--t-fast) var(--spring),background var(--t-fast),
-             color var(--t-fast),border-color var(--t-fast);
-  -webkit-tap-highlight-color:transparent;
-}
-.sc-pen:active{transform:scale(.9)}
-.sc-pen.on{
-  background:var(--accent);border-color:var(--accent);color:#fff;
-  box-shadow:0 6px 18px -6px rgba(226,96,58,.8);
-}
-#scratch.pen .sc-surface{cursor:crosshair}
-/* while the pen is down the bubbles are not targets, they are things to circle */
-#scratch.pen .sc-node{pointer-events:none}
-#scratch.pen .sc-hit{pointer-events:none}
-
-.sc-exit{transition-duration:1ms}
+  #scratch,#app,#tabs,.sc-node,.sc-exit,.sc-pen,.sc-set{transition-duration:1ms}
   .sc-bubble{animation-duration:1ms}
+}
 }
 
 
