@@ -33,6 +33,11 @@ you have found a feature that belongs somewhere else.
 - **Advice** — the daily line and twelve situational protocols.
 - **Me** — the profile, the numbers, and the question that fills the profile in.
 
+**Scratch is not a fifth tab.** Swiping left on Do slides the desk aside and
+brings in a white grid you can put things down on and draw the order between.
+It is an overlay on the `#scratch` route with Do still mounted underneath, it is
+not in the tab bar, and it must not be promoted into one. See DECISIONS.md.
+
 ## Invariants — do not break these
 
 1. **One state object.** Everything is `LO.store.state`, one JSON document in

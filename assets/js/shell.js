@@ -20,6 +20,7 @@ window.LO = window.LO || {};
       await LO.store.load();
       const fresh = LO.store.seed();
       LO.companion.boot();
+      LO.scratch.boot();
       LO.notify.start();
       LO.ui.startField(document.getElementById('field'));
 
@@ -90,13 +91,24 @@ window.LO = window.LO || {};
 
     route() {
       const id = (location.hash || '').replace('#', '') || 'do';
+      if (id === 'scratch') {
+        // the paper is an overlay, not a fifth tab: Do stays mounted underneath
+        if (this.current !== 'do') { this.current = 'do'; this.paintRoute('do'); }
+        LO.scratch.open();
+        return;
+      }
+      if (LO.scratch && LO.scratch.isOpen()) LO.scratch.close();
       if (id === 'people') { this.go('me'); LO.companion.openFriends(); return; }
       const sf = this.get(id) || this.get('do');
       this.current = sf.id;
-      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.go === sf.id));
-      document.querySelectorAll('.pane').forEach(el => el.classList.toggle('on', el.dataset.pane === sf.id));
+      this.paintRoute(sf.id);
       this.render(sf);
       this.paintStatus();
+    },
+
+    paintRoute(id) {
+      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.go === id));
+      document.querySelectorAll('.pane').forEach(el => el.classList.toggle('on', el.dataset.pane === id));
     },
 
     render(sf) {

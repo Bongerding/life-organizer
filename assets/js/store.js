@@ -154,6 +154,16 @@ window.LO = window.LO || {};
         insights: []         // [{id,date,text,source}]
       },
 
+      // SCRATCH — the paper next to the desk. Things put down in space,
+      // and the order between them drawn rather than described. A node is
+      // an intention with a position; it is not on today's list until it
+      // is sent there.
+      scratch: {
+        nodes: [],           // [{id,text,x,y,created}]
+        links: [],           // [{id,from,to,directed}] — `from` is the prerequisite
+        view: { x: 0, y: 0 } // where the paper was left
+      },
+
       // CLASSIFIER — what it has learned about how you write
       classifier: { weights: {}, corrections: 0 },
 
@@ -466,6 +476,63 @@ window.LO = window.LO || {};
     awardDay(n) {
       if (this.dayCleared()) return 0;
       return this.win('day', 'Cleared the whole list', 0, 'day', LO.level.dayBonus(n));
+    },
+
+    /* ---------- scratch: the map, not the list ----------
+       Kept out of `mind.load` on purpose. Mapping out a plan should cost
+       nothing and commit to nothing — the moment a node became a task,
+       thinking on paper would start adding to the day's obligations. */
+    scratchAdd(text, x, y) {
+      const rec = {
+        id: this.id('sn'), text: text, x: x, y: y, created: D.today()
+      };
+      this.state.scratch.nodes.push(rec);
+      this.log('scratch', 'Put down: ' + text, { ref: rec.id });
+      this.save();
+      return rec;
+    },
+    scratchRename(id, text) {
+      const n = this.state.scratch.nodes.find(x => x.id === id);
+      if (!n || n.text === text) return n;
+      n.text = text;
+      this.save();
+      return n;
+    },
+    scratchDrop(id) {
+      const sc = this.state.scratch;
+      const i = sc.nodes.findIndex(n => n.id === id);
+      if (i > -1) sc.nodes.splice(i, 1);
+      sc.links = sc.links.filter(l => l.from !== id && l.to !== id);
+      this.save();
+    },
+    /** returns false if those two were already joined */
+    scratchLink(a, b) {
+      const sc = this.state.scratch;
+      if (a === b) return false;
+      if (sc.links.some(l => (l.from === a && l.to === b) || (l.from === b && l.to === a))) return false;
+      sc.links.push({ id: this.id('sl'), from: a, to: b, directed: false });
+      this.save();
+      return true;
+    },
+    scratchUnlink(id) {
+      const sc = this.state.scratch;
+      const i = sc.links.findIndex(l => l.id === id);
+      if (i > -1) { sc.links.splice(i, 1); this.save(); }
+    },
+    /** `firstId` is the end that has to happen first; the arrow flows away from it */
+    scratchFlow(id, firstId) {
+      const l = this.state.scratch.links.find(x => x.id === id);
+      if (!l) return;
+      if (l.to === firstId) { const t = l.from; l.from = l.to; l.to = t; }
+      l.directed = true;
+      this.save();
+    },
+    /** nodes with nothing pointing at them that is still on the paper —
+        the things that are actually startable right now */
+    scratchOpeners() {
+      const sc = this.state.scratch;
+      const blocked = new Set(sc.links.filter(l => l.directed).map(l => l.to));
+      return sc.nodes.filter(n => !blocked.has(n.id));
     },
 
     /** call after a successful export so the system can nag about backups */

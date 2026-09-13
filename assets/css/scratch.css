@@ -1,0 +1,138 @@
+/* ============================================================
+   SCRATCH — paper, not machine.
+
+   The one light surface in the product, and that is deliberate:
+   the change of material tells you which mode you are in before
+   you read anything. Everything here is hand-sized, because the
+   whole screen is a touch target.
+   ============================================================ */
+
+#scratch{
+  position:fixed;inset:0;z-index:60;
+  background:#fbfaf7;color:#17171b;
+  transform:translateX(100%);
+  transition:transform 330ms var(--spring);
+  overscroll-behavior:none;
+}
+body.scratch-open #scratch{transform:none}
+
+/* the desk slides out of the way as the paper comes in */
+#app,#tabs{transition:transform 330ms var(--spring)}
+body.scratch-open #app{transform:translateX(-100%)}
+body.scratch-open #tabs{transform:translateX(calc(-50% - 100vw))}
+/* while a thumb is actually on it, the transform is the thumb's job */
+body.scratch-dragging #app,
+body.scratch-dragging #tabs,
+body.scratch-dragging #scratch{transition:none}
+
+/* ---------- the paper ---------- */
+.sc-surface{
+  position:absolute;inset:0;overflow:hidden;
+  touch-action:none;-webkit-tap-highlight-color:transparent;
+  background-image:radial-gradient(circle at 1px 1px, rgba(18,18,24,.20) 1px, transparent 0);
+  background-size:26px 26px;
+}
+.sc-world{position:absolute;inset:0}
+.sc-links{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+
+/* ---------- wires ---------- */
+.sc-wire{stroke:rgba(23,23,27,.30);stroke-width:1.6;stroke-linecap:round}
+.sc-wire.flow{stroke:var(--accent);stroke-width:2.1}
+/* selection thickens a wire — it must not recolour one, or a directed
+   wire would stop reading as directed the moment you touched it */
+.sc-wire.on{stroke-width:3.2}
+.sc-wire.on:not(.flow){stroke:rgba(23,23,27,.55)}
+.sc-live{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 5;stroke-linecap:round}
+/* a fat invisible line so a thumb can find a 2px wire */
+.sc-hit{stroke:transparent;stroke-width:30;pointer-events:stroke;cursor:pointer}
+#sc-arrow path{fill:var(--accent)}
+
+.sc-kill{pointer-events:all;cursor:pointer}
+.sc-kill circle{fill:#17171b}
+.sc-kill path{stroke:#fbfaf7;stroke-width:2;stroke-linecap:round}
+
+/* ---------- bubbles ---------- */
+.sc-node{
+  position:absolute;transform:translate(-50%,-50%);
+  max-width:190px;padding:10px 15px;border-radius:16px;
+  background:#fff;border:1.5px solid rgba(23,23,27,.16);
+  box-shadow:0 2px 10px -4px rgba(20,20,28,.28);
+  font-size:14.5px;line-height:1.35;color:#17171b;
+  cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;
+  transition:box-shadow 160ms var(--swift),border-color 160ms var(--swift),
+             transform 160ms var(--spring);
+}
+.sc-node.on{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(226,96,58,.16), 0 4px 14px -5px rgba(20,20,28,.32);
+}
+/* waiting on something else: still there, plainly not next */
+.sc-node.blocked{
+  background:#f6f5f1;border-style:dashed;border-color:rgba(23,23,27,.22);
+  color:rgba(23,23,27,.52);box-shadow:none;
+}
+.sc-node.blocked.on{border-style:solid;color:#17171b}
+.sc-node.wiring{transform:translate(-50%,-50%) scale(.94);cursor:grabbing}
+.sc-node.target{
+  border-color:var(--accent);background:#fff4f0;
+  transform:translate(-50%,-50%) scale(1.07);
+}
+.sc-text{pointer-events:none;display:block;overflow-wrap:anywhere}
+
+/* ---------- the bubble you type into ---------- */
+.sc-bubble{
+  position:absolute;transform:translate(-50%,-50%);z-index:4;
+  background:#fff;border:1.5px solid var(--accent);border-radius:16px;
+  padding:11px;box-shadow:0 10px 28px -10px rgba(20,20,28,.45);
+  display:flex;flex-direction:column;gap:9px;
+  animation:sc-pop 200ms var(--spring) both;
+}
+@keyframes sc-pop{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
+.sc-bubble input{
+  border:0;background:none;font:inherit;font-size:15.5px;color:#17171b;
+  padding:3px 2px;min-width:112px;
+}
+.sc-bubble input:focus{outline:none}
+.sc-bubble input::placeholder{color:rgba(23,23,27,.34)}
+.sc-acts{display:flex;gap:6px}
+.sc-acts button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  padding:7px 13px;border-radius:999px;border:1px solid transparent;
+}
+.sc-ok{background:var(--accent);color:#fff}
+.sc-del{background:none;border-color:rgba(23,23,27,.18);color:#9a2f18}
+.sc-cancel{background:none;border-color:rgba(23,23,27,.18);color:rgba(23,23,27,.62)}
+
+/* ---------- chrome ---------- */
+.sc-top{
+  position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 14px);
+  display:flex;align-items:baseline;gap:9px;pointer-events:none;
+}
+.sc-top b{
+  font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(23,23,27,.55);font-weight:700;
+}
+.sc-top span{font-family:var(--mono);font-size:11px;color:rgba(23,23,27,.38)}
+
+.sc-hint{
+  /* clears the exit button on the right, so the line never runs under it */
+  position:absolute;left:16px;right:82px;bottom:calc(env(safe-area-inset-bottom) + 24px);
+  margin:0;text-align:left;pointer-events:none;text-wrap:balance;
+  font-size:12.5px;line-height:1.5;color:rgba(23,23,27,.42);
+}
+
+.sc-exit{
+  position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom) + 16px);
+  width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;
+  display:grid;place-items:center;color:#fbfaf7;
+  background:radial-gradient(circle at 50% 30%,#f4835c,var(--accent) 60%,#b8431f);
+  box-shadow:0 10px 26px -10px rgba(226,96,58,.8);
+  transition:transform 160ms var(--spring);
+  -webkit-tap-highlight-color:transparent;
+}
+.sc-exit:active{transform:scale(.9)}
+
+@media (prefers-reduced-motion:reduce){
+  #scratch,#app,#tabs,.sc-node,.sc-exit{transition-duration:1ms}
+  .sc-bubble{animation-duration:1ms}
+}

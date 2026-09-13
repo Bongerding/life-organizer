@@ -61,6 +61,7 @@ index.html                 the whole app: bar + four tabs, phone and desktop
 assets/css/core.css        the entire design system (tokens → components)
 assets/js/store.js         single source of truth + persistence + derived scores
 assets/js/level.js         effort → points → level, derived from the wins ledger
+assets/js/scratch.js       the paper: an overlay canvas off Do, nodes and their order
 assets/js/library.js       reference data: drill bank, prompts, taxonomies
 assets/js/ui.js            render primitives: cards, meters, rings, sparks, fields
 assets/css/app.css         the one layout layer, mobile-first, centred
@@ -135,6 +136,7 @@ people    [{ name, cadence, lastContact, note }]
 clarity   { substance, clearSince, best, urges[{ date, intensity, rode, instead }], uses[{ date, note }] }
 wins      [{ date, kind, label, minutes, ref, points }]   the ledger the level is derived from
 scribe    entries[{ date, prompt, text, tags }], insights[{ date, text, source }]
+scratch   nodes[{ id, text, x, y, created }], links[{ id, from, to, directed }], view{ x, y }
 settings  reduceMotion, weekStart
 ```
 
@@ -236,6 +238,38 @@ reasoning, and why this does not contradict "the reward is for ignition", is in
 `store.win(kind, label, minutes, ref, points, quiet)` is the only writer. Pass
 `quiet` when the caller has already written its own chronicle entry, so one
 action never produces two rows in the logbook.
+
+---
+
+## 2b. Scratch — the map, not the list
+
+`LO.scratch` is a full-screen overlay on the `#scratch` route, reached by swiping
+left on Do. Do stays mounted underneath; the tab bar slides away with it. It is
+**not a fifth tab** and must not become one.
+
+State lives at `state.scratch`: `nodes` carry text and a world position, `links`
+carry `from`/`to` and a `directed` flag where **`from` is the prerequisite**.
+Nothing here touches `mind.load` — mapping a plan out has to cost nothing and
+commit to nothing, or thinking on paper would start adding to the day's
+obligations.
+
+The gestures, all on one surface, separated by movement and time rather than by
+chrome:
+
+| Gesture | What it does |
+|---|---|
+| Tap empty paper | the bubble you type into; Confirm puts a node down |
+| Drag empty paper | pans, and the dot grid pans with it |
+| Drag a bubble | moves it, snapped to the half-grid |
+| Hold a bubble (340ms) then drag | a wire follows the thumb; release on another to join |
+| Swipe along a wire | sets the order — **you swipe away from whatever comes first** |
+| Tap a bubble, tap again | select, then open it to rename or delete |
+| Tap a wire | selects it and offers the cut badge |
+
+`store.scratchOpeners()` returns the nodes nothing directed points at — the
+things that are actually startable — and the canvas fades everything else. That
+feedback is the whole reason to draw an arrow; without it the arrows are
+decoration.
 
 ---
 

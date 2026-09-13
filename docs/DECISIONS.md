@@ -136,6 +136,47 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-13 · Scratch is paper, and it is not a fifth tab
+
+**Decided.** Swiping left on Do slides the desk aside and brings in a white
+dotted grid: tap to put a thing down, hold a bubble to wire it to another, swipe
+along the wire to say which end comes first. An ember exit button, bottom right,
+brings the desk back.
+
+**Why it is not a tab.** "Never a fifth tab" is a rule about the bar, and the
+reasoning behind it is that four is the number a thumb can hit without looking.
+This is a lateral move off Do — Do stays mounted underneath, the bar slides away
+with it, and you arrive by a gesture rather than by aiming. It lives on the
+`#scratch` route so the Android back button closes it for free. **Do not promote
+it into the bar**, and do not delete it for breaking a rule it does not break.
+
+**Why white.** Everything else is graphite because it is a machine you operate.
+This is paper you think on. The change of material is the only signal needed to
+say which mode you are in, and it costs no chrome to say it.
+
+**Nodes are not tasks.** They are deliberately kept out of `mind.load`. Mapping
+a plan has to cost nothing and commit to nothing — the moment putting a node
+down added a row to today's list, thinking on paper would start adding
+obligations, and he would stop doing it. Sending a node to the list is a
+separate act, not yet built.
+
+**The arrow has to change something.** An order you can draw but that the system
+ignores is decoration. Anything with a directed arrow pointing at it renders
+faded and dashed, and the header counts how many can actually start now
+(`store.scratchOpeners()`). That feedback is the entire payoff for drawing it.
+
+**Swipe semantics, stated once because they are easy to invert.** You swipe
+*away from* the thing that has to happen first, in the direction the work flows.
+Swiping from "Earn £100" towards "Get a new mower" means earning comes first and
+the arrow points at the mower.
+
+**Rejected.** A toolbar with add/connect/direct modes. Modes are a tax on every
+future interaction, and the gestures separate cleanly on movement and time
+without one. Also rejected: snapping nodes to a rigid lattice — the positions
+are a thinking aid, so they only snap to a half-grid, loosely.
+
+---
+
 ## 2026-09-08 · Points are for finished things
 
 **Decided.** Completing something pays points; writing something down pays zero.
