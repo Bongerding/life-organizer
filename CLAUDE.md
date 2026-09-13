@@ -40,10 +40,20 @@ not in the tab bar, and it must not be promoted into one. A single node is never
 a task; circling a group with your thumb is the one act that crosses over, and it
 makes one larger task on Do carrying its own map. See DECISIONS.md.
 
-The swipe only survives on a real phone because `.pane[data-pane="do"]` is
-`touch-action: pan-y`. Without it the browser claims any drag that starts on a
-scrolling list, fires `pointercancel`, and the gesture dies halfway. Do not
-remove it.
+Three lines in Scratch are load-bearing and all three were found the hard way,
+on a phone, after looking fine on a desktop:
+
+- `.pane[data-pane="do"] { touch-action: pan-y }` — without it the browser
+  claims any drag starting on a scrolling list and the open gesture dies halfway.
+- `.sc-world { transform-origin: 0 0 }` — the coordinate model is
+  `screen = world × zoom + pan`, which the default 50% origin makes true only at
+  zoom 1 and wrong at every other zoom.
+- `#scratch { height: var(--sc-h) }`, measured off `visualViewport` — a fixed
+  overlay sized to the layout viewport hides its bottom strip under Android's
+  browser chrome, and that strip holds the only way out.
+
+**Test full-screen and gesture work on an actual handset.** Every one of these
+behaved perfectly under a desktop mouse.
 
 ## Invariants — do not break these
 

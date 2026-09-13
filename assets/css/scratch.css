@@ -7,8 +7,13 @@
    whole screen is a touch target.
    ============================================================ */
 
+/* height:100dvh, not inset:0. A fixed element sized to the *large* viewport
+   puts its bottom strip under the Android browser chrome — which is exactly
+   where the exit button lives, so on a phone there was no way out. #app already
+   uses dvh for the same reason; this must match it. */
 #scratch{
-  position:fixed;inset:0;z-index:60;
+  position:fixed;left:0;top:0;z-index:60;
+  width:100%;height:100vh;height:100dvh;height:var(--sc-h,100dvh);
   background:#fbfaf7;color:#17171b;
   transform:translateX(-100%);
   transition:transform 330ms var(--spring);
@@ -35,10 +40,19 @@ body.scratch-dragging #scratch{transition:none}
 .sc-surface{
   position:absolute;inset:0;overflow:hidden;
   touch-action:none;-webkit-tap-highlight-color:transparent;
+  /* a long press on a phone starts a text selection, and the selection
+     cancels the pointer gesture — which is what killed hold-to-draw */
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   background-image:radial-gradient(circle at 1px 1px, rgba(18,18,24,.20) 1px, transparent 0);
   background-size:26px 26px;
 }
-.sc-world{position:absolute;inset:0}
+/* transform-origin MUST stay at the origin. The whole coordinate model is
+   screen = world * zoom + pan, which is only true if scale() grows from the
+   top-left corner. With the default 50% 50% everything is correct at zoom 1
+   and quietly wrong at every other zoom: the wire under your thumb lands
+   somewhere else, the lasso catches the wrong bubbles, and the paper feels
+   like the camera is pointing somewhere you are not. */
+.sc-world{position:absolute;inset:0;transform-origin:0 0}
 .sc-links{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 
 /* ---------- wires ---------- */
@@ -126,14 +140,34 @@ body.scratch-dragging #scratch{transition:none}
 
 .sc-hint{
   /* clears the exit button on the right, so the line never runs under it */
-  position:absolute;left:16px;right:82px;bottom:calc(env(safe-area-inset-bottom) + 24px);
+  position:absolute;left:16px;right:88px;bottom:calc(env(safe-area-inset-bottom) + 28px);
   margin:0;text-align:left;pointer-events:none;text-wrap:balance;
   font-size:12.5px;line-height:1.5;color:rgba(23,23,27,.42);
 }
 
+/* the pen: opaque, top right, and obviously on or off */
+.sc-pen{
+  position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 12px);z-index:5;
+  width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;
+  border:1.5px solid rgba(23,23,27,.16);background:#fff;color:rgba(23,23,27,.62);
+  box-shadow:0 2px 10px -4px rgba(20,20,28,.3);
+  transition:transform var(--t-fast) var(--spring),background var(--t-fast),
+             color var(--t-fast),border-color var(--t-fast);
+  -webkit-tap-highlight-color:transparent;
+}
+.sc-pen:active{transform:scale(.9)}
+.sc-pen.on{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 6px 18px -6px rgba(226,96,58,.8);
+}
+#scratch.pen .sc-surface{cursor:crosshair}
+/* while the pen is down the bubbles are not targets, they are things to circle */
+#scratch.pen .sc-node{pointer-events:none}
+#scratch.pen .sc-hit{pointer-events:none}
+
 .sc-exit{
-  position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom) + 16px);
-  width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;
+  position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom) + 18px);
+  width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;z-index:5;
   display:grid;place-items:center;color:#fbfaf7;
   background:radial-gradient(circle at 50% 30%,#f4835c,var(--accent) 60%,#b8431f);
   box-shadow:0 10px 26px -10px rgba(226,96,58,.8);
@@ -143,7 +177,27 @@ body.scratch-dragging #scratch{transition:none}
 .sc-exit:active{transform:scale(.9)}
 
 @media (prefers-reduced-motion:reduce){
-  #scratch,#app,#tabs,.sc-node,.sc-exit{transition-duration:1ms}
+  #scratch,#app,#tabs,.sc-node,/* the pen: opaque, top right, and obviously on or off */
+.sc-pen{
+  position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 12px);z-index:5;
+  width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;
+  border:1.5px solid rgba(23,23,27,.16);background:#fff;color:rgba(23,23,27,.62);
+  box-shadow:0 2px 10px -4px rgba(20,20,28,.3);
+  transition:transform var(--t-fast) var(--spring),background var(--t-fast),
+             color var(--t-fast),border-color var(--t-fast);
+  -webkit-tap-highlight-color:transparent;
+}
+.sc-pen:active{transform:scale(.9)}
+.sc-pen.on{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 6px 18px -6px rgba(226,96,58,.8);
+}
+#scratch.pen .sc-surface{cursor:crosshair}
+/* while the pen is down the bubbles are not targets, they are things to circle */
+#scratch.pen .sc-node{pointer-events:none}
+#scratch.pen .sc-hit{pointer-events:none}
+
+.sc-exit{transition-duration:1ms}
   .sc-bubble{animation-duration:1ms}
 }
 

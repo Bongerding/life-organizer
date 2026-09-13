@@ -269,7 +269,8 @@ chrome:
 | Tap empty paper | the bubble you type into; Confirm puts a node down |
 | Double tap | the palette of six kinds |
 | Drag empty paper | pans, and the dot grid pans with it |
-| Pinch | zooms 0.45×–2.2× about the midpoint of the two fingers |
+| Pinch | zooms 0.45×–2.2×, tracking the midpoint of the two fingers as it moves |
+| Pen button, top right | on: every drag draws; off: every drag pans |
 | Drag a bubble | moves it, snapped to the half-grid |
 | Hold a bubble (340ms) then drag | a **straight** wire follows the thumb; release on another to join |
 | Hold empty paper (340ms) | ink, and it follows the thumb like a pen |
@@ -285,7 +286,20 @@ way instead and the S opens into a C around it. Same formula, sliding between th
 two as the paper fills up.
 
 **Ink is never stored.** Its whole job is the loop you draw with it; it fades as
-soon as the finger lifts.
+soon as the finger lifts. A **pen button top right** toggles drawing on, so the
+loop never depends on winning a 340ms timing window against the browser's own
+long-press handling — with it on, every drag draws.
+
+**Two lines that are load-bearing.** `.sc-world` must keep
+`transform-origin: 0 0`, because the entire coordinate model is
+`screen = world × zoom + pan` and the default 50% origin makes that true only at
+zoom 1. The overlay's height comes from `--sc-h`, measured off `visualViewport`,
+because a fixed element sized to the layout viewport hides its own bottom strip
+under Android's browser chrome — and that strip holds the only way out.
+
+**Assist** (`assist()` on pan and pinch release) groups nodes into sections by
+single linkage within 300 world px and settles the view toward the nearest one:
+a capped nudge while something is in view, and a full reframe when nothing is.
 
 **Pointer bookkeeping.** `pointerup`/`pointercancel` listen on the *window*, not
 the surface. Releasing over an element that has just been removed — the bubble

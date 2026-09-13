@@ -136,6 +136,48 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-13 · Four bugs that only showed up on the phone
+
+All four were invisible on a desktop browser and obvious within a minute on an
+Android handset. Worth recording as a class of mistake, not just four fixes.
+
+**`transform-origin` was the big one.** The whole coordinate model is
+`screen = world × zoom + pan`, which is only true if `scale()` grows from the
+top-left. The default is `50% 50%`, so everything was exactly right at zoom 1
+and quietly wrong at every other zoom — the wire under your thumb landed
+somewhere else, the lasso caught the wrong bubbles, and the paper felt like the
+camera was pointing somewhere you were not. `transform-origin: 0 0` on
+`.sc-world` is load-bearing. **Do not remove it.**
+
+**The pinch anchored to where the fingers landed** instead of tracking them, so
+zooming felt pinned to the middle of the screen. The midpoint is read fresh
+every frame now, which makes two fingers pan as well as scale — the standard
+behaviour, and what a hand expects.
+
+**There was no way out on a phone.** A fixed overlay at `inset: 0` sizes to the
+*layout* viewport, so its bottom strip — where the only exit lives — sat under
+the Android browser chrome. It is now measured from `visualViewport` into
+`--sc-h` and updated on resize and scroll. `#app` already used `dvh` for the
+same reason; anything full-screen in this app has to.
+
+**Hold-to-draw died to text selection.** A long press on a phone starts a
+selection, the selection cancels the pointer gesture, and the stroke never
+begins. `user-select: none` on the surface stops it, and a cancel mid-stroke now
+completes the loop rather than binning it. But the real answer was a **pen
+button, top right** — on means every drag draws, off means every drag pans.
+A visible toggle beats a hidden timing window, and you can see which mode you
+are in without trying it.
+
+**Assist.** The paper is infinite, which is the problem. Nodes fall into
+sections whether you meant them to or not, so on release the view settles toward
+the section you were nearest — a nudge, never more than a quarter of a screen,
+and it leaves you alone while a section is in view. The one hard rule: **if no
+node is on screen at all, it frames the nearest section.** You cannot drift off
+into blank paper and lose the lot. That was asked for directly, and it is the
+promise the feature makes.
+
+---
+
 ## 2026-09-13 · The paper gets a vocabulary, and one door to the list
 
 Second pass on Scratch, all of it asked for directly.

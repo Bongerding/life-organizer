@@ -57,6 +57,7 @@
   let sizes = {};             // id -> { hw, hh } in world units
   let editing = null;         // the open bubble
   let palette = null;
+  let penOn = false;          // the pen toggle, top right
   let forget = function () {};   // drop any pointer the surface still thinks is down
 
   const data = () => store.state.scratch;
@@ -86,6 +87,15 @@
         '<svg class="sc-ink" data-ink></svg>' +
       '</div>' +
       '<div class="sc-top"><b>Scratch</b><span data-count></span></div>' +
+      '<button class="sc-pen" data-pen aria-label="Draw" aria-pressed="false">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">' +
+          '<path d="M4 20 L5.6 15.2 L16.4 4.4 A2 2 0 0 1 19.6 7.6 L8.8 18.4 Z" ' +
+            'fill="none" stroke="currentColor" stroke-width="1.9" ' +
+            'stroke-linejoin="round" stroke-linecap="round"/>' +
+          '<path d="M15 6 L18 9" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+            'stroke-linecap="round"/>' +
+        '</svg>' +
+      '</button>' +
       '<p class="sc-hint" data-hint></p>' +
       '<button class="sc-exit" data-exit aria-label="Back to Do">' +
         '<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">' +
@@ -103,8 +113,27 @@
     inkEl = el.querySelector('[data-ink]');
 
     el.querySelector('[data-exit]').onclick = () => close();
+    el.querySelector('[data-pen]').onclick = () => setPen(!penOn);
     bindSurface(el.querySelector('[data-surface]'));
+    trackViewport();
     return el;
+  }
+
+  /* The overlay is sized to the *visual* viewport, measured, not guessed.
+     A fixed element sized to the layout viewport puts its bottom strip under
+     the Android browser chrome — and the bottom strip is where the only way
+     out of here lives. dvh is supposed to cover this and mostly does, but it
+     is worth measuring the one thing that must never be wrong. */
+  function trackViewport() {
+    const vv = window.visualViewport;
+    const set = function () {
+      const h = vv ? vv.height : window.innerHeight;
+      document.documentElement.style.setProperty('--sc-h', Math.round(h) + 'px');
+    };
+    if (vv) { vv.addEventListener('resize', set); vv.addEventListener('scroll', set); }
+    addEventListener('resize', set);
+    addEventListener('orientationchange', set);
+    set();
   }
 
   /* ---------------- open / close ---------------- */
@@ -128,6 +157,7 @@
     closeBubble();
     closePalette();
     forget();
+    if (penOn) setPen(false);
     sel = null; flash = [];
     if ((location.hash || '').replace('#', '') === 'scratch') location.hash = 'do';
     setTimeout(function () { if (!open && el) el.hidden = true; }, 340);
@@ -152,6 +182,26 @@
     }
     location.hash = 'scratch';
     setTimeout(function () { flash = []; if (open) paint(); }, 2600);
+  }
+
+  /* ------------------------------------------------------------
+     THE PEN
+
+     Holding the paper still starts a line, which works — until the
+     browser decides a long press was the start of a text selection
+     and cancels the gesture out from under you. So the pen is also
+     a button: on means every drag draws, off means every drag pans.
+     No hunting for a timing window, and you can see which mode you
+     are in without trying it.
+     ------------------------------------------------------------ */
+  function setPen(on) {
+    penOn = !!on;
+    const b = el.querySelector('[data-pen]');
+    b.classList.toggle('on', penOn);
+    b.setAttribute('aria-pressed', penOn ? 'true' : 'false');
+    el.classList.toggle('pen', penOn);
+    if (penOn) hint('Pen is on — draw a circle round a bubble, or a group');
+    else paint();
   }
 
   /* ---------------- paint ---------------- */
@@ -193,6 +243,7 @@
       !d.nodes.length ? '' : waiting ? (work - waiting) + ' of ' + work + ' can start now'
         : d.nodes.length + (d.nodes.length === 1 ? ' thing' : ' things');
 
+    if (penOn) return hint('Pen is on — draw a circle round a bubble, or a group');
     hint(!d.nodes.length ? 'Tap to put something down  ·  double tap to choose a kind'
       : d.nodes.length < 2 ? 'Double tap for the six kinds  ·  hold a bubble to wire it'
       : !d.links.length ? 'Hold a bubble and drag it onto another to join them'
@@ -529,6 +580,113 @@
     return bits.join('  ·  ');
   }
 
+  /* ------------------------------------------------------------
+     ASSIST — the paper is infinite, which is the problem.
+
+     Nodes cluster into sections whether you meant them to or not.
+     When you stop panning or pinching, the view settles toward the
+     section you were nearest rather than wherever your thumb happened
+     to stop. It is a nudge and not a snap: it never moves you more
+     than a fifth of a screen, and if you are deliberately out in open
+     paper putting something new down, it leaves you alone.
+
+     The one time it takes over is when nothing is on screen at all
+     and the nearest section is more than a screen and a half away.
+     That is not a choice, that is being lost, so it frames the
+     nearest section instead.
+     ------------------------------------------------------------ */
+  const REACH = 300;          // world px: closer than this and it is one section
+
+  function sections() {
+    const ns = data().nodes, seen = new Set(), out = [];
+    ns.forEach(function (n) {
+      if (seen.has(n.id)) return;
+      const group = [n];
+      seen.add(n.id);
+      for (let i = 0; i < group.length; i++) {
+        ns.forEach(function (m) {
+          if (seen.has(m.id)) return;
+          if (Math.hypot(m.x - group[i].x, m.y - group[i].y) <= REACH) {
+            seen.add(m.id); group.push(m);
+          }
+        });
+      }
+      out.push(group);
+    });
+    return out;
+  }
+
+  const middle = g => ({
+    x: g.reduce((a, n) => a + n.x, 0) / g.length,
+    y: g.reduce((a, n) => a + n.y, 0) / g.length
+  });
+
+  function assist() {
+    const groups = sections();
+    if (!groups.length) return;
+    const v = view(), W = window.innerWidth, H = window.innerHeight;
+    const cx = (W / 2 - v.x) / v.z, cy = (H / 2 - v.y) / v.z;   // viewport centre, world
+
+    let best = null, bd = Infinity;
+    groups.forEach(function (g) {
+      const c = middle(g);
+      const d = Math.hypot(c.x - cx, c.y - cy);
+      if (d < bd) { bd = d; best = { g: g, c: c }; }
+    });
+
+    const onScreen = data().nodes.some(function (n) {
+      const s = sizes[n.id] || { hw: 60, hh: 22 };
+      const x = n.x * v.z + v.x, y = n.y * v.z + v.y;
+      return x > -s.hw * v.z && x < W + s.hw * v.z && y > -s.hh * v.z && y < H + s.hh * v.z;
+    });
+
+    // Nothing on screen is the one state the paper must never leave you in.
+    // You asked to be kept near your sections; this is that promise, and it
+    // is why you cannot drift off into infinite blank paper and lose the lot.
+    if (!onScreen) return frame(best);
+    if (bd > Math.min(W, H) / v.z) return;           // a section is in view; leave him be
+
+    // settle it into frame, but never haul him more than a quarter of a screen
+    const wantX = W / 2 - best.c.x * v.z, wantY = H / 2 - best.c.y * v.z;
+    let dx = (wantX - v.x) * 0.5, dy = (wantY - v.y) * 0.5;
+    const cap = Math.min(W, H) * 0.28, len = Math.hypot(dx, dy);
+    if (len < 4) return;
+    if (len > cap) { dx = dx / len * cap; dy = dy / len * cap; }
+    glide(v.x + dx, v.y + dy, v.z);
+  }
+
+  function frame(best) {
+    const W = window.innerWidth, H = window.innerHeight;
+    const xs = best.g.map(n => n.x), ys = best.g.map(n => n.y);
+    const w = (Math.max.apply(null, xs) - Math.min.apply(null, xs)) + 280;
+    const h = (Math.max.apply(null, ys) - Math.min.apply(null, ys)) + 340;
+    const z = clamp(Math.min(W / w, H / h), ZMIN, 1.1);
+    glide(W / 2 - best.c.x * z, H / 2 - best.c.y * z, z);
+    hint('Brought you back to the nearest section');
+  }
+
+  let gliding = null;
+  function stopGlide() {
+    if (gliding) { cancelAnimationFrame(gliding); gliding = null; }
+  }
+  function glide(tx, ty, tz) {
+    const v = view();
+    stopGlide();
+    if (store.state.settings.reduceMotion) {
+      v.x = tx; v.y = ty; v.z = tz; applyView(); store.save(); return;
+    }
+    const x0 = v.x, y0 = v.y, z0 = v.z, t0 = performance.now(), dur = 300;
+    const step = function (now) {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      v.x = x0 + (tx - x0) * e; v.y = y0 + (ty - y0) * e; v.z = z0 + (tz - z0) * e;
+      applyView();
+      if (p < 1) gliding = requestAnimationFrame(step);
+      else { gliding = null; store.save(); }
+    };
+    gliding = requestAnimationFrame(step);
+  }
+
   /* ---------------- gestures on the paper ---------------- */
 
   function bindSurface(surface) {
@@ -557,9 +715,15 @@
         endBand(); endStroke();
         const pts = [...live.values()];
         const v = view();
+        const box = surface.getBoundingClientRect();
+        const mx = (pts[0].x + pts[1].x) / 2 - box.left;
+        const my = (pts[0].y + pts[1].y) / 2 - box.top;
+        // remember the point on the paper under the fingers. Keeping *that*
+        // under them is what makes the zoom feel attached to the hand rather
+        // than to the middle of the screen.
         pinch = {
           d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1, z: v.z,
-          cx: (pts[0].x + pts[1].x) / 2, cy: (pts[0].y + pts[1].y) / 2, vx: v.x, vy: v.y
+          wx: (mx - v.x) / v.z, wy: (my - v.y) / v.z
         };
         mode = 'pinch';
         return;
@@ -579,8 +743,16 @@
       if (e.target.closest('.sc-palette')) return;
       if (palette) { closePalette(); return; }
 
+      stopGlide();
       try { surface.setPointerCapture(e.pointerId); } catch (err) { /* fine */ }
       sx = e.clientX; sy = e.clientY; moved = false;
+
+      // with the pen on, the paper is for drawing and nothing else
+      if (penOn) {
+        mode = 'ink';
+        startStroke(e);
+        return;
+      }
 
       const kill = e.target.closest('[data-killlink]');
       if (kill) { mode = 'killlink'; id = kill.dataset.killlink; return; }
@@ -622,14 +794,16 @@
       if (mode === 'pinch' && pinch && live.size >= 2) {
         const pts = [...live.values()];
         const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
-        const v = view();
-        const z = clamp(pinch.z * (dist / pinch.d), ZMIN, ZMAX);
         const box = surface.getBoundingClientRect();
-        // whatever sits under the middle of the two fingers stays put
-        const ax = pinch.cx - box.left, ay = pinch.cy - box.top;
-        v.x = ax - (ax - pinch.vx) * (z / pinch.z);
-        v.y = ay - (ay - pinch.vy) * (z / pinch.z);
-        v.z = z;
+        const mx = (pts[0].x + pts[1].x) / 2 - box.left;
+        const my = (pts[0].y + pts[1].y) / 2 - box.top;
+        const v = view();
+        v.z = clamp(pinch.z * (dist / pinch.d), ZMIN, ZMAX);
+        // the midpoint is read fresh every frame, so two fingers pan the paper
+        // as well as scale it. The old version anchored to where they first
+        // landed, which is why it felt pinned to the centre of the screen.
+        v.x = mx - pinch.wx * v.z;
+        v.y = my - pinch.wy * v.z;
         applyView();
         return;
       }
@@ -676,13 +850,22 @@
       if (!live.has(e.pointerId) && mode === null) return;
       live.delete(e.pointerId);
       if (mode === 'pinch') {
-        if (live.size < 2) { pinch = null; mode = null; store.save(); paint(); }
+        if (live.size < 2) { pinch = null; mode = null; store.save(); paint(); assist(); }
         return;
       }
       if (mode !== null) finish(e);
     });
     addEventListener('pointercancel', function (e) {
       live.delete(e.pointerId);
+      // Android fires this when it decides a long press was a text selection.
+      // If a stroke is already down, finish it as if the finger lifted —
+      // losing the loop someone just drew is the worst possible answer.
+      if (mode === 'ink' && stroke && stroke.length > 8) {
+        const caught = lasso(stroke);
+        endStroke();
+        mode = null;
+        if (caught) return makePlan(caught);
+      }
       reset();
     });
 
@@ -716,7 +899,7 @@
       }
 
       if (m === 'pan') {
-        if (moved) { store.save(); return; }
+        if (moved) { store.save(); assist(); return; }
         if (editing) { closeBubble(); paint(); return; }
         if (sel) { sel = null; paint(); return; }
         const now = Date.now();
