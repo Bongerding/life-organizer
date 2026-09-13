@@ -43,7 +43,9 @@ body.scratch-dragging #scratch{transition:none}
   /* a long press on a phone starts a text selection, and the selection
      cancels the pointer gesture — which is what killed hold-to-draw */
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
-  background-image:radial-gradient(circle at 1px 1px, rgba(18,18,24,.20) 1px, transparent 0);
+  /* the starting look; applyView() rewrites both of these on every frame so
+     the dot grows with the zoom and stays locked to the world coordinates */
+  background-image:radial-gradient(circle at 1.15px 1.15px, rgba(18,18,24,.22) 1.15px, transparent 0);
   background-size:26px 26px;
 }
 /* transform-origin MUST stay at the origin. The whole coordinate model is
@@ -78,7 +80,7 @@ body.scratch-dragging #scratch{transition:none}
 .sc-node{
   position:absolute;transform:translate(-50%,-50%);
   display:flex;align-items:baseline;
-  max-width:190px;padding:10px 15px;border-radius:16px;
+  width:max-content;max-width:190px;padding:10px 15px;border-radius:16px;
   background:#fff;border:1.5px solid rgba(23,23,27,.16);
   box-shadow:0 2px 10px -4px rgba(20,20,28,.28);
   font-size:14.5px;line-height:1.35;color:#17171b;
@@ -101,7 +103,11 @@ body.scratch-dragging #scratch{transition:none}
   border-color:var(--accent);background:#fff4f0;
   transform:translate(-50%,-50%) scale(1.07);
 }
-.sc-text{flex:1 1 auto;pointer-events:none;display:block;overflow-wrap:anywhere}
+/* break-word, never anywhere: `anywhere` changes the intrinsic min-content
+   width to a single character, and an absolutely positioned bubble sizes
+   itself shrink-to-fit — so the whole thing collapses into a column of
+   letters. This is the second time; it is written down now. */
+.sc-text{flex:1 1 auto;pointer-events:none;display:block;overflow-wrap:break-word}
 
 /* ---------- the bubble you type into ---------- */
 .sc-bubble{
@@ -145,6 +151,40 @@ body.scratch-dragging #scratch{transition:none}
   font-size:12.5px;line-height:1.5;color:rgba(23,23,27,.42);
 }
 
+/* ============================================================
+   THE SETS — one button per group of nodes, down the left, in the
+   order they sit on the paper. Tapping one puts the camera back
+   inside that set. This is the way home, so it is always visible.
+   ============================================================ */
+.sc-sets{
+  position:absolute;left:14px;top:calc(env(safe-area-inset-top) + 40px);z-index:5;
+  display:flex;flex-direction:column;gap:6px;
+  max-width:min(62vw,220px);
+}
+.sc-set{
+  display:flex;align-items:center;gap:8px;text-align:left;font:inherit;cursor:pointer;
+  padding:7px 12px 7px 7px;border-radius:999px;
+  border:1.5px solid rgba(23,23,27,.13);background:rgba(255,255,255,.93);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  font-size:12.5px;color:rgba(23,23,27,.68);
+  box-shadow:0 2px 8px -5px rgba(20,20,28,.4);
+  transition:border-color var(--t-fast),color var(--t-fast),transform var(--t-fast) var(--spring);
+  -webkit-tap-highlight-color:transparent;
+}
+.sc-set:active{transform:scale(.95)}
+.sc-set i{
+  flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(23,23,27,.08);color:rgba(23,23,27,.6);
+  font-style:normal;font-family:var(--mono);font-size:11px;font-weight:700;
+}
+.sc-set b{
+  flex:1 1 auto;min-width:0;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sc-set span{flex:0 0 auto;font-family:var(--mono);font-size:10px;opacity:.45}
+.sc-set.on{border-color:var(--accent);color:#17171b;background:#fff}
+.sc-set.on i{background:var(--accent);color:#fff}
+
 /* the pen: opaque, top right, and obviously on or off */
 .sc-pen{
   position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 12px);z-index:5;
@@ -177,7 +217,41 @@ body.scratch-dragging #scratch{transition:none}
 .sc-exit:active{transform:scale(.9)}
 
 @media (prefers-reduced-motion:reduce){
-  #scratch,#app,#tabs,.sc-node,/* the pen: opaque, top right, and obviously on or off */
+  #scratch,#app,#tabs,.sc-node,/* ============================================================
+   THE SETS — one button per group of nodes, down the left, in the
+   order they sit on the paper. Tapping one puts the camera back
+   inside that set. This is the way home, so it is always visible.
+   ============================================================ */
+.sc-sets{
+  position:absolute;left:14px;top:calc(env(safe-area-inset-top) + 40px);z-index:5;
+  display:flex;flex-direction:column;gap:6px;
+  max-width:min(62vw,220px);
+}
+.sc-set{
+  display:flex;align-items:center;gap:8px;text-align:left;font:inherit;cursor:pointer;
+  padding:7px 12px 7px 7px;border-radius:999px;
+  border:1.5px solid rgba(23,23,27,.13);background:rgba(255,255,255,.93);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  font-size:12.5px;color:rgba(23,23,27,.68);
+  box-shadow:0 2px 8px -5px rgba(20,20,28,.4);
+  transition:border-color var(--t-fast),color var(--t-fast),transform var(--t-fast) var(--spring);
+  -webkit-tap-highlight-color:transparent;
+}
+.sc-set:active{transform:scale(.95)}
+.sc-set i{
+  flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(23,23,27,.08);color:rgba(23,23,27,.6);
+  font-style:normal;font-family:var(--mono);font-size:11px;font-weight:700;
+}
+.sc-set b{
+  flex:1 1 auto;min-width:0;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.sc-set span{flex:0 0 auto;font-family:var(--mono);font-size:10px;opacity:.45}
+.sc-set.on{border-color:var(--accent);color:#17171b;background:#fff}
+.sc-set.on i{background:var(--accent);color:#fff}
+
+/* the pen: opaque, top right, and obviously on or off */
 .sc-pen{
   position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 12px);z-index:5;
   width:46px;height:46px;border-radius:50%;cursor:pointer;display:grid;place-items:center;

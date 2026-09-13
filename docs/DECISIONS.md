@@ -136,6 +136,47 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-13 · The camera belongs to a set, not to the page
+
+**You arrive inside a set.** Opening the paper used to drop you wherever you
+last left the view, which on a phone is a screen of dots and no idea which way
+your work is. Now it frames a set — the one you were last in, or the nearest, or
+the only one — and the camera belongs to that set until you ask for it.
+
+**A set is what you would point at and call "that lot".** Union-find over two
+relations: an arrow between two nodes at *any* distance, because you drew that
+on purpose, and simple proximity within 300 world px, because that is how anyone
+reads a page. Both matter — grouping on spacing alone would split a deliberate
+long arrow, and grouping on arrows alone would miss a cluster you have not wired
+up yet.
+
+**Buttons down the left, one per set, in the order they sit on the paper**
+(top-left first). Each carries its name — the outcome if you named one, else
+whatever the arrows end at — and its size. This is the way home, so it is always
+visible. Tapping one puts the camera back inside that set.
+
+**Pinch is what hands over the camera.** Zooming *is* the act of saying "let me
+see more than this", so it is the gesture that unlocks free movement. Dragging
+while locked lets you peek and springs back, which is what makes the lock feel
+like a place rather than a cage. The buttons put you back. Nothing else
+silently changes the mode.
+
+**The dots are the paper, not a backdrop.** The grid's cell size and the dot's
+own radius are both recomputed from the zoom every frame, and its origin is
+pinned to world coordinates. Nodes and dots scale together as one object; there
+is no parallax between the thing you drew and the surface you drew it on.
+
+**The exit is a door.** Bottom right, a circle with a door-and-arrow glyph, back
+to Do.
+
+**One regression worth naming.** `overflow-wrap: anywhere` on the bubble text
+changed its intrinsic min-content width to a single character, and since a
+bubble is absolutely positioned and sizes shrink-to-fit, every one of them
+collapsed into a vertical column of letters. `break-word` does not do this.
+`anywhere` and `break-word` are not interchangeable, whatever the name suggests.
+
+---
+
 ## 2026-09-13 · Four bugs that only showed up on the phone
 
 All four were invisible on a desktop browser and obvious within a minute on an

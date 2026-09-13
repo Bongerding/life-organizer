@@ -271,6 +271,8 @@ chrome:
 | Drag empty paper | pans, and the dot grid pans with it |
 | Pinch | zooms 0.45×–2.2×, tracking the midpoint of the two fingers as it moves |
 | Pen button, top right | on: every drag draws; off: every drag pans |
+| Set buttons, top left | one per group of nodes; taps the camera back inside it |
+| Drag while locked | peeks, and springs back on release |
 | Drag a bubble | moves it, snapped to the half-grid |
 | Hold a bubble (340ms) then drag | a **straight** wire follows the thumb; release on another to join |
 | Hold empty paper (340ms) | ink, and it follows the thumb like a pen |
@@ -297,9 +299,18 @@ zoom 1. The overlay's height comes from `--sc-h`, measured off `visualViewport`,
 because a fixed element sized to the layout viewport hides its own bottom strip
 under Android's browser chrome — and that strip holds the only way out.
 
-**Assist** (`assist()` on pan and pinch release) groups nodes into sections by
-single linkage within 300 world px and settles the view toward the nearest one:
-a capped nudge while something is in view, and a full reframe when nothing is.
+**The camera.** `sets()` groups nodes by union-find over two relations: a link
+between them at any distance, and proximity within 300 world px. Sets are sorted
+by where they sit on the paper and keyed by their top-left node, so the key
+survives a repaint. Opening the paper locks the camera into a set (`lockTo`);
+while locked a drag peeks and springs back, and **pinch is the only thing that
+unlocks** (`unlock()` on pinch start). The buttons down the left re-lock to any
+set. `assist()` on release either springs back to the locked set or, with a free
+camera, reframes the nearest set if nothing at all is on screen.
+
+`sets()` is O(n²) over nodes and is called from `paint()`. That is free at the
+scale this runs at; if the paper ever holds hundreds of nodes, grid-bucket the
+proximity pass.
 
 **Pointer bookkeeping.** `pointerup`/`pointercancel` listen on the *window*, not
 the surface. Releasing over an element that has just been removed — the bubble

@@ -58,6 +58,8 @@
   let editing = null;         // the open bubble
   let palette = null;
   let penOn = false;          // the pen toggle, top right
+  let locked = null;          // the set the camera is sitting in, by key
+  let peeking = false;        // dragged off a locked set; it springs back
   let forget = function () {};   // drop any pointer the surface still thinks is down
 
   const data = () => store.state.scratch;
@@ -87,6 +89,7 @@
         '<svg class="sc-ink" data-ink></svg>' +
       '</div>' +
       '<div class="sc-top"><b>Scratch</b><span data-count></span></div>' +
+      '<div class="sc-sets" data-sets></div>' +
       '<button class="sc-pen" data-pen aria-label="Draw" aria-pressed="false">' +
         '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">' +
           '<path d="M4 20 L5.6 15.2 L16.4 4.4 A2 2 0 0 1 19.6 7.6 L8.8 18.4 Z" ' +
@@ -99,10 +102,13 @@
       '<p class="sc-hint" data-hint></p>' +
       '<button class="sc-exit" data-exit aria-label="Back to Do">' +
         '<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">' +
-          '<path d="M10 5 L17 12 L10 19" fill="none" stroke="currentColor" stroke-width="2.2" ' +
-            'stroke-linecap="round" stroke-linejoin="round"/>' +
-          '<path d="M16.5 12 H5" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+          '<path d="M13.5 3.5 H19 A1.5 1.5 0 0 1 20.5 5 V19 A1.5 1.5 0 0 1 19 20.5 H13.5" ' +
+            'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+            'stroke-linejoin="round"/>' +
+          '<path d="M3.5 12 H14" fill="none" stroke="currentColor" stroke-width="2" ' +
             'stroke-linecap="round"/>' +
+          '<path d="M10.5 8.2 L14.3 12 L10.5 15.8" fill="none" stroke="currentColor" ' +
+            'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
         '</svg>' +
       '</button>';
     document.body.appendChild(el);
@@ -145,9 +151,19 @@
       clearDragStyles();
       document.body.classList.add('scratch-open');
       open = true;
+      // you arrive inside a set, not hovering over the whole page
+      const all = sets();
+      if (all.length && !arriving) {
+        const want = (locked && setOf(locked)) || nearest() || all[0];
+        locked = want.key;
+        const f = frameOf(want);
+        const v = view(); v.x = f.x; v.y = f.y; v.z = f.z;
+      }
+      arriving = false;
       paint();
     });
   }
+  let arriving = false;
 
   function close() {
     if (!open) return;
@@ -180,6 +196,8 @@
       flash = list.map(n => n.id);
       store.save();
     }
+    arriving = true;                 // focus() has already chosen the view
+    locked = null;
     location.hash = 'scratch';
     setTimeout(function () { flash = []; if (open) paint(); }, 2600);
   }
@@ -209,7 +227,14 @@
   function applyView() {
     const v = view();
     world.style.transform = 'translate(' + v.x + 'px,' + v.y + 'px) scale(' + v.z + ')';
+    // The dots are painted in the same coordinates as the bubbles and the dot
+    // itself grows with the zoom, so the grid is not a backdrop the nodes float
+    // over — it is the paper they are drawn on, and it moves as one thing.
     const surf = el.querySelector('.sc-surface');
+    const r0 = Math.max(0.6, Math.min(3.4, 1.15 * v.z));
+    surf.style.backgroundImage =
+      'radial-gradient(circle at ' + r0 + 'px ' + r0 + 'px, rgba(18,18,24,.22) ' + r0 +
+      'px, transparent 0)';
     surf.style.backgroundSize = (GRID * v.z) + 'px ' + (GRID * v.z) + 'px';
     surf.style.backgroundPosition = v.x + 'px ' + v.y + 'px';
   }
@@ -237,6 +262,8 @@
     measure();
     paintLinks();
 
+    paintSets();
+
     const work = d.nodes.filter(n => n.type !== 'note').length;
     const waiting = d.nodes.filter(n => blocked.has(n.id) && n.type !== 'note').length;
     el.querySelector('[data-count]').textContent =
@@ -244,6 +271,9 @@
         : d.nodes.length + (d.nodes.length === 1 ? ' thing' : ' things');
 
     if (penOn) return hint('Pen is on — draw a circle round a bubble, or a group');
+    if (!locked && d.nodes.length > 1) {
+      return hint('Camera is yours  ·  tap a set on the left to sit back inside it');
+    }
     hint(!d.nodes.length ? 'Tap to put something down  ·  double tap to choose a kind'
       : d.nodes.length < 2 ? 'Double tap for the six kinds  ·  hold a bubble to wire it'
       : !d.links.length ? 'Hold a bubble and drag it onto another to join them'
@@ -595,74 +625,155 @@
      That is not a choice, that is being lost, so it frames the
      nearest section instead.
      ------------------------------------------------------------ */
-  const REACH = 300;          // world px: closer than this and it is one section
+  const REACH = 300;          // world px: closer than this and it is one set
 
-  function sections() {
-    const ns = data().nodes, seen = new Set(), out = [];
-    ns.forEach(function (n) {
-      if (seen.has(n.id)) return;
-      const group = [n];
-      seen.add(n.id);
-      for (let i = 0; i < group.length; i++) {
-        ns.forEach(function (m) {
-          if (seen.has(m.id)) return;
-          if (Math.hypot(m.x - group[i].x, m.y - group[i].y) <= REACH) {
-            seen.add(m.id); group.push(m);
-          }
-        });
+  /* A set is what you would point at and call "that lot". Two things put
+     nodes in the same one: an arrow between them, at any distance — you drew
+     that on purpose and it means they belong together — or simply sitting
+     close, because that is how anyone reads a page. Union-find over both. */
+  function sets() {
+    const ns = data().nodes;
+    if (!ns.length) return [];
+    const parent = {};
+    ns.forEach(n => { parent[n.id] = n.id; });
+    const find = function (a) { while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; };
+    const join = function (a, b) { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
+
+    data().links.forEach(function (l) {
+      if (parent[l.from] && parent[l.to]) join(l.from, l.to);
+    });
+    for (let i = 0; i < ns.length; i++) {
+      for (let j = i + 1; j < ns.length; j++) {
+        if (Math.hypot(ns[i].x - ns[j].x, ns[i].y - ns[j].y) <= REACH) join(ns[i].id, ns[j].id);
       }
-      out.push(group);
+    }
+
+    const byRoot = {};
+    ns.forEach(function (n) {
+      const r0 = find(n.id);
+      (byRoot[r0] = byRoot[r0] || []).push(n);
     });
-    return out;
+
+    return Object.keys(byRoot).map(function (k) {
+      const g = byRoot[k];
+      const xs = g.map(n => n.x), ys = g.map(n => n.y);
+      const x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+      const y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+      // the key has to survive a repaint, so it is the id of the top-left node
+      const anchor = g.slice().sort((a, b) => (a.y - b.y) || (a.x - b.x))[0];
+      return {
+        key: anchor.id, nodes: g,
+        c: { x: (x0 + x1) / 2, y: (y0 + y1) / 2 },
+        box: { x0: x0, y0: y0, x1: x1, y1: y1 },
+        name: setName(g)
+      };
+    }).sort(function (a, b) { return (a.box.y0 - b.box.y0) || (a.box.x0 - b.box.x0); });
   }
 
-  const middle = g => ({
-    x: g.reduce((a, n) => a + n.x, 0) / g.length,
-    y: g.reduce((a, n) => a + n.y, 0) / g.length
-  });
-
-  function assist() {
-    const groups = sections();
-    if (!groups.length) return;
-    const v = view(), W = window.innerWidth, H = window.innerHeight;
-    const cx = (W / 2 - v.x) / v.z, cy = (H / 2 - v.y) / v.z;   // viewport centre, world
-
-    let best = null, bd = Infinity;
-    groups.forEach(function (g) {
-      const c = middle(g);
-      const d = Math.hypot(c.x - cx, c.y - cy);
-      if (d < bd) { bd = d; best = { g: g, c: c }; }
+  /** what to call a set: the outcome if you named one, else where it ends */
+  function setName(g) {
+    const out = g.find(n => n.type === 'outcome');
+    if (out) return out.text;
+    const ids = g.map(n => n.id);
+    const ends = g.filter(function (n) {
+      return n.type !== 'note' &&
+        !data().links.some(l => l.directed && l.from === n.id && ids.indexOf(l.to) > -1);
     });
-
-    const onScreen = data().nodes.some(function (n) {
-      const s = sizes[n.id] || { hw: 60, hh: 22 };
-      const x = n.x * v.z + v.x, y = n.y * v.z + v.y;
-      return x > -s.hw * v.z && x < W + s.hw * v.z && y > -s.hh * v.z && y < H + s.hh * v.z;
-    });
-
-    // Nothing on screen is the one state the paper must never leave you in.
-    // You asked to be kept near your sections; this is that promise, and it
-    // is why you cannot drift off into infinite blank paper and lose the lot.
-    if (!onScreen) return frame(best);
-    if (bd > Math.min(W, H) / v.z) return;           // a section is in view; leave him be
-
-    // settle it into frame, but never haul him more than a quarter of a screen
-    const wantX = W / 2 - best.c.x * v.z, wantY = H / 2 - best.c.y * v.z;
-    let dx = (wantX - v.x) * 0.5, dy = (wantY - v.y) * 0.5;
-    const cap = Math.min(W, H) * 0.28, len = Math.hypot(dx, dy);
-    if (len < 4) return;
-    if (len > cap) { dx = dx / len * cap; dy = dy / len * cap; }
-    glide(v.x + dx, v.y + dy, v.z);
+    return (ends[0] || g[0]).text;
   }
 
-  function frame(best) {
+  const setOf = key => sets().find(s0 => s0.key === key);
+
+  /* ------------------------------------------------------------
+     THE CAMERA
+
+     You arrive sitting *in* a set, not floating above the paper.
+     While it is locked the view belongs to that set: you can drag to
+     peek and it springs back. Pinching is what hands you the camera —
+     zooming is the act of saying "let me see more than this" — and
+     the buttons down the left put you back into any set you like.
+     ------------------------------------------------------------ */
+  function frameOf(s0) {
     const W = window.innerWidth, H = window.innerHeight;
-    const xs = best.g.map(n => n.x), ys = best.g.map(n => n.y);
-    const w = (Math.max.apply(null, xs) - Math.min.apply(null, xs)) + 280;
-    const h = (Math.max.apply(null, ys) - Math.min.apply(null, ys)) + 340;
-    const z = clamp(Math.min(W / w, H / h), ZMIN, 1.1);
-    glide(W / 2 - best.c.x * z, H / 2 - best.c.y * z, z);
-    hint('Brought you back to the nearest section');
+    const b = s0.box;
+    const w = (b.x1 - b.x0) + 320;          // room for the widest bubble, twice
+    const h = (b.y1 - b.y0) + 360;
+    const z = clamp(Math.min(W / w, H / h), ZMIN, 1.25);
+    return { x: W / 2 - s0.c.x * z, y: H / 2 - s0.c.y * z, z: z };
+  }
+
+  function lockTo(key, snap) {
+    const s0 = setOf(key);
+    if (!s0) return;
+    locked = key;
+    peeking = false;
+    const f = frameOf(s0);
+    if (snap) { const v = view(); v.x = f.x; v.y = f.y; v.z = f.z; applyView(); store.save(); }
+    else glide(f.x, f.y, f.z);
+    paintSets();
+  }
+
+  function unlock() {
+    if (!locked) return;
+    locked = null; peeking = false;
+    paintSets();
+  }
+
+  /** the set nearest the middle of the screen right now */
+  function nearest() {
+    const all = sets();
+    if (!all.length) return null;
+    const v = view(), W = window.innerWidth, H = window.innerHeight;
+    const cx = (W / 2 - v.x) / v.z, cy = (H / 2 - v.y) / v.z;
+    return all.slice().sort(function (a, b) {
+      return Math.hypot(a.c.x - cx, a.c.y - cy) - Math.hypot(b.c.x - cx, b.c.y - cy);
+    })[0];
+  }
+
+  /** called when a drag or a pinch ends */
+  function assist() {
+    const all = sets();
+    if (!all.length) return;
+    if (locked) {                                   // peeked off it: spring back
+      const s0 = setOf(locked);
+      if (s0) { const f = frameOf(s0); return glide(f.x, f.y, f.z); }
+      locked = null;
+    }
+    // free camera: the one thing it will not do is leave you staring at nothing
+    const v = view(), W = window.innerWidth, H = window.innerHeight;
+    const onScreen = data().nodes.some(function (n) {
+      const sz = sizes[n.id] || { hw: 60, hh: 22 };
+      const x = n.x * v.z + v.x, y = n.y * v.z + v.y;
+      return x > -sz.hw * v.z && x < W + sz.hw * v.z && y > -sz.hh * v.z && y < H + sz.hh * v.z;
+    });
+    if (onScreen) return;
+    const s0 = nearest();
+    if (!s0) return;
+    const f = frameOf(s0);
+    glide(f.x, f.y, f.z);
+    hint('Brought you back to the nearest set');
+  }
+
+  /* ---------------- the buttons down the left ---------------- */
+
+  function paintSets() {
+    if (!el) return;
+    const host = el.querySelector('[data-sets]');
+    const all = sets();
+    if (all.length < 1) { host.innerHTML = ''; return; }
+    host.innerHTML = all.map(function (s0, i) {
+      return '<button class="sc-set' + (locked === s0.key ? ' on' : '') + '" data-set="' + s0.key + '">' +
+        '<i>' + (i + 1) + '</i><b>' + ui.esc(clip(s0.name, 18)) + '</b>' +
+        '<span>' + s0.nodes.length + '</span></button>';
+    }).join('');
+    host.querySelectorAll('[data-set]').forEach(function (b) {
+      b.onclick = function () { lockTo(b.dataset.set); };
+    });
+  }
+
+  function clip(t, n) {
+    t = String(t || '');
+    return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t;
   }
 
   let gliding = null;
@@ -726,6 +837,7 @@
           wx: (mx - v.x) / v.z, wy: (my - v.y) / v.z
         };
         mode = 'pinch';
+        unlock();                    // asking to see more is asking for the camera
         return;
       }
       if (live.size > 2) return;
@@ -819,6 +931,7 @@
       if (mode === 'pan') {
         const v = view();
         v.x = ox + dx; v.y = oy + dy;
+        if (locked) peeking = true;
         applyView();
       } else if (mode === 'move') {
         const n = node(id);
