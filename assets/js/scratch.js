@@ -76,13 +76,17 @@
      overlay itself is sized to the smallest honest number we have.
      ------------------------------------------------------------ */
   function screenBox() {
-    const surf = el && el.querySelector('.sc-surface');
-    const r = surf ? surf.getBoundingClientRect() : null;
+    // The chrome layer *is* the visible region — it is the one element sized
+    // to what the eye can actually see. Framing against the same box the
+    // buttons live in means the two can never disagree, whatever the browser
+    // is reporting for the window that day.
+    const c = el && el.querySelector('[data-chrome]');
+    const r = c ? c.getBoundingClientRect() : null;
     if (r && r.width > 0 && r.height > 0) return { W: r.width, H: r.height };
     const vv = window.visualViewport;
     return {
-      W: Math.min(vv ? vv.width : Infinity, window.innerWidth),
-      H: Math.min(vv ? vv.height : Infinity, window.innerHeight)
+      W: (vv && vv.width) || window.innerWidth || 360,
+      H: (vv && vv.height) || window.innerHeight || 640
     };
   }
 
@@ -112,6 +116,7 @@
         '</div>' +
         '<svg class="sc-ink" data-ink></svg>' +
       '</div>' +
+      '<div class="sc-chrome" data-chrome>' +
       '<div class="sc-top"><b>Scratch</b><span data-count></span></div>' +
       '<div class="sc-sets" data-sets></div>' +
       '<button class="sc-pen" data-pen aria-label="Draw" aria-pressed="false">' +
@@ -134,7 +139,8 @@
           '<path d="M10.5 8.2 L14.3 12 L10.5 15.8" fill="none" stroke="currentColor" ' +
             'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
         '</svg>' +
-      '</button>';
+      '</button>' +
+      '</div>';
     document.body.appendChild(el);
 
     world = el.querySelector('[data-world]');
@@ -157,15 +163,39 @@
   function trackViewport() {
     const vv = window.visualViewport;
     const set = function () {
-      // the smallest honest number, never the largest: an overlay taller than
-      // the visible area hides its own bottom strip, and the only way out of
-      // here lives in that strip
-      const h = Math.min(
-        vv ? vv.height : Infinity,
-        window.innerHeight || Infinity,
-        document.documentElement.clientHeight || Infinity
-      );
-      document.documentElement.style.setProperty('--sc-h', Math.round(h) + 'px');
+      /* Both dimensions, measured, plus the offset — not just the height.
+
+         The layout viewport and the visible one are different things on a
+         phone, and when they disagree in *width* the paper renders wider than
+         the screen: everything looks squashed and landscape, and the bottom
+         right corner, where the only way out lives, is simply not on the glass.
+         Sizing to the visual viewport is what makes the overlay cover exactly
+         what the eye can see, whatever the browser is doing with chrome or
+         zoom. The smallest honest number, never the largest. */
+      const doc = document.documentElement;
+      const zoomed = vv && vv.scale > 1.01;
+
+      /* Width and height are not the same problem.
+
+         Horizontally, at normal zoom the visible width *is* the layout
+         width — there is no chrome down the sides. So width comes from the
+         document unless the page is genuinely pinch-zoomed, and a browser
+         reporting a narrower visual width at scale 1 is telling us something
+         about its own rendering, not about the glass.
+
+         Vertically, chrome really does eat the bottom, so the height is the
+         smaller of what the document and the visual viewport claim. */
+      const w = Math.round(zoomed ? vv.width : (doc.clientWidth || window.innerWidth));
+      const h = Math.round(Math.min(
+        (vv && vv.height) || Infinity,
+        doc.clientHeight || Infinity,
+        window.innerHeight || Infinity
+      ));
+      const st = document.documentElement.style;
+      st.setProperty('--sc-w', w + 'px');
+      st.setProperty('--sc-h', h + 'px');
+      st.setProperty('--sc-x', Math.round(zoomed ? vv.offsetLeft : 0) + 'px');
+      st.setProperty('--sc-y', Math.round(zoomed ? vv.offsetTop : 0) + 'px');
       if (open) { paintSets(); guardExit(); }
     };
     const reframe = function () {
@@ -293,16 +323,19 @@
      Cheap, and it turns "I am trapped" into a non-event. */
   function guardExit() {
     const ex = el.querySelector('.sc-exit');
-    if (!ex) return;
-    const m = screenBox(), host = el.getBoundingClientRect(), b = ex.getBoundingClientRect();
-    if (!b.height) return;
-    if ((b.bottom - host.top) > m.H - 4) {
+    const chrome = el.querySelector('[data-chrome]');
+    if (!ex || !chrome) return;
+    const host = chrome.getBoundingClientRect(), b = ex.getBoundingClientRect();
+    if (!b.height || !host.height) return;
+    // inside its own layer, or dragged back in. This is the only way out, so
+    // it does not get to depend on `bottom` and `env()` behaving.
+    if ((b.bottom - host.top) > host.height - 2) {
       ex.style.bottom = 'auto';
-      ex.style.top = Math.max(8, m.H - b.height - 18) + 'px';
+      ex.style.top = Math.max(8, host.height - b.height - 18) + 'px';
     }
-    if ((b.right - host.left) > m.W - 4) {
+    if ((b.right - host.left) > host.width - 2) {
       ex.style.right = 'auto';
-      ex.style.left = Math.max(8, m.W - b.width - 16) + 'px';
+      ex.style.left = Math.max(8, host.width - b.width - 16) + 'px';
     }
   }
 
@@ -602,9 +635,63 @@
      deliberately a deliberate act. What crosses over is the whole
      shape, not the individual bubbles.
      ------------------------------------------------------------ */
+  /* ------------------------------------------------------------
+     THE ORDER OF THE STEPS
+
+     A circled group is a plan, and a plan has a beginning. It is not
+     the last bubble you wrote, it is whatever nothing else has to
+     happen before — the root the arrows all flow away from. Walk
+     forward from there and you get the order you would actually
+     work in. Anything the arrows never reach goes on the end, in
+     the order it was put down, and notes stay out of it because a
+     note is context, not a step.
+     ------------------------------------------------------------ */
+  function orderOf(caught) {
+    const ids = caught.map(n => n.id);
+    const work = caught.filter(n => n.type !== 'note');
+    const inSet = l => l.directed && ids.indexOf(l.from) > -1 && ids.indexOf(l.to) > -1;
+    const arrows = data().links.filter(inSet);
+
+    const before = {};                       // node -> how many must precede it
+    work.forEach(n => { before[n.id] = 0; });
+    arrows.forEach(function (l) {
+      if (before[l.to] !== undefined && before[l.from] !== undefined) before[l.to]++;
+    });
+
+    // roots first, then whatever they unlock — a plain topological walk
+    const out = [];
+    const ready = work.filter(n => !before[n.id]);
+    const seen = {};
+    while (ready.length) {
+      const n = ready.shift();
+      if (seen[n.id]) continue;
+      seen[n.id] = 1;
+      out.push(n);
+      arrows.filter(l => l.from === n.id).forEach(function (l) {
+        if (before[l.to] === undefined) return;
+        if (--before[l.to] <= 0) {
+          const nxt = work.find(x => x.id === l.to);
+          if (nxt && !seen[nxt.id]) ready.push(nxt);
+        }
+      });
+    }
+    // a cycle would strand nodes; they still belong on the list
+    work.forEach(function (n) { if (!seen[n.id]) out.push(n); });
+    return out.map(n => ({ node: n.id, text: n.text, type: n.type }));
+  }
+
+  /** the title reads from the far end: what all of this is actually for */
+  function planTitle(caught, order) {
+    const out = caught.find(n => n.type === 'outcome');
+    if (out) return out.text;
+    if (order && order.length > 1) return order[order.length - 1].text;
+    return (order && order[0] ? order[0].text : caught[0].text);
+  }
+
   function makePlan(caught) {
     const ids = caught.map(n => n.id);
-    const title = suggestTitle(caught);
+    const order = orderOf(caught);
+    const title = planTitle(caught, order);
     const cx = caught.reduce((a, n) => a + n.x, 0) / caught.length;
     const cy = caught.reduce((a, n) => a + n.y, 0) / caught.length;
 
@@ -616,8 +703,15 @@
     b.innerHTML =
       '<div class="sc-kind"><i>◇</i>' + caught.length + ' circled</div>' +
       '<input data-in type="text" maxlength="120" value="' + ui.esc(title) + '">' +
+      (order.length > 1
+        ? '<ol class="sc-order">' + order.slice(0, 5).map(function (st) {
+            return '<li>' + ui.esc(st.text) + '</li>';
+          }).join('') + (order.length > 5 ? '<li class="more">+' + (order.length - 5) + ' more</li>' : '') +
+          '</ol>'
+        : '') +
       '<div class="sc-acts">' +
         '<button type="submit" class="sc-ok">Add to Do</button>' +
+        '<button type="button" class="sc-del" data-wipe>Delete these</button>' +
         '<button type="button" class="sc-cancel" data-cancel>Cancel</button>' +
       '</div>';
     world.appendChild(b);
@@ -629,10 +723,20 @@
 
     b.onsubmit = function (e) {
       e.preventDefault();
-      store.capturePlan(input.value.trim() || title, ids);
+      store.capturePlan(input.value.trim() || title, ids, order);
       closeBubble();
       paint();
-      ui.toast('On your list, with the map attached');
+      ui.toast(order.length > 1
+        ? 'On your list — ' + order.length + ' steps, in order'
+        : 'On your list, with the map attached');
+    };
+    b.querySelector('[data-wipe]').onclick = function () {
+      // circling is also how you select, so it is also how you clear up
+      ids.forEach(function (id) { store.scratchDrop(id); });
+      closeBubble();
+      locked = null;
+      paint();
+      ui.toast(ids.length === 1 ? 'Removed' : ids.length + ' removed');
     };
     b.querySelector('[data-cancel]').onclick = function () { closeBubble(); paint(); };
   }

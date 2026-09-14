@@ -313,9 +313,10 @@ window.LO = window.LO || {};
   function pick(s, avoidId) {
     const now = clock();
     const doneRefs = LO.store.winsOn().filter(w => LO.level.pointsOf(w) > 0).map(w => w.ref).filter(Boolean);
+    const retired = (s.board && s.board.retired) || [];
 
-    const pool = build(s)
-      .filter(a => !doneRefs.includes(a.id) && a.id !== avoidId)
+    const pool = all(s)
+      .filter(a => !doneRefs.includes(a.id) && a.id !== avoidId && retired.indexOf(a.id) === -1)
       .map(a => {
         let w = (a.weight || 1) * LO.adaptive.weight(a, s);
         if (matches(a.when, now.id)) w *= 2.35;
@@ -352,5 +353,80 @@ window.LO = window.LO || {};
     winKind: 'reset'
   };
 
-  LO.actions = { build, pick, clock, slot, matches, SPIN };
+  /* ------------------------------------------------------------
+     THE GENERATOR
+
+     The hand-written bank runs dry: see the same eight things often
+     enough and they stop being prompts and start being wallpaper.
+     So the bank is topped up from what the system already knows —
+     your aims, your habits, the people you are losing touch with,
+     the blockers you named on the paper — crossed with a handful of
+     shapes a first step can take. Every line is still yours; none of
+     it is invented out of nothing, which is the rule the whole app
+     runs on.
+
+     Generated actions are held in `board.queue` so the same one is
+     not re-rolled every render, and retired ones never come back.
+     ------------------------------------------------------------ */
+  const SHAPES = [
+    { id: 'two', mins: 2,  lead: 'Two minutes on',
+      sub: 'Two minutes. Set it down after that if you want to — the point is that it started.' },
+    { id: 'ten', mins: 10, lead: 'Ten minutes on',
+      sub: 'Ten minutes and no more. You are allowed to stop at the end of it.' },
+    { id: 'one', mins: 3,  lead: 'The smallest piece of',
+      sub: 'Not the whole thing. The smallest piece of it that would still count.' },
+    { id: 'write', mins: 4, lead: 'Write down what is actually stopping',
+      sub: 'One paragraph, no solving. Naming it is the work here.' },
+    { id: 'next', mins: 5, lead: 'Decide the very next move on',
+      sub: 'Not the plan. The one physical action that comes next, written where you will see it.' }
+  ];
+
+  function seeds(s) {
+    const out = [];
+    (s.goals || []).filter(g => g.status !== 'done' && g.status !== 'parked')
+      .forEach(g => out.push({ key: 'aim_' + g.id, what: g.title, why: 'An aim with nothing logged against it lately.' }));
+    (s.habits || []).forEach(h => out.push({
+      key: 'hab_' + h.id, what: h.name.toLowerCase(),
+      why: 'A habit holds only while it is being struck.'
+    }));
+    (s.scratch && s.scratch.nodes ? s.scratch.nodes : [])
+      .filter(n => n.type === 'blocker' || n.type === 'step' || n.type === 'outcome')
+      .forEach(n => out.push({
+        key: 'sn_' + n.id, what: n.text,
+        why: n.type === 'blocker' ? 'You named this as what is in the way.'
+          : 'This is on the paper and nothing has moved it.'
+      }));
+    (s.people || []).forEach(p => out.push({
+      key: 'ppl_' + p.id, what: 'reaching ' + p.name,
+      why: 'Friendships decay quietly and then all at once.'
+    }));
+    return out;
+  }
+
+  /** build (and top up) the generated pool */
+  function generated(s) {
+    const board = s.board || { queue: [], retired: [], served: {} };
+    const retired = board.retired || [];
+    const pool = [];
+    seeds(s).forEach(function (seed) {
+      SHAPES.forEach(function (shape) {
+        const id = 'gen_' + seed.key + '_' + shape.id;
+        if (retired.indexOf(id) > -1) return;
+        pool.push({
+          id: id, kind: 'generated', source: 'Made for you',
+          label: shape.lead + ' ' + seed.what,
+          sub: shape.sub, why: seed.why,
+          minutes: shape.mins, weight: 0.55, when: 'any', winKind: 'step'
+        });
+      });
+    });
+    return pool;
+  }
+
+  /** the hand-written bank plus everything the generator can make right now */
+  function all(s) {
+    return build(s).concat(generated(s));
+  }
+
+  LO.actions = { build, all, generated, pick, clock, slot, matches, SPIN, SHAPES };
 })(window.LO);

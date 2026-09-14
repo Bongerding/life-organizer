@@ -882,3 +882,81 @@ input,textarea,select{font-size:16px}
 }
 .td.done .td-sub{opacity:.6}
 .td.plan .td-hit{padding-top:6px;padding-bottom:6px}
+
+
+/* ============================================================
+   THE BOARD — one dealt action, swiped away for the next.
+   "Not this" was a button you had to aim at to say the thing you
+   say most often. This says it with the thumb already down.
+   ============================================================ */
+.board{
+  touch-action:pan-y;-webkit-tap-highlight-color:transparent;
+  will-change:transform;cursor:grab;
+}
+.board.swiping{transition:none;cursor:grabbing}
+.board:not(.swiping){transition:transform 240ms var(--spring),opacity 240ms ease}
+.board-hint{
+  margin:14px 0 0;text-align:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);opacity:.6;
+}
+.quote{touch-action:pan-y;will-change:transform}
+.quote.swiping{transition:none}
+.quote:not(.swiping){transition:transform 240ms var(--spring),opacity 240ms ease}
+
+/* ============================================================
+   A PLAN ON THE LIST — a folder, not a line. The title opens it,
+   the steps inside are what you tick, in the order the arrows set.
+   ============================================================ */
+.td.plan{display:block;padding:8px 2px}
+.td-head{display:flex;align-items:flex-start;gap:12px}
+.td.plan .td-hit{flex:1 1 auto;min-width:0;padding:8px 0}
+.td-p.plainp{
+  flex:0 0 auto;align-self:center;font-family:var(--mono);font-size:11px;
+  color:var(--ink-3);font-variant-numeric:tabular-nums;
+}
+.td-fold{
+  flex:0 0 auto;align-self:center;width:9px;height:9px;margin-right:4px;
+  border-right:1.6px solid var(--ink-3);border-bottom:1.6px solid var(--ink-3);
+  transform:rotate(45deg) translate(-2px,-2px);
+  transition:transform var(--t-med) var(--spring);opacity:.7;
+}
+.td.plan.open .td-fold{transform:rotate(-135deg) translate(-2px,-2px)}
+
+.td-steps{
+  list-style:none;margin:4px 0 6px;padding:0 0 0 58px;
+  border-left:1px solid var(--line);margin-left:22px;
+  animation:steps-in 260ms var(--spring) both;
+}
+@keyframes steps-in{from{opacity:0;transform:translateY(-6px)}}
+.td-step{margin:0}
+.td-step-hit{
+  display:flex;align-items:center;gap:11px;width:100%;
+  background:none;border:0;font:inherit;cursor:pointer;text-align:left;
+  padding:11px 0;color:var(--ink-1);
+  -webkit-tap-highlight-color:transparent;
+}
+.td-n{
+  flex:0 0 auto;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;
+  background:var(--void-3);color:var(--ink-3);
+  font-family:var(--mono);font-size:10px;font-weight:700;
+}
+.td-st{
+  flex:1 1 auto;min-width:0;font-size:14px;line-height:1.45;
+  background-image:linear-gradient(var(--gold),var(--gold));
+  background-repeat:no-repeat;background-position:0 58%;background-size:0% 1.5px;
+  transition:background-size 380ms cubic-bezier(.3,.8,.3,1),color 300ms ease;
+}
+.td-tick{
+  flex:0 0 auto;width:21px;height:21px;border-radius:50%;
+  border:1.5px solid var(--line-2);position:relative;
+  transition:all 220ms var(--spring);
+}
+.td-step.done .td-st{color:var(--ink-3);background-size:100% 1.5px}
+.td-step.done .td-n{background:var(--void-4);color:var(--ink-3)}
+.td-step.done .td-tick{background:var(--gold);border-color:var(--gold)}
+.td-step.done .td-tick::after{
+  content:"";position:absolute;left:6px;top:8px;width:7px;height:4px;
+  border-left:2px solid var(--gold-ink);border-bottom:2px solid var(--gold-ink);
+  transform:rotate(-45deg);
+}

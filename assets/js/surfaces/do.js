@@ -28,16 +28,19 @@
       const struck = s.habits.filter(h => h.log && h.log[t]).length;
 
       return `
-        <figure class="quote">
+        <figure class="quote" data-quoteswipe>
           <blockquote>${ui.esc(q.text)}</blockquote>
           <figcaption><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(q.who.replace(/ /g, '_'))}" target="_blank" rel="noopener noreferrer">${ui.esc(q.who)}</a></figcaption>
         </figure>
 
         <div class="action-clock"><time>${ui.esc(phase.time)}</time><span>${ui.esc(phase.label)}</span></div>
-        <div class="k">${ui.esc(action.source || action.kind)}</div>
-        <h2 class="deed">${ui.esc(action.label)}</h2>
-        ${action.sub ? `<p class="deed-sub">${ui.esc(action.sub)}</p>` : ''}
-        <p class="why-now"><b>Why this now</b>${ui.esc(action.why || action.clockNote || phase.note)}</p>
+        <div class="board" data-board>
+          <div class="k">${ui.esc(action.source || action.kind)}</div>
+          <h2 class="deed">${ui.esc(action.label)}</h2>
+          ${action.sub ? `<p class="deed-sub">${ui.esc(action.sub)}</p>` : ''}
+          <p class="why-now"><b>Why this now</b>${ui.esc(action.why || action.clockNote || phase.note)}</p>
+        </div>
+        ${action.id === 'nothing' ? '' : `<p class="board-hint">Swipe for another</p>`}
 
         ${action.id === 'nothing' ? '' : `
           <button class="bigstart" data-start>
@@ -45,7 +48,6 @@
             ${action.minutes ? `<span>${action.minutes} min</span>` : ''}
           </button>
           <div class="textlinks">
-            <button data-skip>Not this</button>
             <button data-did>Already did it</button>
           </div>`}
 
@@ -110,10 +112,31 @@
         if (action.sheet) return LO.machine.go(action.sheet === 'line' ? 'write' : 'write');
         beginTimer(action, redraw);
       };
-      const skip = root.querySelector('[data-skip]');
-      if (skip) skip.onclick = () => { action = LO.actions.pick(store.state, action.id); redraw(); };
       const did = root.querySelector('[data-did]');
-      if (did) did.onclick = () => { bank(action, redraw); };
+      if (did) did.onclick = () => {
+        // "already did it" is not a skip. It banks the win and takes the
+        // thing off the board for good, so it never comes round again.
+        store.retire(action.id);
+        bank(action, redraw);
+      };
+
+      /* ----------------------------------------------------------
+         THE BOARD SWIPES
+
+         "Not this" was a button you had to aim at to say the one
+         thing you say most often. A swipe says it with the thumb
+         already on the screen, and it can say it as many times as
+         you like without the page feeling like a form.
+         ---------------------------------------------------------- */
+      swipeable(root.querySelector('[data-board]'), function (dir) {
+        action = LO.actions.pick(store.state, action.id);
+        store.served(action.id);
+        redraw();
+      });
+      swipeable(root.querySelector('[data-quoteswipe]'), function () {
+        LO.quotes.next();
+        redraw();
+      });
 
       const cap = root.querySelector('[data-capture]');
       if (cap) {
@@ -145,6 +168,28 @@
           redraw();
         };
       });
+      root.querySelectorAll('[data-fold]').forEach(b => {
+        b.onclick = () => { store.togglePlan(b.dataset.fold); redraw(); };
+      });
+      root.querySelectorAll('[data-step]').forEach(b => {
+        b.onclick = () => {
+          const [planId, stepId] = b.dataset.step.split(':');
+          const li = b.closest('.td-step');
+          const wasDone = li.classList.contains('done');
+          li.classList.toggle('done', !wasDone);
+          setTimeout(() => {
+            const plan = store.stepDone(planId, stepId);
+            if (plan && !wasDone && plan.steps.every(x => x.done)) {
+              // every step struck is the plan finished — bank it like any task
+              const row = root.querySelector(`[data-row="${planId}"]`);
+              if (row) strike(planId, row.querySelector('.td-head'), redraw);
+              else redraw();
+              return;
+            }
+            redraw();
+          }, 300);
+        };
+      });
       root.querySelectorAll('[data-open]').forEach(b => {
         b.onclick = () => {
           const l = store.state.mind.load.find(x => x.id === b.dataset.open);
@@ -160,6 +205,49 @@
     }
   });
 
+  /* ----------------------------------------------------------
+     One horizontal swipe, either direction, on a card. Vertical
+     wins early so the page still scrolls under your thumb, and the
+     card follows the finger so the gesture is visible while it
+     happens rather than only in its result.
+     ---------------------------------------------------------- */
+  function swipeable(card, onSwipe) {
+    if (!card) return;
+    let sx = 0, sy = 0, dx = 0, live = false, decided = false;
+
+    card.addEventListener('pointerdown', function (e) {
+      if (e.target.closest('a,button')) return;
+      sx = e.clientX; sy = e.clientY; dx = 0; live = true; decided = false;
+    }, { passive: true });
+
+    card.addEventListener('pointermove', function (e) {
+      if (!live) return;
+      const mx = e.clientX - sx, my = e.clientY - sy;
+      if (!decided) {
+        if (Math.abs(my) > 12 && Math.abs(my) > Math.abs(mx)) { live = false; return; }
+        if (Math.abs(mx) < 10) return;
+        decided = true;
+        card.classList.add('swiping');
+      }
+      dx = mx;
+      card.style.transform = 'translateX(' + dx + 'px)';
+      card.style.opacity = String(Math.max(0.25, 1 - Math.abs(dx) / 260));
+    }, { passive: true });
+
+    const end = function () {
+      if (!live) return;
+      live = false;
+      card.classList.remove('swiping');
+      const far = Math.abs(dx) > Math.min(110, window.innerWidth * 0.22);
+      card.style.transform = '';
+      card.style.opacity = '';
+      if (decided && far) onSwipe(dx < 0 ? 'left' : 'right');
+      decided = false;
+    };
+    card.addEventListener('pointerup', end, { passive: true });
+    card.addEventListener('pointercancel', end, { passive: true });
+  }
+
   /* ---------------- the day's list ---------------- */
   function taskRow(l) {
     const done = l.status === 'closed';
@@ -168,17 +256,51 @@
     // a plan carries the shape it was circled out of, and one line
     // written from the kinds on the paper. Tapping the map goes back to it.
     const plan = l.kind === 'plan' && l.nodes && l.nodes.length;
-    return `<div class="td${done ? ' done' : ''}${plan ? ' plan' : ''}" data-row="${l.id}">
-      ${plan ? `<button class="td-open" data-open="${l.id}" aria-label="Open on the paper"
-        >${LO.scratch.thumb(l.nodes)}</button>` : ''}
-      <button class="td-hit" data-hit="${l.id}"${done ? ' disabled' : ''}>
-        <span class="td-t">${ui.esc(l.title)}</span>
-        ${plan ? `<span class="td-sub">${ui.esc(LO.scratch.describe(l.nodes))}</span>` : ''}
-      </button>
-      <button class="td-p" data-eff="${l.id}" title="${LO.level.tier(eff).name} — tap to change">+${pts}</button>
-      ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
-      <button class="td-box" data-hit="${l.id}" aria-label="Mark done"${done ? ' disabled' : ''}></button>
+    const steps = plan && l.steps && l.steps.length ? l.steps : null;
+    const struck = steps ? steps.filter(x => x.done).length : 0;
+
+    if (!plan) {
+      return `<div class="td${done ? ' done' : ''}" data-row="${l.id}">
+        <button class="td-hit" data-hit="${l.id}"${done ? ' disabled' : ''}>
+          <span class="td-t">${ui.esc(l.title)}</span>
+        </button>
+        <button class="td-p" data-eff="${l.id}" title="${LO.level.tier(eff).name} — tap to change">+${pts}</button>
+        ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
+        <button class="td-box" data-hit="${l.id}" aria-label="Mark done"${done ? ' disabled' : ''}></button>
+      </div>`;
+    }
+
+    // A plan is a folder, not a line. The title opens it; the steps inside
+    // are what you actually tick, in the order the arrows said they go.
+    return `<div class="td plan${done ? ' done' : ''}${l.open ? ' open' : ''}" data-row="${l.id}">
+      <div class="td-head">
+        <button class="td-open" data-open="${l.id}" aria-label="Open on the paper"
+          >${LO.scratch.thumb(l.nodes)}</button>
+        <button class="td-hit" data-fold="${l.id}" aria-expanded="${l.open ? 'true' : 'false'}">
+          <span class="td-t">${ui.esc(l.title)}</span>
+          <span class="td-sub">${steps
+            ? `${struck}/${steps.length} done  ·  ${ui.esc(nextStep(steps))}`
+            : ui.esc(LO.scratch.describe(l.nodes))}</span>
+        </button>
+        <span class="td-p plainp">+${pts}</span>
+        ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
+        <span class="td-fold" aria-hidden="true"></span>
+      </div>
+      ${steps && l.open ? `<ol class="td-steps">${steps.map((st, i) => `
+        <li class="td-step${st.done ? ' done' : ''}">
+          <button class="td-step-hit" data-step="${l.id}:${st.id}">
+            <span class="td-n">${i + 1}</span>
+            <span class="td-st">${ui.esc(st.text)}</span>
+            <span class="td-tick"></span>
+          </button>
+        </li>`).join('')}</ol>` : ''}
     </div>`;
+  }
+
+  /** the first thing still open — what the folder should say it is waiting on */
+  function nextStep(steps) {
+    const n = steps.find(x => !x.done);
+    return n ? 'next: ' + n.text : 'all steps struck';
   }
 
   function todayLine(list) {

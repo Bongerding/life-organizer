@@ -31,6 +31,16 @@ you have found a feature that belongs somewhere else.
 - **Do** — one dealt action with a big target, a capture bar, and the day's list.
 - **Write** — one box for everything; it classifies what you wrote.
 - **Advice** — the daily line and twelve situational protocols.
+
+The Do board is **swiped**, not buttoned. "Already did it" retires an action for
+good via `board.retired`. The action bank is topped up by `LO.actions.generated`
+from the user's own aims, habits, people and Scratch nodes — never invented from
+nothing. Quotes rotate every three hours and swipe for the next.
+
+`LO.customize` owns everything visual: five layouts, colour presets, a hue
+slider, and per-kind bubble colours. It writes **only** CSS custom properties on
+the root plus one body class, and it is a separate panel from Settings on
+purpose — Settings is what the app does and should stay boring.
 - **Me** — the profile, the numbers, and the question that fills the profile in.
 
 **Scratch is not a fifth tab.** Swiping **right** on Do slides the desk aside
@@ -48,9 +58,12 @@ on a phone, after looking fine on a desktop:
 - `.sc-world { transform-origin: 0 0 }` — the coordinate model is
   `screen = world × zoom + pan`, which the default 50% origin makes true only at
   zoom 1 and wrong at every other zoom.
-- `#scratch { height: var(--sc-h) }`, measured off `visualViewport` — a fixed
-  overlay sized to the layout viewport hides its bottom strip under Android's
-  browser chrome, and that strip holds the only way out.
+- `#scratch` is `inset: 0` (the layout viewport, so the paper reaches every
+  edge) and `.sc-chrome` inside it is sized from measurement (the visible
+  region, so every control is reachable). **Two boxes, two jobs** — one box
+  doing both is what hid the exit button three separate times. Width comes from
+  the document unless the page is pinch-zoomed; height is the smaller of the
+  document and `visualViewport`.
 
 - Nothing in Scratch may use `window.innerWidth` / `innerHeight`. On a phone
   those are not the visible area — measured at double it on one test viewport —

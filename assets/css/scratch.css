@@ -11,13 +11,22 @@
    puts its bottom strip under the Android browser chrome — which is exactly
    where the exit button lives, so on a phone there was no way out. #app already
    uses dvh for the same reason; this must match it. */
+/* The paper fills the layout viewport — inset:0, no measurement, no gaps,
+   whatever the browser thinks the window is. The *controls* are a different
+   question and live in .sc-chrome below, which is sized to what can actually
+   be seen. Trying to make one box do both jobs is what hid the exit button
+   three times: too big and it falls off the bottom, too small and the paper
+   does not reach the edge of the screen. */
 #scratch{
-  position:fixed;left:0;top:0;z-index:60;
-  width:100%;height:100vh;height:100dvh;height:var(--sc-h,100dvh);
+  position:fixed;z-index:60;inset:0;
   background:#fbfaf7;color:#17171b;
   transform:translateX(-100%);
   transition:transform 330ms var(--spring);
   overscroll-behavior:none;overflow:hidden;
+  /* the whole overlay, not just the paper: a pinch that starts on a set
+     button or the hint would otherwise zoom the browser's own page, which
+     is what makes everything look squashed and pushes the corners off glass */
+  touch-action:none;
 }
 body.scratch-open #scratch{transform:none}
 
@@ -35,6 +44,15 @@ body.scratch-dragging #scratch{transition:none}
    drag starting on a scrolling list, fires pointercancel, and the swipe
    dies halfway across. */
 .pane[data-pane="do"]{touch-action:pan-y}
+
+/* the visible region: where every control has to live */
+.sc-chrome{
+  position:absolute;z-index:5;pointer-events:none;
+  left:var(--sc-x,0);top:var(--sc-y,0);
+  width:var(--sc-w,100%);height:var(--sc-h,100%);
+}
+.sc-chrome > *{pointer-events:auto}
+.sc-chrome > .sc-hint{pointer-events:none}
 
 /* ---------- the paper ---------- */
 .sc-surface{
@@ -235,10 +253,13 @@ body.scratch-dragging #scratch{transition:none}
    INK — holding the paper starts a line, the way a pen would.
    It is not stored: its whole job is the loop you draw with it.
    ============================================================ */
-.sc-ink{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.sc-ink{
+  position:absolute;left:0;top:0;width:100%;height:100%;
+  overflow:visible;pointer-events:none;z-index:4;
+}
 .sc-stroke{
-  stroke:rgba(23,23,27,.62);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
-  transition:opacity 300ms var(--swift);
+  stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.9;transition:opacity 300ms var(--swift);
 }
 .sc-stroke.gone{opacity:0}
 
@@ -339,3 +360,16 @@ body.scratch-dragging #scratch{transition:none}
   background:none;color:rgba(23,23,27,.6);
 }
 @media (max-width:360px){.sc-p-grid{grid-template-columns:1fr}}
+
+
+/* the order a circled group will be worked in, previewed before you commit */
+.sc-order{
+  list-style:decimal;margin:2px 0 0;padding:0 0 0 20px;
+  max-height:118px;overflow-y:auto;
+}
+.sc-order li{
+  font-size:12.5px;line-height:1.5;color:rgba(23,23,27,.66);
+  padding:1px 0;overflow-wrap:break-word;
+}
+.sc-order li.more{list-style:none;margin-left:-20px;color:rgba(23,23,27,.4)}
+.sc-bubble.k-plan .sc-acts{flex-wrap:wrap}

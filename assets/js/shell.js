@@ -21,6 +21,7 @@ window.LO = window.LO || {};
       const fresh = LO.store.seed();
       LO.companion.boot();
       LO.scratch.boot();
+      LO.customize.boot();
       LO.notify.start();
       LO.ui.startField(document.getElementById('field'));
 

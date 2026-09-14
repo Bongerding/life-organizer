@@ -84,7 +84,8 @@ window.LO = window.LO || {};
     return {
       meta: {
         schema: SCHEMA, created: D.today(), lastOpen: D.today(),
-        opens: 0, streak: 0, seeded: false, lastBackup: null, name: ''
+        opens: 0, streak: 0, seeded: false, lastBackup: null, name: '',
+        quoteNudge: 0        // swipes past the three-hour rotation
       },
 
       // CHRONICLE — append-only. Every event, in order, forever.
@@ -151,7 +152,8 @@ window.LO = window.LO || {};
       // SCRIBE — journal + what the system has learned about you
       scribe: {
         entries: [],         // [{id,date,prompt,text,tags}]
-        insights: []         // [{id,date,text,source}]
+        insights: [],        // [{id,date,text,source}]
+        quotes: []           // [{id,text,who,date}] lines he kept himself
       },
 
       // SCRATCH — the paper next to the desk. Things put down in space,
@@ -162,6 +164,15 @@ window.LO = window.LO || {};
         nodes: [],                  // [{id,text,x,y,type,created}]
         links: [],                  // [{id,from,to,directed}] — `from` is the prerequisite
         view: { x: 0, y: 0, z: 1 }  // where the paper was left, and how far in
+      },
+
+      // THE BOARD — what the dealer has offered, kept, and been told to
+      // stop offering. `retired` is the answer to "already did it": once an
+      // action is struck that way it does not come back round.
+      board: {
+        retired: [],         // [id] never deal these again
+        queue: [],           // [{id,...}] generated ahead of time
+        served: {}           // id -> last date offered, so the rotation spreads
       },
 
       // CLASSIFIER — what it has learned about how you write
@@ -537,20 +548,58 @@ window.LO = window.LO || {};
     },
 
     /** the one door from the paper to the day's list: a circled group
-        becomes a single larger task that carries its own map. */
-    capturePlan(title, nodeIds) {
+        becomes a single larger task that carries its own map, and its own
+        steps in the order the arrows say they have to happen. */
+    capturePlan(title, nodeIds, steps) {
       const entry = this.add('scribe.entries', {
         date: D.today(), kind: 'task', prompt: '', text: title, tags: ['plan']
       });
       const rec = {
         id: this.id('task'), title: title, kind: 'plan', weight: 3, effort: 3,
-        nodes: (nodeIds || []).slice(), origin: 'do', status: 'open',
+        nodes: (nodeIds || []).slice(),
+        steps: (steps || []).map(st => ({
+          id: this.id('st'), node: st.node, text: st.text, type: st.type, done: false
+        })),
+        open: false,                 // collapsed until you tap the title
+        origin: 'do', status: 'open',
         created: D.today(), ts: Date.now(), from: entry.id
       };
       this.state.mind.load.unshift(rec);
       this.log('scratch', 'Circled a plan: ' + title, { ref: rec.id, nodes: rec.nodes.length });
       this.save();
       return rec;
+    },
+
+    /** tick one step of a plan; returns the plan so the caller can see
+        whether that was the last one */
+    stepDone(planId, stepId, on) {
+      const plan = this.state.mind.load.find(l => l.id === planId);
+      if (!plan || !plan.steps) return null;
+      const st = plan.steps.find(x => x.id === stepId);
+      if (!st) return null;
+      st.done = on === undefined ? !st.done : !!on;
+      if (st.done) this.log('done', st.text, { ref: planId, step: stepId });
+      this.save();
+      return plan;
+    },
+    togglePlan(planId) {
+      const plan = this.state.mind.load.find(l => l.id === planId);
+      if (!plan) return;
+      plan.open = !plan.open;
+      this.save();
+    },
+
+    /* ---------- the board ---------- */
+    /** "already did it" means stop offering it, not just today */
+    retire(id) {
+      if (!id) return;
+      const b = this.state.board;
+      if (b.retired.indexOf(id) === -1) b.retired.push(id);
+      this.save();
+    },
+    served(id) {
+      this.state.board.served[id] = D.today();
+      this.save();
     },
 
     /** call after a successful export so the system can nag about backups */

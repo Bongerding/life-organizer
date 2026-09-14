@@ -136,6 +136,107 @@ Format: what was decided, why, what was rejected, and what must not be undone.
 
 ---
 
+## 2026-09-14 · The paper and the controls are two different boxes
+
+The exit button went missing three times. Each fix was correct about its own
+cause and still wrong about the shape of the problem, so here is the shape.
+
+**One box cannot do both jobs.** The paper wants the *layout* viewport: fill it
+edge to edge, no gaps, no measurement. The controls want the *visible* one: a
+button below the browser chrome is a button that does not exist. Size the single
+overlay to the layout viewport and the exit falls off the bottom; size it to the
+visible one and the paper stops reaching the edge of the screen and the whole
+thing reads as landscape with the app showing through beside it.
+
+So there are two now. `#scratch` is `inset: 0` and never measured. `.sc-chrome`
+sits inside it, sized from measurement, and every control lives in that layer.
+`screenBox()` reads the chrome's own rect, so framing and buttons can never
+disagree again.
+
+**Width and height are not the same problem.** There is no browser chrome down
+the sides, so at normal zoom the visible width *is* the layout width — width
+comes from the document unless the page is genuinely pinch-zoomed. Chrome does
+eat the bottom, so height is the smaller of what the document and the visual
+viewport claim. A test viewport reporting `innerWidth: 800` against
+`visualViewport.width: 400` at scale 1 is what forced the distinction.
+
+**Also: `touch-action: none` on the whole overlay,** not just the paper. A pinch
+starting on a set button or the hint was reaching the browser and zooming its
+page, which is the other way everything ends up squashed with the corners off
+the glass.
+
+---
+
+## 2026-09-14 · A circled group is a checklist, not a line
+
+A plan on Do is now a folder. The title says `2/5 done · next: …`, tapping it
+opens the steps, and each step ticks on its own. Strike the last one and the
+whole plan banks itself like any other task.
+
+**The order comes from the root, not the order you wrote them in.** It is a
+topological walk: start from whatever has no arrow pointing at it, then whatever
+that unlocks. Write the outcome first and the mower still comes last, because
+the arrows say so. Notes stay out — a note is context, not a step. The title
+reads from the far end: what all of it is actually for.
+
+**Circling also deletes.** The lasso is how you select, so it is also how you
+clear up: the popup offers *Delete these* beside *Add to Do*.
+
+---
+
+## 2026-09-14 · The board is swiped, and it makes its own work
+
+**"Not this" is gone.** It was a button you had to aim at to say the thing you
+say most often. The action card is swiped now, either direction, and it follows
+the thumb so the gesture is visible while it happens. The quote swipes too.
+
+**"Already did it" retires an action permanently** (`board.retired`), rather
+than only suppressing it for the day. If you have done it, stop offering it.
+
+**The bank generates.** Eight hand-written actions become wallpaper fast, so the
+bank is topped up by crossing what the system already knows — your aims, habits,
+the people going quiet, the blockers you named on the paper — with five shapes a
+first step can take. Nothing is invented: every generated line is about
+something you put into the system yourself, which is the rule the whole app runs
+on.
+
+---
+
+## 2026-09-14 · Quotes: a big bank, and an honest limit
+
+125 lines, rotating every three hours, swipe for the next immediately. A prime
+stride through the bank means three hours later you get something unrelated
+rather than the next line down.
+
+**What was asked for and not built: fetching quotes from the internet.** This
+app has no server, no dependencies, and works in aeroplane mode; it cannot go
+and get them. The alternative — generating lines and putting a real person's
+name underneath — is a lie with a citation, and this is the product whose first
+rule is that no claim appears without its evidence. So the bank is large, it is
+local, and it grows the honest way: `quotes.keep()` puts a line you actually
+came across into the same rotation.
+
+---
+
+## 2026-09-14 · Customize is not Settings
+
+A paint bucket under the gear, and they are deliberately different panels.
+Settings is what the app does; you open it with a purpose, once a month, and it
+should stay boring. Customize is what it looks like; you poke at it because you
+feel like a change.
+
+Five layouts, and they are five answers to *how much does it show me at once* —
+the only layout question that matters on a phone you open for two seconds — not
+five decorative themes. Eight colour presets with pastels for when the graphite
+is too relentless, a hue and strength slider, and the six Scratch kinds
+recolourable one at a time.
+
+It is implemented as nothing but CSS custom properties on the root plus a body
+class. No surface is rebuilt and no number is recomputed, so a look is a handful
+of strings in `settings.look` that restore with any backup.
+
+---
+
 ## 2026-09-13 · The keyboard waits to be asked
 
 **Opening a bubble no longer focuses its field.** Tapping a node used to throw
