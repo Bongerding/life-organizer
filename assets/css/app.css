@@ -960,3 +960,43 @@ input,textarea,select{font-size:16px}
   border-left:2px solid var(--gold-ink);border-bottom:2px solid var(--gold-ink);
   transform:rotate(-45deg);
 }
+
+
+/* ============================================================
+   THE MIRROR — one question, and the number that earned it.
+
+   The claim is stated flat and grey: it is a measurement, not an
+   accusation. The question is the only thing given any weight,
+   because the question is the only thing asked of him.
+   ============================================================ */
+.mirror{text-align:left}
+.mirror-claim{
+  font-size:13px;line-height:1.6;color:var(--ink-2);
+  padding-left:13px;border-left:2px solid var(--line-2);
+  font-variant-numeric:tabular-nums;
+}
+.mirror-q{
+  margin:16px 0 14px;font-size:18px;line-height:1.4;
+  color:var(--ink-0);font-weight:600;max-width:34ch;
+}
+.mirror textarea{
+  width:100%;min-height:86px;font-size:15px;line-height:1.6;padding:12px;
+  border-radius:var(--r-md);border:1px solid var(--line);
+  background:var(--void-1);color:var(--ink-0);resize:vertical;
+}
+.mirror textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.mirror .acts{margin-top:12px}
+.mirror.quiet{border-style:dashed}
+.mirror-kept{margin-top:12px;color:var(--gold);text-align:center}
+
+/* what it kept last time, so the page shows it is listening */
+.mirror-past{display:flex;flex-direction:column;margin-top:18px}
+.mirror-past .mp{
+  padding:13px 2px;border-bottom:1px solid var(--line);text-align:left;
+}
+.mirror-past .mp:last-child{border-bottom:0}
+.mp-q{
+  display:block;font-size:11px;letter-spacing:.06em;color:var(--ink-3);
+  text-transform:none;margin-bottom:5px;
+}
+.mp-a{display:block;font-size:14px;line-height:1.55;color:var(--ink-1)}

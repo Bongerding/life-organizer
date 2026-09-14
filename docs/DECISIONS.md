@@ -218,6 +218,63 @@ came across into the same rotation.
 
 ---
 
+## 2026-09-14 · The arcade goes; the Mirror replaces it
+
+The practice arcade — two on-screen analogue sticks steering an Arena and a
+Method — is gone from Advice. It was wrong for five reasons worth recording,
+because each is a trap the next feature could fall into:
+
+1. **It broke the product's own first rule.** `actions.js` opens with *"One
+   action at a time. Choice is a procrastination surface."* Two sticks with four
+   axes was the most elaborate choice surface in the app, one tab from a page
+   whose whole design is that it chooses for you.
+2. **The input promised more than the output could pay.** All that steering
+   resolved to one of eight hard-coded quests. It felt like infinite nuance and
+   it was a 2×2×2.
+3. **It duplicated the control directly above it.** "Right now I feel" does
+   state-matching in one tap, and better.
+4. **It was the only skeuomorph in the product.** Ember & Graphite is machined
+   surfaces, round controls, hexagons for identity. An arcade cabinet is not in
+   that language.
+5. **It asked him to diagnose himself first**, on the page that promises
+   *"Nothing asks you to feel different first."*
+
+**The Mirror** is what took its place: one question, and the number that earned
+it. *"You started on 9 of the last 14 days. Nothing since Thursday. — What
+changed on Thursday?"*
+
+**Every question has to be derived before it can be asked.** `LO.mirror` is a
+bank of *observers*, not of questions: each looks at the record and either finds
+something remarkable with the figure that makes it true, or returns nothing.
+Twelve of them — a broken run, the weekday the record likes least, clear days
+against the others, a task carried too long, a habit's real rate, urges ridden,
+someone going quiet, a stalled aim, a plan mapped and untouched, the trajectory,
+where the points actually come from, and a day that was genuinely better than
+usual.
+
+**It is allowed to run dry, and that is the feature.** No measurement, no
+question. A day with nothing remarkable in it says so rather than reaching for a
+prompt, which is the same rule `insight.truths()` already lives by.
+
+**Tone is load-bearing.** The claim is flat, grey and carries its number — a
+measurement, not an accusation. The question is curious: *"what changed on
+Thursday"*, never *"why did you stop"*. Only the question gets any visual
+weight, because the question is the only thing being asked of him.
+
+**How it differs from the Me page's queue**, which it would otherwise duplicate:
+Me asks who you *are* — timeless, from a fixed bank, answered once. The Mirror
+asks what just *happened*, and could not exist without the data. Answers land in
+`scribe.insights` (which ARCHITECTURE already names the read-first layer), carry
+the claim that prompted them, go into a twelve-day cooldown, and surface again in
+the portrait on Me.
+
+**Rejected, and worth saying why.** The obvious alternative was wiring up the 28
+rehearsal drills in `lib.drills` — a real bank with a documented dealer and
+earned reinforcement, sitting unused in the archived lattice module. It is the
+better *engine*, and the arcade was a detour around it. It stays on the table.
+
+---
+
 ## 2026-09-14 · Point at the thing, not at a number
 
 The bottom half of Customize was six hue sliders labelled Step, Outcome,

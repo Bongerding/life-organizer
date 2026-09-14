@@ -9,10 +9,7 @@
   const { ui, store, lib, D, advice, insight } = LO;
 
   let open = null;      // situation id currently showing
-  let questLocked = false;
-  let lockedQuest = null;
-  let questDone = false;
-  let sticks = freshSticks();
+  let kept = false;     // just answered, so the page says so once
 
   LO.machine.register({
     id: 'advice',
@@ -22,7 +19,8 @@
       const tip = advice.today(s);
       const noticed = insight.messages(s).filter(m => m.tone !== 'quiet').slice(0, 3);
       const sit = open ? advice.situation(open) : null;
-      const shaped = lockedQuest || advice.quest(sticks, s);
+      const seen = LO.mirror.ask(s);
+      const said = LO.mirror.recent(2);
 
       return `
         <h1 class="hd">${sit ? ui.esc(sit.label) : 'Find your next spark.'}</h1>
@@ -63,24 +61,31 @@
           </div>
           <details class="all-moods"><summary>All feelings</summary><div class="sits">${advice.SITUATIONS.map(x => `<button class="sit" data-sit="${x.id}"><i>${x.icon}</i>${ui.esc(x.label)}</button>`).join('')}</div></details>
 
-          <div class="lbl">The practice arcade<span class="r">${s.rewire.reps.length} completed</span></div>
-          <div class="panel practice-card" style="text-align:left">
-            <div class="eyebrow">✦ Steer a real-world rep · ${LO.adaptive.analyze(s).mode}</div>
-            ${questDone
-              ? `<div class="quest-complete"><b>Quest banked.</b><p>${ui.esc(shaped.title)}</p></div>
-                 <div class="acts" style="justify-content:flex-start"><button class="flat" data-feedback="yes">That helped ☀</button><button class="flat" data-feedback="no">Change the method</button><button class="flat" data-newquest>Next quest →</button></div>`
-              : questLocked
-                ? `${questCard(shaped)}<div class="acts" style="justify-content:flex-start"><button class="go" data-finishquest>I did it ✦</button><button class="flat" data-resteer>Re-steer</button></div>`
-                : `<p class="stick-instruction">Choose the arena with the left stick and the method with the right. The quest changes under your hands.</p>
-                   <div class="stick-deck">
-                     ${stick('sense', 'Arena', 'settle', 'activate', 'self', 'work')}
-                     ${stick('move', 'Method', 'solo', 'together', 'prepare', 'do')}
-                   </div>
-                   <div data-stickquest aria-live="polite">${questCard(shaped)}</div>
-                   <div class="acts" style="justify-content:flex-start">
-                     <button class="go" data-choosequest disabled>Choose this quest</button>
-                   </div>`}
-          </div>`}`;
+          <div class="lbl">What I can prove<span class="r">${said.length ? said.length + ' kept' : 'one question'}</span></div>
+          ${seen ? `
+            <div class="panel mirror">
+              <div class="mirror-claim">${ui.esc(seen.claim)}</div>
+              <h3 class="mirror-q">${ui.esc(seen.q)}</h3>
+              <textarea data-mirror rows="3" placeholder="As long or short as you like. Nobody else reads this."></textarea>
+              <div class="acts">
+                <button class="go" data-keepmirror>Answer</button>
+                <button class="flat" data-another>Ask me something else</button>
+              </div>
+            </div>`
+          : `<div class="panel mirror quiet">
+              <p class="note" style="margin:0">Nothing in the record stands out enough to ask about today.
+                That is a real answer, not an empty state — every question here has to be earned by a
+                number, and today there isn't one.</p>
+            </div>`}
+          ${kept ? `<p class="note mirror-kept">Kept. It will show up in your portrait on Me.</p>` : ''}
+          ${said.length ? `
+            <div class="mirror-past">
+              ${said.map(x => `<div class="mp">
+                <span class="mp-q">${ui.esc(x.q)}</span>
+                <span class="mp-a">${ui.esc(x.text)}</span>
+              </div>`).join('')}
+            </div>` : ''}
+`}`;
     },
 
     openAt(id) { open = id; },
@@ -113,84 +118,19 @@
         redraw();
       };
 
-      root.querySelectorAll('[data-feedback]').forEach(b => b.onclick = () => {
-        LO.adaptive.feedback(lockedQuest.kind, b.dataset.feedback === 'yes');
-        root.querySelectorAll('[data-feedback]').forEach(x => { x.disabled = true; });
-        ui.toast('Noted. This shapes future practices.');
-      });
-      const choose = root.querySelector('[data-choosequest]');
-      if (choose) {
-        bindSticks(root, choose);
-        choose.onclick = () => {
-          if (!sticks.sense.touched || !sticks.move.touched) return ui.toast('Move both sticks to choose a quest');
-          lockedQuest = advice.quest(sticks, store.state);
-          questLocked = true;
-          redraw();
-        };
-      }
-      const finish = root.querySelector('[data-finishquest]');
-      if (finish) finish.onclick = () => {
-        store.add('rewire.reps', {
-          date: D.today(), drillId: lockedQuest.id, trait: lockedQuest.trait, response: lockedQuest.title,
-          action: { steps: lockedQuest.steps.slice(), minutes: lockedQuest.minutes },
-          signal: { sense: { x: sticks.sense.x, y: sticks.sense.y }, move: { x: sticks.move.x, y: sticks.move.y } }
-        });
-        store.win('practice', lockedQuest.title, lockedQuest.minutes, 'quest_' + lockedQuest.id);
-        questDone = true;
-        ui.toast('Quest completed');
+      const box = root.querySelector('[data-mirror]');
+      const keep = root.querySelector('[data-keepmirror]');
+      if (keep) keep.onclick = () => {
+        const text = box.value.trim();
+        if (text.length < 2) return box.focus();
+        LO.mirror.answer(LO.mirror.ask(store.state), text);
+        kept = true;
+        ui.toast('Kept');
         redraw();
+        setTimeout(() => { kept = false; }, 1);
       };
-      const resteer = root.querySelector('[data-resteer]');
-      if (resteer) resteer.onclick = () => { questLocked = false; lockedQuest = null; redraw(); };
-      root.querySelectorAll('[data-newquest]').forEach(b => {
-        b.onclick = () => { questLocked = false; lockedQuest = null; questDone = false; sticks = freshSticks(); redraw(); };
-      });
+      const another = root.querySelector('[data-another]');
+      if (another) another.onclick = () => { LO.mirror.another(); kept = false; redraw(); };
     }
   });
-  function freshSticks() {
-    return { sense: { x: 0, y: 0, touched: false }, move: { x: 0, y: 0, touched: false } };
-  }
-  function stick(id, title, top, bottom, left, right) {
-    const p = sticks[id];
-    return `<div class="stick-wrap"><div class="stick-title">${title}</div>
-      <div class="joystick" data-stick="${id}" tabindex="0" role="slider" aria-label="${title}" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="center" style="--jx:${(p.x * 38).toFixed(1)}px;--jy:${(p.y * 38).toFixed(1)}px">
-        <span class="stick-label top">${top}</span><span class="stick-label bottom">${bottom}</span>
-        <span class="stick-label left">${left}</span><span class="stick-label right">${right}</span>
-        <i class="stick-knob"></i>
-      </div></div>`;
-  }
-  function questCard(q) {
-    return `<div class="stick-answer quest-card"><span>${ui.esc(q.kind)} · about ${q.minutes} min</span><p data-questtitle>${ui.esc(q.title)}</p><ol>${q.steps.map(x => `<li>${ui.esc(x)}</li>`).join('')}</ol><small>${ui.esc(q.reason)}</small></div>`;
-  }
-  function bindSticks(root, commit) {
-    const host = root.querySelector('[data-stickquest]');
-    const update = (pad, x, y) => {
-      const mag = Math.hypot(x, y) || 1;
-      if (mag > 1) { x /= mag; y /= mag; }
-      const p = sticks[pad.dataset.stick];
-      p.x = Math.round(x * 100) / 100; p.y = Math.round(y * 100) / 100; p.touched = true;
-      pad.style.setProperty('--jx', (p.x * 38).toFixed(1) + 'px');
-      pad.style.setProperty('--jy', (p.y * 38).toFixed(1) + 'px');
-      pad.setAttribute('aria-valuenow', String(Math.round(p.x * 100)));
-      pad.setAttribute('aria-valuetext', 'horizontal ' + Math.round(p.x * 100) + ', vertical ' + Math.round(-p.y * 100));
-      host.innerHTML = questCard(advice.quest(sticks, store.state));
-      commit.disabled = !sticks.sense.touched || !sticks.move.touched;
-    };
-    root.querySelectorAll('[data-stick]').forEach(pad => {
-      const point = e => {
-        const r = pad.getBoundingClientRect();
-        update(pad, (e.clientX - r.left - r.width / 2) / (r.width * .32), (e.clientY - r.top - r.height / 2) / (r.height * .32));
-      };
-      pad.onpointerdown = e => { pad.setPointerCapture(e.pointerId); pad.dataset.dragging = '1'; point(e); };
-      pad.onpointermove = e => { if (pad.dataset.dragging) point(e); };
-      pad.onpointerup = pad.onpointercancel = e => { delete pad.dataset.dragging; if (pad.hasPointerCapture(e.pointerId)) pad.releasePointerCapture(e.pointerId); };
-      pad.onkeydown = e => {
-        const p = sticks[pad.dataset.stick], step = e.shiftKey ? .25 : .12;
-        const next = { x: p.x, y: p.y };
-        if (e.key === 'ArrowLeft') next.x -= step; else if (e.key === 'ArrowRight') next.x += step;
-        else if (e.key === 'ArrowUp') next.y -= step; else if (e.key === 'ArrowDown') next.y += step; else return;
-        e.preventDefault(); update(pad, next.x, next.y);
-      };
-    });
-  }
 })(window.LO);

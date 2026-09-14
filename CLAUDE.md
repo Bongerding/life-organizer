@@ -30,7 +30,13 @@ you have found a feature that belongs somewhere else.
 
 - **Do** — one dealt action with a big target, a capture bar, and the day's list.
 - **Write** — one box for everything; it classifies what you wrote.
-- **Advice** — the daily line and twelve situational protocols.
+- **Advice** — the daily line, twelve situational protocols, and the Mirror.
+
+`LO.mirror` is a bank of **observers, not questions**: each reads the record and
+either returns a remark with the number that makes it true, or nothing. It is
+allowed to run dry — no measurement, no question. Claims stay flat and factual,
+questions stay curious rather than accusatory. Do not add a question that cannot
+carry its own evidence, and do not give it a fallback prompt for quiet days.
 
 The Do board is **swiped**, not buttoned. "Already did it" retires an action for
 good via `board.retired`. The action bank is topped up by `LO.actions.generated`

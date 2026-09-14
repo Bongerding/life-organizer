@@ -303,6 +303,10 @@ window.LO = window.LO || {};
     const avoiding = fact('avoiding');
     if (avoiding) out.push('Last thing you admitted to avoiding: ' + trim(avoiding.toLowerCase()));
 
+    // the Mirror asks about episodes; the freshest answer belongs in the portrait
+    const seen = (s.scribe.insights || []).filter(x => x.key)[0];
+    if (seen) out.push('On ' + D.pretty(seen.date) + ' you said: ' + trim(seen.text));
+
     const ten = fact('ten_years');
     if (ten) out.push('Ten years out: ' + trim(ten));
 
