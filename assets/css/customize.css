@@ -46,6 +46,12 @@
 .lay-mini-focus::after{display:none}
 .lay-mini-cards::before{top:3px;height:7px;border-radius:2px}
 .lay-mini-cards::after{top:13px;height:7px;border-radius:2px}
+.lay-mini-ledger::before{top:3px;height:10px}
+.lay-mini-ledger::after{top:15px;height:5px}
+.lay-mini-tower::before{top:4px;height:5px;left:6px;right:6px}
+.lay-mini-tower::after{top:11px;height:9px;left:6px;right:6px}
+.lay-mini-anchor::before{top:3px;height:6px;left:6px;right:6px;border-radius:99px}
+.lay-mini-anchor::after{top:12px;height:8px}
 
 /* ---------- colour ---------- */
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
@@ -81,8 +87,106 @@ input[type=range].huebar::-moz-range-thumb{
   width:20px;height:20px;border-radius:50%;background:var(--ink-0);
   border:2px solid var(--void-0);cursor:pointer;
 }
-.fld.bub span{display:flex;align-items:center;gap:9px}
-.fld.bub span i{width:13px;height:13px;border-radius:4px;flex:0 0 auto}
+/* ============================================================
+   THE PICTURE — your screen at thumbnail size, in the layout you
+   just chose. Tap a part, then tap a colour. No sliders: a slider
+   asks you to hunt for a number, a swatch asks you to point.
+   ============================================================ */
+.prev{
+  display:flex;gap:14px;align-items:stretch;
+  padding:16px;border:1px solid var(--line);border-radius:var(--r-lg);
+  background:var(--void-1);
+}
+.prev-phone{
+  flex:0 0 96px;display:flex;flex-direction:column;gap:5px;
+  height:168px;padding:7px 6px;border-radius:10px;
+  border:1px solid var(--line-2);background:var(--void-0);
+}
+.prev-bar{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.prev-bar i{width:9px;height:10px;clip-path:var(--hex);flex:0 0 auto}
+.prev-bar u{flex:1;height:3px;border-radius:2px;background:var(--void-4)}
+.prev-b{border-radius:3px;background:var(--void-3)}
+.prev-quote{
+  flex:0 0 auto;height:15px;display:grid;place-items:center;
+  font-size:9px;color:var(--ink-3);letter-spacing:.2em;
+}
+.prev-card{flex:0 0 auto;padding:4px;display:flex;flex-direction:column;gap:3px}
+.prev-card s,.prev-row s{
+  display:block;height:3px;border-radius:2px;background:var(--void-4);text-decoration:none;
+}
+.prev-card s.w,.prev-row s.w{width:62%}
+.prev-go{
+  flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:0;padding:0;margin:2px auto;
+  cursor:pointer;transition:transform var(--t-fast) var(--spring),box-shadow var(--t-fast);
+}
+.prev-list{flex:1 1 auto;display:flex;flex-direction:column;gap:4px;min-height:0}
+.prev-row{padding:4px;flex:0 0 auto}
+.prev-tabs{display:flex;gap:4px;justify-content:center;flex:0 0 auto;padding-top:3px}
+.prev-tabs i{width:9px;height:10px;clip-path:var(--hex);background:var(--void-4)}
+
+.prev-paper{
+  flex:1 1 auto;min-width:0;position:relative;
+  display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;
+  padding:20px 8px 8px;border-radius:8px;background:#fbfaf7;
+  background-image:radial-gradient(circle at 1px 1px, rgba(18,18,24,.16) 1px, transparent 0);
+  background-size:9px 9px;
+}
+.prev-paper-tag{
+  position:absolute;left:8px;top:6px;
+  font-size:8px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(23,23,27,.4);font-weight:700;
+}
+.prev-node{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 9px;border-radius:999px;border:1.5px solid;background:#fff;
+  font:inherit;font-size:10.5px;font-weight:600;color:#17171b;cursor:pointer;
+  transition:transform var(--t-fast) var(--spring),box-shadow var(--t-fast);
+}
+.prev-node i{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.prev-node:active,.prev-go:active{transform:scale(.92)}
+
+/* what you have pointed at */
+[data-part].sel{box-shadow:0 0 0 2px var(--void-0),0 0 0 4px var(--ink-0)}
+.prev-go[data-part].sel{box-shadow:0 0 0 2px var(--void-0),0 0 0 4px var(--ink-0)}
+
+.picked{
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:14px 2px 10px;
+}
+.picked b{font-size:13.5px;color:var(--ink-0);font-weight:650}
+.picked span{font-size:11.5px;color:var(--ink-3);flex:1 1 auto;min-width:0}
+.picked-clear{
+  border:1px solid var(--line);background:none;color:var(--ink-3);cursor:pointer;font:inherit;
+  font-size:10.5px;padding:4px 11px;border-radius:999px;
+}
+.picked-clear:hover{color:var(--ink-0);border-color:var(--line-2)}
+
+.hues{display:flex;flex-wrap:wrap;gap:9px}
+.hue{
+  width:34px;height:34px;border-radius:50%;border:2px solid transparent;
+  background:var(--sw);cursor:pointer;padding:0;
+  transition:transform var(--t-fast) var(--spring),border-color var(--t-fast);
+}
+.hue:active{transform:scale(.9)}
+.hue.on{border-color:var(--ink-0);transform:scale(1.1)}
+
+/* the picture rearranges with the layout, because that is the point */
+.prev-compact .prev-phone{gap:3px}
+.prev-compact .prev-list{gap:2px}
+.prev-calm .prev-phone{gap:9px;padding:9px 7px}
+.prev-calm .prev-quote{height:19px}
+.prev-calm .prev-list .prev-row:last-child{display:none}
+.prev-focus .prev-quote{display:none}
+.prev-focus .prev-go{width:40px;height:40px}
+.prev-cards .prev-quote,.prev-cards .prev-card,.prev-cards .prev-row{
+  border:1px solid var(--line-2);background:var(--void-2);
+}
+/* the vertical ones really do move the blocks */
+.prev-ledger .prev-list{order:-1}
+.prev-ledger .prev-quote{order:-2}
+.prev-tower .prev-phone{flex-basis:74px;padding-inline:11px}
+.prev-tower .prev-phone .prev-quote{height:11px}
+.prev-anchor .prev-go{order:-1;margin-top:0}
+.prev-anchor .prev-quote{order:3}
 
 /* ============================================================
    THE FIVE LAYOUTS
@@ -129,6 +233,35 @@ body.lay-cards .quote{
 body.lay-cards .quote{margin-bottom:18px}
 body.lay-cards .sos{gap:12px}
 
+/* ============================================================
+   THE VERTICAL LAYOUTS
+   Same blocks, different order down the page. `.col` becomes a
+   flex column so `order` is all any of them need — no surface
+   knows this is happening, which is why it is safe.
+   ============================================================ */
+body.lay-ledger .pane[data-pane="do"] .col,
+body.lay-anchor .pane[data-pane="do"] .col{display:flex;flex-direction:column}
+
+/* Ledger — today's list first, the action under it */
+body.lay-ledger .pane[data-pane="do"] .todo{order:-3}
+body.lay-ledger .pane[data-pane="do"] .today-summary{order:-2}
+body.lay-ledger .pane[data-pane="do"] .capture{order:-4;margin-top:6px}
+body.lay-ledger .pane[data-pane="do"] .quote{order:-5}
+
+/* Anchor — the button first, everything else beneath it */
+body.lay-anchor .pane[data-pane="do"] .bigstart{order:-4;margin-top:8px}
+body.lay-anchor .pane[data-pane="do"] .textlinks{order:-3}
+body.lay-anchor .pane[data-pane="do"] .action-clock{order:-5}
+body.lay-anchor .pane[data-pane="do"] .quote{order:6}
+
+/* Tower — a narrow centred column with a tight rhythm */
+body.lay-tower .col{max-width:340px;margin-inline:auto;padding-inline:14px}
+body.lay-tower .lbl{margin:24px 0 10px}
+body.lay-tower .deed{font-size:20px;max-width:16ch}
+body.lay-tower .bigstart{width:min(158px,46vw);margin-top:18px}
+body.lay-tower .quote blockquote{font-size:16px}
+body.lay-tower .sos{flex-direction:column;gap:8px}
+
 /* ---------- the six kinds take their colours from the panel ---------- */
 .sc-node.k-step .sc-g{color:var(--k-step,rgba(23,23,27,.7))}
 .sc-node.k-outcome{border-color:var(--k-outcome-line);background:var(--k-outcome-bg)}
@@ -149,3 +282,97 @@ body.lay-cards .sos{gap:12px}
 .sc-p-kind.k-resource i{color:var(--k-resource)}
 .sc-p-kind.k-habit i{color:var(--k-habit)}
 .sc-p-kind.k-note i{color:var(--k-note)}
+
+
+/* ============================================================
+   THE GROUNDS
+   Five backgrounds, three speeds. body::before is the wash,
+   body::after is the texture, #field is the canvas of motes —
+   each ground decides which of the three it wants.
+   ============================================================ */
+
+/* the segmented speed control */
+.seg-row{display:flex;gap:6px}
+.seg-b{
+  flex:1 1 0;padding:9px 6px;border-radius:var(--r-pill);cursor:pointer;font:inherit;
+  font-size:12px;font-weight:600;border:1px solid var(--line);background:none;color:var(--ink-3);
+  transition:all var(--t-fast) ease;
+}
+.seg-b.on{border-color:var(--accent);color:var(--ink-0);background:var(--accent-soft)}
+
+/* little previews on the ground chips */
+.bg-mini{
+  grid-row:1/3;align-self:center;width:20px;height:24px;border-radius:3px;
+  border:1px solid var(--line-2);flex:0 0 auto;overflow:hidden;
+  background:var(--void-0);position:relative;
+}
+.bg-mini-field{
+  background-image:radial-gradient(circle at 5px 6px,var(--ink-3) .8px,transparent 0),
+    radial-gradient(circle at 13px 12px,var(--ink-3) .8px,transparent 0),
+    radial-gradient(circle at 7px 18px,var(--ink-3) .8px,transparent 0);
+}
+.bg-mini-glow{background:radial-gradient(90% 60% at 50% -10%,var(--accent),transparent 70%),var(--void-0)}
+.bg-mini-aurora{background:linear-gradient(150deg,var(--accent) -10%,transparent 40%),
+  linear-gradient(20deg,var(--f-teal,#3aa) -20%,transparent 50%),var(--void-0)}
+.bg-mini-grid{
+  background-image:linear-gradient(var(--line-2) 1px,transparent 0),
+    linear-gradient(90deg,var(--line-2) 1px,transparent 0);
+  background-size:6px 6px;
+}
+.bg-mini-plain{background:var(--void-0)}
+
+/* ---- Field: the original. Canvas on, wash on, hex texture on. ---- */
+body.bg-field #field{opacity:.55}
+
+/* ---- Glow: one wash from above, nothing else moving ---- */
+body.bg-glow #field{display:none}
+body.bg-glow::after{opacity:.12}
+body.bg-glow::before{
+  background:
+    radial-gradient(120% 80% at 50% -18%, var(--accent-cast), transparent 66%),
+    radial-gradient(90% 60% at 50% 112%, var(--accent-cast), transparent 70%),
+    linear-gradient(180deg,var(--void-1),var(--void-0) 70%);
+}
+
+/* ---- Aurora: slow bands, the one background that actually moves ---- */
+body.bg-aurora #field{display:none}
+body.bg-aurora::after{opacity:.1}
+body.bg-aurora::before{
+  background:
+    radial-gradient(60% 45% at 18% 12%, var(--accent-glow), transparent 62%),
+    radial-gradient(55% 40% at 82% 28%, hsl(var(--aurora-h,190) 45% 42% / .34), transparent 64%),
+    radial-gradient(70% 50% at 50% 104%, hsl(var(--aurora-h,190) 40% 30% / .4), transparent 68%),
+    linear-gradient(180deg,var(--void-1),var(--void-0) 68%);
+  background-size:180% 180%,190% 190%,200% 200%,100% 100%;
+  animation:aurora 34s ease-in-out infinite alternate;
+}
+@keyframes aurora{
+  0%{background-position:0% 0%,100% 0%,50% 100%,0 0}
+  50%{background-position:40% 30%,60% 40%,30% 70%,0 0}
+  100%{background-position:100% 20%,0% 60%,70% 90%,0 0}
+}
+
+/* ---- Grid: still, engineered, no motes ---- */
+body.bg-grid #field{display:none}
+body.bg-grid::before{background:linear-gradient(180deg,var(--void-1),var(--void-0) 70%)}
+body.bg-grid::after{
+  opacity:.5;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(120% 100% at 50% 38%, #000 25%, transparent 82%);
+  mask-image:radial-gradient(120% 100% at 50% 38%, #000 25%, transparent 82%);
+}
+
+/* ---- Plain: nothing at all ---- */
+body.bg-plain #field{display:none}
+body.bg-plain::after{display:none}
+body.bg-plain::before{background:var(--void-0)}
+
+/* ---- the three speeds ---- */
+body.mo-slow *,body.mo-slow *::before,body.mo-slow *::after{animation-duration:2.6s!important}
+body.mo-slow::before{animation-duration:90s!important}
+body.mo-slow .lumen-trail{animation-duration:48s!important}
+body.mo-still *,body.mo-still *::before,body.mo-still *::after{animation:none!important}
+body.mo-still #field{display:none}

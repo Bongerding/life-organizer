@@ -218,6 +218,43 @@ came across into the same rotation.
 
 ---
 
+## 2026-09-14 · Point at the thing, not at a number
+
+The bottom half of Customize was six hue sliders labelled Step, Outcome,
+Blocker and so on. It was confusing, and it deserved to be: a slider asks you to
+hunt for a number, and a label asks you to remember which part of the app that
+word refers to. Two abstractions stacked on each other for a job whose whole
+content is "make that bit blue".
+
+**It is a picture now.** Your screen at thumbnail size — the phone with its
+header, quote, card, start button, list and tabs, next to a scrap of Scratch
+paper with the six kinds on it as bubbles. Tap any part, then tap a colour from
+twelve swatches. **The picture is drawn in the layout you just chose**, so
+picking Ledger moves the list above the action in the preview as well as in the
+app; the thing you are colouring looks like the thing you will get.
+
+**Three more layouts, and they are the vertical ones.** The first five were
+about density — how much arrives at once. Ledger, Tower and Anchor are about
+*order*: list before action, a narrow centred column, the button first. `.col`
+becomes a flex column and `order` does the rest, so no surface knows it is
+happening.
+
+**The accent now repaints completely.** Every round ember thing in this app was
+a gradient with two hard-coded orange ends and `--accent` in the middle, so
+changing the colour repainted a third of the button and left a red rim round it.
+Highlight, shadow, glow and cast are all derived from the same hue now
+(`--accent-hi` / `--accent-lo` / `--accent-glow` / `--accent-cast`). Purple is
+purple all the way through.
+
+**And the ground is yours.** Five backgrounds — Field (the drifting motes the
+product shipped with), Glow, Aurora, Grid, Plain — crossed with three speeds,
+Full, Slow and Still. A screen you open ten times a day should be allowed to
+feel different in February than it did in September. Still also parks every
+animation in the app, which makes it a genuine accessibility control and not
+only a taste one.
+
+---
+
 ## 2026-09-14 · Customize is not Settings
 
 A paint bucket under the gear, and they are deliberately different panels.

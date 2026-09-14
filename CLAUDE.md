@@ -37,8 +37,12 @@ good via `board.retired`. The action bank is topped up by `LO.actions.generated`
 from the user's own aims, habits, people and Scratch nodes — never invented from
 nothing. Quotes rotate every three hours and swipe for the next.
 
-`LO.customize` owns everything visual: five layouts, colour presets, a hue
-slider, and per-kind bubble colours. It writes **only** CSS custom properties on
+`LO.customize` owns everything visual: eight layouts (five density, three
+vertical order), colour presets, a tap-a-part diagram that recolours the accent
+and the six Scratch kinds, and five backgrounds x three motion speeds. The
+accent derives its whole ramp — `--accent-hi/-lo/-glow/-cast` — so never
+hard-code an ember hex in a gradient again; that is what left a red rim on the
+start button in every other colour. It writes **only** CSS custom properties on
 the root plus one body class, and it is a separate panel from Settings on
 purpose — Settings is what the app does and should stay boring.
 - **Me** — the profile, the numbers, and the question that fills the profile in.

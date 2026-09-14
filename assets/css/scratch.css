@@ -108,7 +108,7 @@ body.scratch-dragging #scratch{transition:none}
 }
 .sc-node.on{
   border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(226,96,58,.16), 0 4px 14px -5px rgba(20,20,28,.32);
+  box-shadow:0 0 0 3px var(--accent-soft), 0 4px 14px -5px rgba(20,20,28,.32);
 }
 /* waiting on something else: still there, plainly not next */
 .sc-node.blocked{
@@ -147,7 +147,7 @@ body.scratch-dragging #scratch{transition:none}
 }
 .sc-bubble input:focus{
   outline:none;border-color:var(--accent);background:#fff;
-  box-shadow:0 0 0 3px rgba(226,96,58,.14);
+  box-shadow:0 0 0 3px var(--accent-soft);
 }
 .sc-bubble input::placeholder{color:rgba(23,23,27,.34)}
 .sc-acts{display:flex;gap:6px}
@@ -235,8 +235,8 @@ body.scratch-dragging #scratch{transition:none}
   position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom) + 18px);
   width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;z-index:5;
   display:grid;place-items:center;color:#fbfaf7;
-  background:radial-gradient(circle at 50% 30%,#f4835c,var(--accent) 60%,#b8431f);
-  box-shadow:0 10px 26px -10px rgba(226,96,58,.8);
+  background:radial-gradient(circle at 50% 30%,var(--accent-hi),var(--accent) 60%,var(--accent-lo));
+  box-shadow:0 10px 26px -10px var(--accent-glow);
   transition:transform 160ms var(--spring);
   -webkit-tap-highlight-color:transparent;
 }
@@ -307,7 +307,7 @@ body.scratch-dragging #scratch{transition:none}
 }
 .sc-bubble textarea:focus{
   outline:none;border-color:var(--accent);background:#fff;
-  box-shadow:0 0 0 3px rgba(226,96,58,.14);
+  box-shadow:0 0 0 3px var(--accent-soft);
 }
 .sc-bubble.k-plan{border-color:#17171b}
 .sc-bubble.k-plan .sc-kind i{color:#17171b}

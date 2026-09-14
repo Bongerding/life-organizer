@@ -154,7 +154,13 @@ window.LO = window.LO || {};
 
     /* ---------- background particle field ---------- */
     startField(canvas) {
-      if (!canvas || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!canvas) return;
+      ui._fieldCanvas = canvas;
+      const look = (LO.store.state.settings && LO.store.state.settings.look) || {};
+      // the motes are one of five grounds now, and they hold still if asked
+      if ((look.ground || 'field') !== 'field') return;
+      if ((look.motion || 'full') === 'still') return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       const ctx = canvas.getContext('2d');
       let w, h, dots = [], raf;
       const N = 46;
@@ -212,6 +218,16 @@ window.LO = window.LO || {};
       }
       requestAnimationFrame(step);
     }
+  };
+
+  /** the ground changed under us — tear the canvas down and start again */
+  ui.restartField = function () {
+    const c = ui._fieldCanvas || document.getElementById('field');
+    if (!c) return;
+    if (ui._fieldStop) { try { ui._fieldStop(); } catch (e) { /* already gone */ } }
+    const ctx = c.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, c.width, c.height);
+    ui.startField(c);
   };
 
   LO.ui = ui;
