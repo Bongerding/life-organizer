@@ -1000,3 +1000,11 @@ input,textarea,select{font-size:16px}
   text-transform:none;margin-bottom:5px;
 }
 .mp-a{display:block;font-size:14px;line-height:1.55;color:var(--ink-1)}
+
+/* a reflection is an idea, not a measurement, and should not borrow the
+   authority of one: its frame is italic and unlined rather than a figure
+   sitting behind a rule */
+.mirror.idea .mirror-claim{
+  border-left-color:transparent;padding-left:0;
+  font-style:italic;color:var(--ink-3);max-width:46ch;
+}

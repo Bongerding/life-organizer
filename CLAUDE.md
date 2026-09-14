@@ -32,11 +32,20 @@ you have found a feature that belongs somewhere else.
 - **Write** — one box for everything; it classifies what you wrote.
 - **Advice** — the daily line, twelve situational protocols, and the Mirror.
 
-`LO.mirror` is a bank of **observers, not questions**: each reads the record and
-either returns a remark with the number that makes it true, or nothing. It is
-allowed to run dry — no measurement, no question. Claims stay flat and factual,
-questions stay curious rather than accusatory. Do not add a question that cannot
-carry its own evidence, and do not give it a fallback prompt for quiet days.
+`LO.mirror` asks one question at a time, of two kinds, and the distinction is
+load-bearing:
+
+- **Observations** (`OBSERVERS` in `mirror.js`) are *claims*: a number, about
+  him, derived from the record. No measurement, no observation — that rule has
+  not moved. Shown behind a rule under **What I can prove**.
+- **Reflections** (`reflections.js`) are *questions*, which assert nothing and
+  therefore need no evidence. Their frame names an **idea**, never a fact about
+  him, and is italic and unlined so it cannot borrow a measurement's authority.
+  Shown under **Worth thinking about**.
+
+Attribute a named researcher only where the attribution is solid; describe the
+idea without a name otherwise. Never write a frame that claims something about
+the user, and never let an observation ship without its figure.
 
 The Do board is **swiped**, not buttoned. "Already did it" retires an action for
 good via `board.retired`. The action bank is topped up by `LO.actions.generated`

@@ -1,16 +1,24 @@
 /* ============================================================
-   THE MIRROR — one question, and the number that earned it.
+   THE MIRROR — one question at a time, of two kinds.
 
-   The Me tab asks who you are: timeless things, from a fixed bank,
-   answered once. This asks what just happened, and every question
-   here had to be *derived* before it could be asked. No measurement,
-   no question — which means the Mirror can run dry, and that is
-   correct. A day where nothing is worth remarking on should say so
-   rather than reach for a prompt.
+   OBSERVATIONS are claims: they carry a number and they are about
+   you, so they can only exist once the record has earned them.
+   "You started on 9 of the last 14 days. Nothing since Thursday."
+   No measurement, no observation — that rule has not moved.
 
-   The claim is neutral and carries its number. The question is
-   curious, never accusatory: "what changed on Tuesday", not "why
-   did you stop". The difference is the whole tone of the product.
+   REFLECTIONS are not claims. A question asserts nothing, so it
+   needs no evidence — but it does need a reason to exist, and the
+   reason is the idea underneath it, which is named in the frame.
+   They live in `reflections.js`; the frame describes a concept and
+   never pretends to know something about him.
+
+   Observations come first, because a thing that actually happened
+   outranks an idea. They run out; the reflections do not, which is
+   what keeps this from showing an empty page on a quiet Tuesday.
+
+   The claim stays neutral. The question stays curious, never
+   accusatory: "what changed on Tuesday", not "why did you stop".
+   That difference is the whole tone of the product.
 
    Answers land in `scribe.insights`, which ARCHITECTURE already
    names as the read-first layer, and feed back into the portrait
@@ -27,6 +35,7 @@ window.LO = window.LO || {};
   const within = (date, n) => date && D.daysBetween(date, D.today()) < n;
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
   const weekday = k => new Date(k + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long' });
+  const st0 = () => LO.store;
 
   /* ------------------------------------------------------------
      THE OBSERVERS
@@ -213,6 +222,85 @@ window.LO = window.LO || {};
       };
     },
 
+    /* finished a lot, started nothing new */
+    function (s) {
+      const closed = s.mind.load.filter(l => l.status === 'closed' && within(l.closedOn, 10)).length;
+      const open = s.mind.load.filter(l => l.status !== 'closed').length;
+      if (closed < 5 || open > 1) return null;
+      return {
+        key: 'list_empty',
+        claim: 'You have closed ' + closed + ' things in ten days and your list is nearly empty.',
+        q: 'Is that finished, or is it that nothing new has been worth writing down?',
+        weight: 7
+      };
+    },
+
+    /* capture far outrunning completion */
+    function (s) {
+      const made = s.mind.load.filter(l => within(l.created, 14)).length;
+      const done = s.mind.load.filter(l => l.status === 'closed' && within(l.closedOn, 14)).length;
+      if (made < 8 || done >= made * 0.5) return null;
+      return {
+        key: 'capture_gap',
+        claim: 'You wrote down ' + made + ' things in a fortnight and finished ' + done + '.',
+        q: 'Is the list a plan or a place to put things so they stop nagging? Both are fine — which is it?',
+        weight: 8
+      };
+    },
+
+    /* the same thing deleted rather than done */
+    function (s) {
+      const habits = s.habits.filter(h => st0(s).adherence(h, 28) > 0 && st0(s).adherence(h, 28) < 12);
+      if (!habits.length) return null;
+      const h = habits[0];
+      return {
+        key: 'dead_habit_' + h.id,
+        claim: '“' + h.name + '” has been struck on ' + st0(s).adherence(h, 28) + '% of the last four weeks.',
+        q: 'Is this one worth keeping on the board, or is it costing you more as a reproach than it pays as a habit?',
+        weight: 7
+      };
+    },
+
+    /* a long run still going */
+    function (s, st) {
+      const streak = st.winStreak();
+      if (streak < 5) return null;
+      return {
+        key: 'streak_live',
+        claim: 'You have started something ' + streak + ' days running.',
+        q: 'What is holding this run up? Name the mechanism, not the motivation — you will need it when the motivation goes.',
+        weight: 9
+      };
+    },
+
+    /* the record itself has been kept a while */
+    function (s) {
+      const days = D.daysBetween(s.meta.created, D.today());
+      if (days < 30 || days % 30 > 2) return null;
+      return {
+        key: 'months_' + Math.floor(days / 30),
+        claim: 'You have been keeping this record for ' + days + ' days.',
+        q: 'What has actually changed since you started? Answer from evidence, not impression.',
+        weight: 8
+      };
+    },
+
+    /* wrote a lot, mostly one kind */
+    function (s) {
+      const recent = s.scribe.entries.filter(e => within(e.date, 21));
+      if (recent.length < 8) return null;
+      const counts = {};
+      recent.forEach(e => { counts[e.kind] = (counts[e.kind] || 0) + 1; });
+      const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+      if (counts[top] < recent.length * 0.65) return null;
+      return {
+        key: 'write_skew_' + top,
+        claim: pct(counts[top], recent.length) + '% of what you wrote in three weeks was filed as ' + top + '.',
+        q: 'What are you not writing down? Every record has a blind spot shaped like its owner.',
+        weight: 6
+      };
+    },
+
     /* a genuinely good day, worth knowing the cause of */
     function (s, st) {
       const today = LO.level.earnedOn();
@@ -238,7 +326,7 @@ window.LO = window.LO || {};
     return (LO.store.state.scribe.insights || []).filter(x => x.key);
   }
 
-  function candidates(state) {
+  function observed(state) {
     const s = state || LO.store.state;
     const st = LO.store;
     const past = answered();
@@ -249,12 +337,55 @@ window.LO = window.LO || {};
       if (!found) return;
       const seen = past.find(x => x.key === found.key);
       if (seen && within(seen.date, COOLDOWN)) return;
+      found.kind = 'observed';
       out.push(found);
     });
     return out.sort((a, b) => b.weight - a.weight);
   }
 
-  /** the one on the glass, honouring however many times he has said "another" */
+  /* ------------------------------------------------------------
+     The reflections are not claims, so they do not need evidence —
+     but they do need to not repeat. They cool down far longer than
+     an observation does, because there are hundreds of them and a
+     question you recognise is a question you answer from memory.
+     ------------------------------------------------------------ */
+  const REST = 120;                 // days before a reflection may return
+
+  function reflective(state) {
+    const s = state || LO.store.state;
+    if (!LO.reflections) return [];
+    const past = answered();
+    return LO.reflections.available(s)
+      .filter(function (r) {
+        const seen = past.find(x => x.key === r.id);
+        return !(seen && within(seen.date, REST));
+      })
+      .map(function (r) {
+        return { key: r.id, kind: 'reflective', theme: r.theme, claim: r.frame, q: r.q, weight: 5 };
+      });
+  }
+
+  /** everything it could ask, observations first */
+  function candidates(state) {
+    return observed(state).concat(shuffled(reflective(state)));
+  }
+
+  /* A stable shuffle: the same order all day, a different one tomorrow.
+     Random per render would mean "ask me something else" could hand back
+     what you just skipped. */
+  function shuffled(list) {
+    const seed = Number(D.today().replace(/-/g, '')) || 1;
+    return list
+      .map((x, i) => ({ x: x, k: (seed * (i + 7) * 2654435761) % 100000 }))
+      .sort((a, b) => a.k - b.k)
+      .map(o => o.x);
+  }
+
+  /** the one on the glass, honouring however many times he has said "another".
+
+      Observations come first because a thing that actually happened to you
+      outranks an idea — but they run out, and when they do this keeps going
+      rather than showing an empty page. */
   function ask(state) {
     const all = candidates(state);
     if (!all.length) return null;
@@ -286,5 +417,5 @@ window.LO = window.LO || {};
     return (LO.store.state.scribe.insights || []).filter(x => x.key).slice(0, n || 3);
   }
 
-  LO.mirror = { ask, another, answer, recent, candidates, OBSERVERS, COOLDOWN };
+  LO.mirror = { ask, another, answer, recent, candidates, observed, reflective, OBSERVERS, COOLDOWN, REST };
 })(window.LO);

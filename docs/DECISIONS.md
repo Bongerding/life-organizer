@@ -218,6 +218,59 @@ came across into the same rotation.
 
 ---
 
+## 2026-09-14 · Two kinds of prompt, and why that is not a loophole
+
+The Mirror shipped yesterday with a hard rule: no measurement, no question. The
+ask was then for a large bank of deeper questions drawn from psychology — most
+of which cannot be derived from anyone's record. That looks like a contradiction
+and it is worth writing down why it is not.
+
+**The invariant is "no *claim* without evidence". A question asserts nothing.**
+What needed evidence was the line above the question — the sentence that says
+something about him. So there are two kinds of prompt now, and they are visually
+and verbally distinct:
+
+- **Observations** carry a number and are about him. *"You started on 9 of the
+  last 14 days. Nothing since Thursday."* The claim sits behind a rule, in
+  tabular figures. The section reads **What I can prove**.
+- **Reflections** carry an *idea*, not a fact about him. *"Bluma Zeigarnik found
+  that unfinished tasks stay active in the mind in a way finished ones do not."*
+  The frame is italic and unlined so it cannot borrow the authority of a
+  measurement. The section reads **Worth thinking about**, with the theme.
+
+A frame describes a concept — "psychologists call this X" — and never pretends
+to know something about him. That single rule is what keeps 76 ungrounded
+questions inside a product whose first principle is that nothing is asserted
+without the figure that earns it.
+
+**Observations still come first.** A thing that actually happened to you
+outranks an idea. They run out; the reflections do not, which is what stops a
+quiet Tuesday showing an empty page — and it is a better answer than the
+fallback prompt I refused yesterday, because a reflection is honestly labelled
+as a different kind of thing rather than dressed up as an observation.
+
+**76 reflections across 15 themes** — starting, identity, control, avoidance,
+values, time, craving, self-talk, people, mastery, energy, subtraction, change,
+shadow, meaning. Each names its idea. **Attributions are only given where they
+are solid** (Dweck, Gollwitzer, Csikszentmihalyi, Kegan, Neff, Bandura, Rotter,
+Festinger, Zeigarnik, Wegner, Ericsson, Amabile, McAdams, Marlatt, Feldman
+Barrett, Gilovich, Chesterton, Parkinson, Jung); where an idea is folklore or
+contested it is described without a name rather than dressed up with a false
+one. The quote bank follows the same rule and for the same reason.
+
+**Six more observers** were added alongside, all about what has and has not been
+finished: a list gone empty, capture outrunning completion, a habit struck so
+rarely it is now a reproach, a live streak, the age of the record itself, and a
+skew in what he writes down.
+
+**Cooldowns differ by kind.** An observation rests 12 days. A reflection rests
+120 — there are dozens of them, and a question you recognise is a question you
+answer from memory rather than from thought. The daily order is seeded from the
+date, so "ask me something else" always moves forward and never hands back what
+was just skipped.
+
+---
+
 ## 2026-09-14 · The arcade goes; the Mirror replaces it
 
 The practice arcade — two on-screen analogue sticks steering an Arena and a

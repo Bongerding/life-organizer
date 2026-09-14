@@ -61,9 +61,10 @@
           </div>
           <details class="all-moods"><summary>All feelings</summary><div class="sits">${advice.SITUATIONS.map(x => `<button class="sit" data-sit="${x.id}"><i>${x.icon}</i>${ui.esc(x.label)}</button>`).join('')}</div></details>
 
-          <div class="lbl">What I can prove<span class="r">${said.length ? said.length + ' kept' : 'one question'}</span></div>
+          <div class="lbl">${seen && seen.kind === 'reflective' ? 'Worth thinking about' : 'What I can prove'}<span class="r">${
+            seen && seen.kind === 'reflective' ? ui.esc(seen.theme) : said.length ? said.length + ' kept' : 'one question'}</span></div>
           ${seen ? `
-            <div class="panel mirror">
+            <div class="panel mirror${seen.kind === 'reflective' ? ' idea' : ''}">
               <div class="mirror-claim">${ui.esc(seen.claim)}</div>
               <h3 class="mirror-q">${ui.esc(seen.q)}</h3>
               <textarea data-mirror rows="3" placeholder="As long or short as you like. Nobody else reads this."></textarea>
@@ -73,9 +74,9 @@
               </div>
             </div>`
           : `<div class="panel mirror quiet">
-              <p class="note" style="margin:0">Nothing in the record stands out enough to ask about today.
-                That is a real answer, not an empty state — every question here has to be earned by a
-                number, and today there isn't one.</p>
+              <p class="note" style="margin:0">Nothing to ask just now — the record has nothing
+                remarkable in it today, and you have worked through the questions that do not need it.
+                Both of those are good problems.</p>
             </div>`}
           ${kept ? `<p class="note mirror-kept">Kept. It will show up in your portrait on Me.</p>` : ''}
           ${said.length ? `
