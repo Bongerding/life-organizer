@@ -10,7 +10,7 @@
    IndexedDB, not in this cache. Clearing the cache costs you
    nothing but a reload.
    ============================================================ */
-const CACHE = 'life-organizer-202609160035';
+const CACHE = 'life-organizer-202609160103';
 
 const SHELL = [
   './',
@@ -19,6 +19,7 @@ const SHELL = [
   './assets/css/core.css',
   './assets/css/app.css',
   './assets/css/companion.css',
+  './assets/css/paper.css',
   './assets/js/adaptive.js',
   './assets/js/companion.js',
   './assets/icons/lumen-ball-192.png',
@@ -28,26 +29,19 @@ const SHELL = [
   './assets/icons/lumen-ball-maskable-512.png',
   './assets/js/store.js',
   './assets/js/scratch.js',
-  './assets/js/customize.js',
-  './assets/css/customize.css',
   './assets/css/scratch.css',
   './assets/js/level.js',
   './assets/js/library.js',
   './assets/js/ui.js',
   './assets/js/quotes.js',
-  './assets/js/actions.js',
   './assets/js/classify.js',
   './assets/js/aims.js',
   './assets/js/insight.js',
-  './assets/js/reflections.js',
-  './assets/js/mirror.js',
-  './assets/js/advice.js',
   './assets/js/sync.js',
   './assets/js/notifications.js',
   './assets/js/shell.js',
   './assets/js/surfaces/do.js',
   './assets/js/surfaces/write.js',
-  './assets/js/surfaces/advice.js',
   './assets/js/surfaces/me.js',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png'

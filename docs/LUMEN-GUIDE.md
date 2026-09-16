@@ -1,5 +1,10 @@
 # Lumen: a companion for a life that is actually lived
 
+> Historical product-direction document. Lumen remains the profile/level
+> identity, but the live shell now has three destinations and a fixed light
+> paper design. Advice, the animated trail, and runtime visual customization
+> were retired on 2026-09-15; see `DECISIONS.md`.
+
 The new direction is a personal growth game with a truthful record underneath.
 The player is the person using it. Lumen is the floating glass companion: a
 solid sphere divided into long inward-pointing glass wedges, held apart by a

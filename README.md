@@ -18,13 +18,12 @@ the full generation prompt are in [MASCOT.md](docs/MASCOT.md).
 
 There is no separate phone build any more. `index.html` is the whole thing:
 a bottom tab bar and full-bleed panels on a handset, the same markup widening
-into a centred column on a laptop. Four tabs, and four is the ceiling.
+into a centred column on a laptop. Three destinations, and three is the ceiling.
 
 | Tab | What it is for |
 |---|---|
-| **Do** | Today's task list on a raised paper sheet, with capture, effort, completion and points in place. *I'm spinning* and *I want to smoke* remain below it. |
-| **Write** | One box. It works out whether that was a task, chore, activity, plan, feeling or thought, and says why. Everything you have written sits under it, categorised and searchable. |
-| **Advice** | One thing for today from your own data, plus twelve situations you can tap for a protocol. |
+| **Do** | Today's task list on a raised paper sheet, with capture, effort, completion and points in place. Small reset protocols remain below it. |
+| **Write** | The larger centre action. One paper pad for capturing, classifying, searching, and revisiting the record. |
 | **Me** | The page about you: what it can prove, what it wants to ask, the clear count, your people, your aims. |
 
 The Do capture makes today's tasks; Write stays a separate journal. Everything
@@ -92,8 +91,8 @@ front door: tap a line or its box to finish it. On first run the wider system
 sets itself up from your own north star, values, goals and patterns — all of it
 editable.
 
-After that: write a few tasks on **Write**, add three names on **Me**, and open
-**Advice** on any day that is going badly.
+After that: put today's work on **Do**, keep thoughts and moments in **Write**,
+and let **Me** fill in from the record and its one-question queue.
 
 The index stays at 0 until something real is being tracked — that is deliberate.
 An empty system should not congratulate you.
@@ -151,18 +150,16 @@ derivation in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#2-derived-numbers-live
 ## Layout
 
 ```
-index.html                   the desk: four tabs
+index.html                   the desk: three destinations
 assets/css/core.css          design system
 assets/css/desk.css          desktop layer
 assets/js/store.js           state, IndexedDB persistence, chronicle, derived scores
 assets/js/level.js           effort tiers, points, the level on the crest
 assets/js/insight.js         what it says, what it can prove, what it asks
-assets/js/actions.js         the first-step dealer, shared by both apps
 assets/js/library.js         drill bank, prompts, taxonomies
 assets/js/ui.js              render primitives
-assets/js/advice.js          daily advice + the situational protocols
 assets/js/shell.js           tab registry, routing, settings
-assets/js/surfaces/          do.js, write.js, advice.js, me.js
+assets/js/surfaces/          do.js, write.js, me.js
 mobile/                      Ignition: index.html, ignition.css, ignition.js
 archive/lattice.html         the original eight-node lattice
 assets/js/app.js + modules/  what the archived lattice runs on
@@ -176,7 +173,5 @@ tools/build-app.js           inlines the whole app into one file
 tools/stamp.js               timestamps assets + the service worker cache
 ```
 
-Adding a tab: write the file, add one `<script>` tag, add its fields to `blank()`
-in `store.js`. Registration order is the order in the bar. But read
-[docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md#8-rules-for-new-work) first — new
-capability is meant to go *into* one of the four tabs, not become a fifth.
+Do not add a tab. New capability belongs inside Do, Write, or Me, or in a small
+temporary sheet. Registration order is the order in the bottom bar.

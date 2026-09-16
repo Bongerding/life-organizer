@@ -1,8 +1,7 @@
 /* ============================================================
    SHELL — the frame.
-   Four tabs, one accent, no theatrics. Do is where you act,
-   Write is where everything you write goes, Advice is what to do
-   when you are stuck, Me is the page about you.
+   Three places, one quiet frame. Do is today's work, Write is the
+   centre action and the permanent record, Me is the page about you.
    ============================================================ */
 window.LO = window.LO || {};
 
@@ -21,9 +20,7 @@ window.LO = window.LO || {};
       const fresh = LO.store.seed();
       LO.companion.boot();
       LO.scratch.boot();
-      LO.customize.boot();
       LO.notify.start();
-      LO.ui.startField(document.getElementById('field'));
 
       this.paintTop();
       addEventListener('hashchange', () => this.route());
@@ -43,8 +40,13 @@ window.LO = window.LO || {};
     },
 
     paintTop() {
+      const icons = {
+        do: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12.5 3.5 3.5L18 7.5"/></svg>',
+        write: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+        me: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.8 19c.8-3.3 2.9-5 6.2-5s5.4 1.7 6.2 5"/></svg>'
+      };
       document.getElementById('tabs').innerHTML = this.surfaces.map(s =>
-        `<button class="tab" data-go="${s.id}">${s.name}</button>`).join('');
+        `<button class="tab" data-go="${s.id}" aria-label="${s.name}"><span class="tab-icon">${icons[s.id] || ''}</span><span>${s.name}</span></button>`).join('');
       document.querySelectorAll('[data-go]').forEach(b => {
         b.onclick = () => { location.hash = b.dataset.go; };
       });
@@ -91,9 +93,11 @@ window.LO = window.LO || {};
     },
 
     route() {
-      const id = (location.hash || '').replace('#', '') || 'do';
+      const requested = (location.hash || '').replace('#', '') || 'do';
+      const id = requested === 'advice' ? 'do' : requested;
+      if (requested === 'advice') history.replaceState(null, '', '#do');
       if (id === 'scratch') {
-        // the paper is an overlay, not a fifth tab: Do stays mounted underneath
+        // the paper is an overlay, not a fourth destination: Do stays mounted underneath
         if (this.current !== 'do') { this.current = 'do'; this.paintRoute('do'); }
         LO.scratch.open();
         return;
@@ -108,7 +112,11 @@ window.LO = window.LO || {};
     },
 
     paintRoute(id) {
-      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.go === id));
+      document.querySelectorAll('.tab').forEach(b => {
+        const on = b.dataset.go === id;
+        b.classList.toggle('on', on);
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      });
       document.querySelectorAll('.pane').forEach(el => el.classList.toggle('on', el.dataset.pane === id));
     },
 
@@ -140,7 +148,7 @@ window.LO = window.LO || {};
     },
 
     /* ---------------- sheets ---------------- */
-    /** the two protocols that must be one tap away from anywhere */
+    /** Small protocols stay sheets, not destinations in the tab bar. */
     quick(kind) {
       const el = document.getElementById('sheet2');
       const body = kind === 'urge' ? `
@@ -153,6 +161,19 @@ window.LO = window.LO || {};
         </div>
         <p class="note" style="margin-top:14px">Get out of the room, drink water, move. Do not argue with it
           in your head — change what your body is doing instead.</p>`
+      : kind === 'spin' ? `
+        <h2>Clear the noise</h2>
+        <p class="lede">No diagnosis. No new system. Just make the next surface smaller.</p>
+        <ol class="quiet-steps">
+          <li><b>Stop adding.</b><span>Put both feet down and take one slower breath.</span></li>
+          <li><b>Name the pressure.</b><span>One sentence is enough. It can go in Write.</span></li>
+          <li><b>Choose one edge.</b><span>Open today's list and touch the smallest honest task.</span></li>
+        </ol>
+        <div class="bars">
+          <button class="fullbtn hot" data-q="gotodo">Open today's list</button>
+          <button class="fullbtn" data-q="gowrite">Write the pressure down</button>
+          <button class="fullbtn" data-q="cancel">Close</button>
+        </div>`
       : `
         <h2>Log it and move on</h2>
         <p class="lede">The day count restarts. Your best run stays. That is the whole consequence.</p>
@@ -167,6 +188,8 @@ window.LO = window.LO || {};
       const box = el.querySelector('.box');
       const acts = {
         cancel: () => this.closeSheet(),
+        gotodo: () => { this.closeSheet(); this.go('do'); },
+        gowrite: () => { this.closeSheet(); this.go('write'); },
         surf: () => {
           const intensity = +LO.ui.read(box).intensity;
           this.closeSheet();

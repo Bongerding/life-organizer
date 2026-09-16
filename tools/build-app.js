@@ -14,7 +14,13 @@ const path = require('path');
 const root = process.cwd();
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 
-const css = ['assets/css/core.css', 'assets/css/app.css', 'assets/css/companion.css'].map(read).join('\n\n');
+const css = [
+  'assets/css/core.css',
+  'assets/css/app.css',
+  'assets/css/companion.css',
+  'assets/css/scratch.css',
+  'assets/css/paper.css'
+].map(read).join('\n\n');
 
 const js = [
   'assets/js/store.js',
@@ -22,19 +28,17 @@ const js = [
   'assets/js/library.js',
   'assets/js/ui.js',
   'assets/js/quotes.js',
-  'assets/js/actions.js',
   'assets/js/classify.js',
   'assets/js/aims.js',
   'assets/js/insight.js',
-  'assets/js/advice.js',
   'assets/js/sync.js',
   'assets/js/notifications.js',
   'assets/js/shell.js',
   'assets/js/adaptive.js',
   'assets/js/companion.js',
+  'assets/js/scratch.js',
   'assets/js/surfaces/do.js',
   'assets/js/surfaces/write.js',
-  'assets/js/surfaces/advice.js',
   'assets/js/surfaces/me.js'
 ].map(read).join('\n\n');
 
@@ -60,7 +64,7 @@ const standalone = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080d0a">
+<meta name="theme-color" content="#f4f0e8">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Organizer">

@@ -1,5 +1,9 @@
 # Roadmap
 
+> Some completed milestones below describe retired interfaces. The current
+> shell is Do / Write / Me; Advice is no longer a page. Historical checklist
+> entries remain here as a record, not as current architecture.
+
 The 2026-09-08 Lumen pivot is implemented: glass companion and app icons, raised
 player card, friends drawer with birthdays/contact plans, recoverable Write
 removal, mixed mood choices, practice feedback, and a local adaptive engine.

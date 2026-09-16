@@ -197,11 +197,11 @@
   }
   function playerStats() {
     const a = LO.adaptive.analyze(store.state);
-    return `<div class="player-ribbon">LUMEN / PLAYER RECORD</div><div class="player-stats"><div><b>${a.current}</b><span>Actions · 7 days</span></div><div><b>${store.state.people.length}</b><span>Friends kept</span></div><div><b>${store.state.rewire.reps.length}</b><span>Practices</span></div></div>`;
+    return `<div class="player-ribbon">Personal record</div><div class="player-stats"><div><b>${a.current}</b><span>Actions · 7 days</span></div><div><b>${store.state.people.length}</b><span>Friends kept</span></div><div><b>${store.state.rewire.reps.length}</b><span>Practices</span></div></div>`;
   }
   function guidancePanel() {
     const a = LO.adaptive.analyze(store.state);
-    return `<div class="guidance-card"><div class="eyebrow">Companion compass · ${a.mode}</div><p>${ui.esc(a.reason)}</p><p class="note">Recorded activity is a partial picture, not a judgement of your life.</p><label><input type="checkbox" data-adaptive ${store.state.guidance.enabled ? 'checked' : ''}> Adapt my guidance</label><label><input type="checkbox" data-motion ${store.state.guidance.motion ? 'checked' : ''}> Companion motion</label><fieldset><legend>Discoveries I enjoy</legend>${['springs','nature'].map(t => `<label><input type="checkbox" data-interest="${t}" ${store.state.guidance.interests.includes(t) ? 'checked' : ''}> ${t}</label>`).join('')}</fieldset><button class="flat" data-restore>Restore removed writes</button></div>`;
+    return `<div class="guidance-card"><div class="eyebrow">Guidance · ${a.mode}</div><p>${ui.esc(a.reason)}</p><p class="note">Recorded activity is a partial picture, not a judgement of your life.</p><label><input type="checkbox" data-adaptive ${store.state.guidance.enabled ? 'checked' : ''}> Adapt my guidance</label><label><input type="checkbox" data-motion ${store.state.guidance.motion ? 'checked' : ''}> Companion motion</label><fieldset><legend>Things I enjoy learning about</legend>${['springs','nature'].map(t => `<label><input type="checkbox" data-interest="${t}" ${store.state.guidance.interests.includes(t) ? 'checked' : ''}> ${t}</label>`).join('')}</fieldset><button class="flat" data-restore>Restore removed writes</button></div>`;
   }
   function undoEntry(id) {
     const t = document.createElement('div'); t.className = 'toast';
@@ -210,7 +210,7 @@
   }
   function boot() {
     hydrate(document);
-    const handle = document.createElement('button'); handle.id = 'friends-handle'; handle.innerHTML = '<span>◈</span> Friends'; handle.setAttribute('aria-expanded', 'false'); handle.setAttribute('aria-controls', 'friends-drawer');
+    const handle = document.createElement('button'); handle.id = 'friends-handle'; handle.innerHTML = '<span>♡</span> Friends'; handle.setAttribute('aria-expanded', 'false'); handle.setAttribute('aria-controls', 'friends-drawer');
     const drawer = document.createElement('dialog'); drawer.id = 'friends-drawer'; drawer.setAttribute('aria-label', 'Close friends');
     document.body.append(handle, drawer); handle.onclick = openFriends;
     let startY = null;
@@ -220,7 +220,8 @@
     handle.onpointercancel = () => { startY = null; handle.style.transform = ''; };
     drawer.addEventListener('close', () => { handle.setAttribute('aria-expanded', 'false'); if (returnFocus && returnFocus.isConnected) returnFocus.focus(); });
     drawer.onclick = e => { if (e.target === drawer) { const r = drawer.getBoundingClientRect(); if (e.clientX < r.left || e.clientY < r.top) closeFriends(); } };
-    document.body.insertAdjacentHTML('beforeend', trail());
+    // The light-paper release keeps Lumen as identity, not atmosphere.
+    // No full-screen trail means less visual noise and no background animation.
     document.addEventListener('click', e => {
       if (e.target.closest('[data-discover]')) { discoveryOffset++; LO.machine.refresh(); }
       const story = e.target.closest('[data-story]');

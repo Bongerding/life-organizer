@@ -1,5 +1,34 @@
 # Decisions
 
+## 2026-09-15 · Three destinations, paper everywhere
+
+Advice is removed from the live app completely: no pane, tab, route, script,
+offline asset, manifest shortcut, or standalone bundle entry. The permanent
+navigation is now Do · Write · Me. Write occupies the centre and its circular
+plus is roughly forty percent larger than the two ordinary tab icons, making
+capture the obvious global action without adding another floating control.
+Legacy `#advice` links resolve safely to Do and old advice events remain in the
+append-only chronicle. Removing a surface must never mean deleting its history.
+
+The useful part of “I’m spinning” survives as a short sheet with three concrete
+steps and exits to Do or Write. It is a temporary tool, not a destination. The
+urge timer remains for the same reason. Mirror/reflection and action-dealer code
+is excluded from the live payload; Me already owns the single profile question
+queue, so retaining a second questioning system would work against the requested
+simplicity.
+
+The visual system is now fixed light paper. `paper.css` loads last and establishes
+a warm open canvas, white ruled sheets, near-black ink, one red-pen accent,
+subtle physical depth, circular controls, and restrained iOS-like motion. Write
+is one continuous ruled pad; Me is a set of clean paper records; supporting Do
+content is quiet paper rather than glass. The particle field, full-screen Lumen
+trail, graphite surfaces, hexagonal tab marks, and runtime theme editor are not
+loaded. Lumen remains only where it means identity: the profile and level crest.
+
+This supersedes “four tabs forever,” Ember & Graphite as the live skin, and the
+customization system as a user-facing feature. The new invariant is stronger:
+**three destinations, no fourth; information first; simplicity over options.**
+
 ## 2026-09-15 · Do opens on the list, not a launch button
 
 The dealt-action board, orange Start target, “Already did it,” and full-screen
@@ -13,8 +42,8 @@ This reverses the earlier “one target your thumb cannot miss” decision. The 
 has learned the app and now wants the list itself to be the target; an extra
 generated instruction had become a gate in front of work he had already chosen.
 Do not reintroduce a primary Start/Open button above the list. The emergency
-ride-out timer remains because it is entered intentionally from Advice and is
-not the Do page's front door.
+ride-out timer remains because it is entered intentionally from a small protocol
+sheet and is not the Do page's front door.
 
 The paper is a material cue, not a second theme: plain dark text, a restrained
 red margin, blue-grey rules, and a shallow perspective/shadow. Quotes, emergency

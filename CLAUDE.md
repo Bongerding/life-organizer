@@ -24,44 +24,29 @@ a glass companion, a player card, and a friends drawer. Preserve the local,
 explainable guidance engine and its pause/motion controls. Never publish private
 handoff files under `personal/`.
 
-**Four tabs: Do · Write · Advice · Me. There is never a fifth.** A new idea goes
-inside one of the four or it does not ship. If you think you need a fifth tab,
-you have found a feature that belongs somewhere else.
+**Three destinations: Do · Write · Me. There is never a fourth.** Write is the
+larger centre action in the bottom bar. A new idea goes inside one of the three
+or opens as a temporary sheet; it does not earn another permanent destination.
 
 - **Do** — today's list on raised paper, with capture and completion in place.
 - **Write** — one box for everything; it classifies what you wrote.
-- **Advice** — the daily line, twelve situational protocols, and the Mirror.
+- **Me** — the profile, evidence, aims, people, and the one-question queue.
 
-`LO.mirror` asks one question at a time, of two kinds, and the distinction is
-load-bearing:
-
-- **Observations** (`OBSERVERS` in `mirror.js`) are *claims*: a number, about
-  him, derived from the record. No measurement, no observation — that rule has
-  not moved. Shown behind a rule under **What I can prove**.
-- **Reflections** (`reflections.js`) are *questions*, which assert nothing and
-  therefore need no evidence. Their frame names an **idea**, never a fact about
-  him, and is italic and unlined so it cannot borrow a measurement's authority.
-  Shown under **Worth thinking about**.
-
-Attribute a named researcher only where the attribution is solid; describe the
-idea without a name otherwise. Never write a frame that claims something about
-the user, and never let an observation ship without its figure.
+Advice is not a page. “I'm spinning” and urge support are small sheets opened
+from Do or Me, then dismissed. Old advice chronicle events remain valid history,
+but `advice.js`, Mirror, and the Advice surface are not loaded by the live app.
 
 Do has no dealt-action board and no primary Start button. The raised paper list
 is the first surface and must stay ahead of quotes, emergency tools, habits, and
 discoveries. Quotes still rotate every three hours and swipe for the next.
 
-`LO.customize` owns everything visual: eight layouts (five density, three
-vertical order), colour presets, a tap-a-part diagram that recolours the accent
-and the six Scratch kinds, and five backgrounds x three motion speeds. The
-accent derives its whole ramp — `--accent-hi/-lo/-glow/-cast` — so never
-hard-code an ember hex in a gradient again; that is what left a red rim on the
-start button in every other colour. It writes **only** CSS custom properties on
-the root plus one body class, and it is a separate panel from Settings on
-purpose — Settings is what the app does and should stay boring.
-- **Me** — the profile, the numbers, and the question that fills the profile in.
+`assets/css/paper.css` owns the live visual direction and loads last. It is fixed
+by design: warm open canvas, white physical sheets, near-black ink, one red-pen
+accent, restrained shadows, circular controls, and no animated background. The
+old theme editor remains historical source but is not loaded. Simplicity is more
+important than offering a palette of alternate interfaces.
 
-**Scratch is not a fifth tab.** Swiping **right** on Do slides the desk aside
+**Scratch is not a fourth destination.** Swiping **right** on Do slides the desk aside
 and brings in a white grid you put things down on and draw the order between.
 It is an overlay on the `#scratch` route with Do still mounted underneath, it is
 not in the tab bar, and it must not be promoted into one. A single node is never

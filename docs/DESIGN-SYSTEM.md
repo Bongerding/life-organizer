@@ -1,5 +1,10 @@
 # Ember & Graphite — Design System v1.0
 
+> Historical reference for the graphite interface. The live application now
+> uses the fixed light-paper system in `assets/css/paper.css`; see the
+> 2026-09-15 decision log. New live work should follow that file, not recreate
+> the hexagonal or sci-fi presentation documented below.
+
 **Chosen 2026-09-08 and settled.** Direction 02 of four, with a hexagon/circle
 shape blend and occasional saturated flavour. This is the brand; extend it
 rather than re-deciding it.

@@ -1,12 +1,12 @@
 {
   "name": "Life Organizer",
   "short_name": "Organizer",
-  "description": "Write it down, do one thing, and get advice when you are stuck.",
+  "description": "A calm daily record for doing, writing, and seeing your progress.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0c0c0e",
-  "theme_color": "#0c0c0e",
+  "background_color": "#f4f0e8",
+  "theme_color": "#f4f0e8",
   "orientation": "any",
   "categories": ["productivity", "lifestyle", "health"],
   "icons": [
@@ -17,6 +17,6 @@
   ],
   "shortcuts": [
     { "name": "Write something", "short_name": "Write", "url": "./index.html#write" },
-    { "name": "Advice", "short_name": "Advice", "url": "./index.html#advice" }
+    { "name": "Today's list", "short_name": "Do", "url": "./index.html#do" }
   ]
 }

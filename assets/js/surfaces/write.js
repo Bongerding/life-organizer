@@ -40,10 +40,14 @@
       store.visibleChronicle().forEach(e => { if (counts[e.type] !== undefined) counts[e.type]++; });
       const mine = Object.values(counts).reduce((a, b) => a + b, 0);
 
-      return `
-        <h1 class="hd">${storySeed ? 'Bring back a story.' : 'Write it down.'}</h1>
-        <p class="lede">${storySeed ? 'Turn one thing you noticed into something you could tell another person.' : 'One box for your record. I will work out what kind of thought it was.'}</p>
+      return `<article class="write-pad">
+        <header class="write-head">
+          <span class="paper-kicker">The record · ${ui.esc(D.pretty(D.today()))}</span>
+          <h1 class="hd">${storySeed ? 'Bring back a story.' : 'Write it down.'}</h1>
+          <p class="lede">${storySeed ? 'Turn one thing you noticed into something you could tell another person.' : 'One open page. I will file the thought after you write it.'}</p>
+        </header>
 
+        <section class="write-compose" aria-label="New writing">
         ${storySeed ? storyPrompt(storySeed) : '<button class="field-start" data-fieldblank><span>✦</span><b>Catch a field story</b><small>A detail worth remembering or sharing</small></button>'}
         <textarea id="writebox" placeholder="${ui.esc(storySeed ? storySeed.ask : 'A task, a chore, something you did, a plan, how you feel, or just a thought.')}"></textarea>
         ${storySeed ? '<div class="story-rule">One clear detail. One human sentence. Your own words.</div>' : `<div data-guess>${guessRow(s)}</div>`}
@@ -53,13 +57,17 @@
           ${storySeed ? '<button class="flat" data-cancelstory>Cancel</button>' : ''}
           <span class="hint">Ctrl + Enter</span>
         </div>
+        </section>
 
-        <div class="lbl">Your record<span class="r" data-recordcount>${mine} written</span></div>
+        <section class="record-section" aria-label="Your record">
+        <div class="lbl record-title">Your record<span class="r" data-recordcount>${mine} written</span></div>
         <div class="chips2">
           ${FILTERS.map(f => `<button class="kpill ${f.id === filter ? 'on' : ''}" data-filter="${f.id}">${f.label}</button>`).join('')}
-          <input data-search value="${ui.esc(query)}" placeholder="Search">
         </div>
+        <input class="record-search" data-search value="${ui.esc(query)}" placeholder="Search your record" aria-label="Search your record">
         ${stream(s)}
+        </section>
+        </article>
         <aside class="category-dock" data-categorydock aria-label="Move writing to a category">
           <span>File as</span>
           ${['task', 'chore', 'activity', 'plan', 'feeling', 'thought'].map(k => `<button data-dropkind="${k}">${LABELS[k]}</button>`).join('')}

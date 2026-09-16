@@ -56,7 +56,7 @@
 
         <div class="sos">
           <button class="spin" data-spin><b>I'm spinning</b><span>rumination</span></button>
-          <button class="urge" data-urge><b>I want to smoke</b><span>ride it out</span></button>
+          <button class="urge" data-urge><b>I need a reset</b><span>ride out an urge</span></button>
         </div>
 
         ${s.habits.length ? `
@@ -77,7 +77,7 @@
       if (timer) { mountTimer(root, redraw); return; }
 
       const spin = root.querySelector('[data-spin]');
-      if (spin) spin.onclick = () => { LO.machine.get('advice').openAt('spinning'); LO.machine.go('advice'); };
+      if (spin) spin.onclick = () => LO.machine.quick('spin');
       const urge = root.querySelector('[data-urge]');
       if (urge) urge.onclick = () => LO.machine.quick('urge');
 

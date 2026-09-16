@@ -33,7 +33,7 @@
       const lvl = LO.level.stats();
       const port = insight.portrait(s);
 
-      return `
+      return `<div class="me-paper">
         <!-- 0 · WHO -->
         <div class="profile">
           ${LO.companion.playerStats()}
@@ -61,7 +61,7 @@
         <div class="clearbar" style="margin-top:12px">
           ${clear === null ? `<button class="fullbtn hot" data-dayone>Start the clear count</button>` : ''}
           <button class="fullbtn" data-urge>An urge just hit</button>
-          <button class="fullbtn warn" data-used>I smoked — reset the count</button>
+          <button class="fullbtn warn" data-used>I slipped — reset the count</button>
         </div>
         ${rode ? `<p class="note">${rode} urge${rode === 1 ? '' : 's'} ridden out in the last fortnight.</p>` : ''}
 
@@ -142,13 +142,13 @@
         <div class="mission">
           <p>Build the life you described, not the one you drift into.</p>
           <p>I keep the record so you do not have to remember it. I read what actually
-             happened rather than what you meant to do, and I say it plainly. I give you
-             one thing to start, because starting is the part that costs you.</p>
+             happened rather than what you meant to do, and I say it plainly. Today's
+             chosen work stays visible until you finish it.</p>
           <p>I will not flatter you. Every claim on this page carries the number that
              earns it. When something is drifting I say so once and hand you a protocol,
              not a lecture.</p>
           <p class="m-end">One measure: better than yesterday, by the data.</p>
-        </div>`;
+        </div></div>`;
     },
 
     mount(root) {

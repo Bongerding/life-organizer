@@ -23,21 +23,25 @@ which makes the shards respond individually to the light. The full-screen trail
 uses two group animations and no SVG blur filters. Static launcher icons come
 from the photorealistic source render and use versioned filenames.
 
+The live shell has three registered surfaces: Do, Write, and Me. Write is the
+larger centre action in the generated bottom bar. A legacy `#advice` link is
+redirected to Do. The old advice, Mirror, action-dealer, and visual-customizer
+files remain in repository history/source but are excluded from HTML, offline
+cache, and standalone builds.
+
 Do is task-first. `surfaces/do.js` renders `store.dayList()` inside the raised
 `.day-paper` before every other surface on the page. Capture, effort correction,
 completion, removal, plans, and the derived day summary all happen inside that
 sheet. There is no generated action board or primary Start button on live Do.
-`actions.js` remains for the archived Ignition prototype; it is not the current
-front door. Advice may still send the intentional urge ride-out timer into Do.
+“I'm spinning” opens a short protocol sheet; urge support may still send the
+intentional ride-out timer into Do.
 
 `store.capture()` is the only writer of daily tasks. Those rows carry
 `origin: 'do'`; `dayList()` filters on it. `store.write()` writes only to Scribe,
 regardless of classifier kind. Daily task lifecycle events use `day-task` and
 `day-task-done`, which are outside the default written-record filters.
 
-Advice's joysticks are a finite quest resolver in `advice.quest()`, not a prose
-or personality generator. The surface records the resolved action and raw axes
-only after the user marks the action done. `aims.resolve()` repairs semantic
+`aims.resolve()` repairs semantic
 trackers at read time for acquisition and sale goals, including goals saved by
 older releases. Write recategorization appends `entry-reclassified`; the visible
 chronicle projects the latest category without mutating the source event.
@@ -57,7 +61,7 @@ the app runs from a filesystem, a static host, a phone, or inside a native shell
 without changing anything.
 
 ```
-index.html                 the whole app: bar + four tabs, phone and desktop
+index.html                 the whole app: bar + three destinations, phone and desktop
 assets/css/core.css        the entire design system (tokens → components)
 assets/js/store.js         single source of truth + persistence + derived scores
 assets/js/level.js         effort → points → level, derived from the wins ledger
@@ -66,11 +70,10 @@ assets/js/library.js       reference data: drill bank, prompts, taxonomies
 assets/js/ui.js            render primitives: cards, meters, rings, sparks, fields
 assets/css/app.css         the one layout layer, mobile-first, centred
 assets/js/insight.js       messages / truths / questions — the part that knows you
-assets/js/actions.js       legacy first-step dealer retained for archived Ignition
 assets/js/classify.js      six-kind classifier for what he writes, learns from corrections
-assets/js/advice.js        daily advice + 12 situational protocols
 assets/js/shell.js         tab registry, routing, settings + data
-assets/js/surfaces/*.js    do.js, write.js, advice.js, me.js
+assets/js/surfaces/*.js    do.js, write.js, me.js
+assets/css/paper.css       final light-paper system; intentionally overrides old skins
 archive/lattice.html       the original eight-node lattice, still working
 assets/js/app.js           lattice registry + geometry (archived UI only)
 assets/js/modules/*.js     one file per lattice module (archived UI only)
@@ -245,7 +248,7 @@ action never produces two rows in the logbook.
 
 `LO.scratch` is a full-screen overlay on the `#scratch` route, reached by swiping
 left on Do. Do stays mounted underneath; the tab bar slides away with it. It is
-**not a fifth tab** and must not become one.
+**not a fourth destination** and must not become one.
 
 State lives at `state.scratch`: `nodes` carry text, a kind and a world position,
 `links` carry `from`/`to` and a `directed` flag where **`from` is the
@@ -371,9 +374,9 @@ All three outputs are derived on read; none of it is stored.
 Extending the bank is the cheapest way to make the system know him better. Keep
 the rule: no claim the data cannot back.
 
-## 4. The tab contract
+## 4. The surface contract
 
-A tab is one IIFE that calls `LO.machine.register({...})`:
+A permanent surface is one IIFE that calls `LO.machine.register({...})`:
 
 ```js
 LO.machine.register({
@@ -385,12 +388,9 @@ LO.machine.register({
 ```
 
 `LO.machine.render` attaches a `refresh()` that re-runs `render` + `mount` and
-repaints the status line. Registration order is the order in the bar. Tabs no
-longer declare an accent: v0.4 fixed one accent for the whole product.
-
-**`LO.advice`** carries the other half of the voice: `today(state)` picks one
-daily line from a ranked, data-gated bank, and `SITUATIONS` holds the twelve
-"right now I feel…" protocols, each three or four physical or written steps.
+repaints the status line. Registration order is the order in the bar. Exactly
+three surfaces are loaded. Do not register a fourth; a temporary tool belongs
+in `machine.quick()`.
 
 ### The archived lattice's contract
 
@@ -450,12 +450,12 @@ The part that does the reprogramming, and the part most likely to grow.
   live rewire target; ×0.12 if it appears in the last 10 reps; 0 for the drill
   currently on the table. Variable-ratio by design — a predictable drill stops
   landing.
-- **Two-stick response:** no text is required. The left stick combines
+- **Archived two-stick response:** the retired Advice implementation required no text. The left stick combined
   away/toward with energized/gentle; the right combines pause/act with
-  together/solo. `advice.signalAnswer()` turns the four coordinates into the
-  sentence shown live. Both sticks must move before commit. The rep stores that
+  together/solo. `advice.signalAnswer()` turned the four coordinates into the
+  sentence shown live. Both sticks had to move before commit. Historical reps store that
   sentence and the raw coordinates alongside the existing drill/trait fields.
-- **Reinforcement is earned, not given.** `reinforce` is withheld until both
+- **Reinforcement was earned, not given.** `reinforce` was withheld until both
   sticks have shaped and committed a response. The loop remains situation →
   embodied choice → reinforcement → banked rep → visible trait load.
 - Growth path: per-trait ladders (exposure difficulty rising with rep count),

@@ -34,11 +34,10 @@ window.LO = window.LO || {};
     const t = (title || '').toLowerCase();
     const c = cadence(t);
 
-    const motorcycle = /\b(motorcycl|motorbike)/.test(t);
-    if (motorcycle && /\b(buy|purchase|shop|find|acquire|get)\b/.test(t)) {
+    if (/\b(buy|purchase|shop for|find|acquire)\b/.test(t)) {
       return { kind: 'wins', winKind: 'market-check', per: c ? c.per : 3, unit: c ? c.unit : 'week', what: 'marketplace checks', current: true };
     }
-    if (motorcycle && /\b(sell|list|sale|selling)\b/.test(t)) {
+    if (/\b(sell|list for sale|selling)\b/.test(t)) {
       return { kind: 'wins', winKind: 'sale-prep', per: c ? c.per : 3, unit: c ? c.unit : 'week', what: 'sale steps', current: true };
     }
 
