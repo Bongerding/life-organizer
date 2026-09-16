@@ -1,5 +1,26 @@
 # Decisions
 
+## 2026-09-15 · Do opens on the list, not a launch button
+
+The dealt-action board, orange Start target, “Already did it,” and full-screen
+completion takeover are removed from the live Do surface. Do now opens directly
+onto today's tasks: capture, open work, completion marks, effort points, and the
+day total all share one raised sheet of warm white ruled paper at the top of the
+page. Completing the page still awards exactly the same derived points and day
+bonus, but reports it with a quiet toast so the list never disappears.
+
+This reverses the earlier “one target your thumb cannot miss” decision. The user
+has learned the app and now wants the list itself to be the target; an extra
+generated instruction had become a gate in front of work he had already chosen.
+Do not reintroduce a primary Start/Open button above the list. The emergency
+ride-out timer remains because it is entered intentionally from Advice and is
+not the Do page's front door.
+
+The paper is a material cue, not a second theme: plain dark text, a restrained
+red margin, blue-grey rules, and a shallow perspective/shadow. Quotes, emergency
+tools, habits, and discovery cards remain below it. If the list presentation is
+reworked, preserve this order unless the user explicitly changes direction.
+
 ## 2026-09-10 · Notifications inform; they do not pursue
 
 Notification permission is requested only from the Settings button. The default

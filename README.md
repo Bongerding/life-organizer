@@ -1,7 +1,7 @@
 # Life Organizer
 
-One machine that knows you. It speaks first, gives you one thing to start, and
-keeps your life in the order it happened — identity, goals, habits, the
+One machine that knows you. It puts today's chosen work first and keeps your
+life in the order it happened — identity, goals, habits, the
 reprogramming work, body, mind, people, clarity and the whole written record,
 rolled into one **Alignment Index** that says where this is actually heading.
 
@@ -22,12 +22,13 @@ into a centred column on a laptop. Four tabs, and four is the ceiling.
 
 | Tab | What it is for |
 |---|---|
-| **Do** | One thing at a time, a timer, a gold reward. Your tasks and habits underneath. *I'm spinning* and *I want to smoke* always one tap away. |
+| **Do** | Today's task list on a raised paper sheet, with capture, effort, completion and points in place. *I'm spinning* and *I want to smoke* remain below it. |
 | **Write** | One box. It works out whether that was a task, chore, activity, plan, feeling or thought, and says why. Everything you have written sits under it, categorised and searchable. |
 | **Advice** | One thing for today from your own data, plus twelve situations you can tap for a protocol. |
 | **Me** | The page about you: what it can prove, what it wants to ask, the clear count, your people, your aims. |
 
-A task or chore written on Write appears on Do. Everything lands in one record.
+The Do capture makes today's tasks; Write stays a separate journal. Everything
+still lands in one record.
 
 ## Installing it on a phone, and updating it
 
@@ -86,9 +87,10 @@ different address looks like your data vanished when it hasn't.
 
 ## Where to start
 
-Open **Do** and hit Start on whatever it gives you. That is the whole onboarding.
-On first run it sets itself up from your own north star, values, goals and
-patterns — all of it editable.
+Open **Do** and write the few things that belong to today. The list itself is the
+front door: tap a line or its box to finish it. On first run the wider system
+sets itself up from your own north star, values, goals and patterns — all of it
+editable.
 
 After that: write a few tasks on **Write**, add three names on **Me**, and open
 **Advice** on any day that is going badly.

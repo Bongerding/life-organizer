@@ -812,6 +812,78 @@ input,textarea,select{font-size:16px}
 }
 
 /* ============================================================
+   THE DAY'S PAPER
+   Do opens on the list itself. It is deliberately a different
+   material from the surrounding machine: warm white, ruled, and
+   lifted just enough to feel like an object lying on the desk.
+   ============================================================ */
+.day-paper{
+  position:relative;margin:4px -2px 34px;padding:23px 24px 17px 42px;
+  color:#24211d;text-align:left;border:1px solid #efe8db;border-radius:5px 7px 10px 6px;
+  background:
+    linear-gradient(90deg,transparent 0 27px,rgba(213,91,72,.24) 27px 28px,transparent 28px),
+    repeating-linear-gradient(180deg,#fffefa 0,#fffefa 31px,#dce6ea 32px,#fffefa 33px);
+  box-shadow:0 2px 1px #fff inset,0 11px 0 -7px #d8d2c7,0 17px 28px #0007;
+  transform:perspective(900px) rotateX(.7deg) rotateZ(-.18deg);
+  transform-origin:50% 0;
+}
+.day-paper::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(110deg,#fff8 0 9%,transparent 24% 78%,#8d806817);
+  mix-blend-mode:multiply;
+}
+.day-paper>*{position:relative;z-index:1}
+.paper-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:15px}
+.paper-kicker{display:block;font:9px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:#8a7f70;margin-bottom:3px}
+.paper-head h1{margin:0;font:600 25px/1.15 Georgia,serif;letter-spacing:-.015em;color:#201e1b}
+.paper-count{
+  flex:0 0 auto;min-width:42px;padding:7px 8px;border:1px solid #d6cdc0;border-radius:5px;
+  background:#fff9;color:#645d53;text-align:center;font:11px var(--mono);box-shadow:0 2px 4px #6f655115;
+}
+.day-paper .paper-capture{
+  max-width:none;margin:0 0 7px;padding:0 0 5px;border:0;border-bottom:1px solid #b9cbd2;
+  border-radius:0;background:transparent;box-shadow:none;
+}
+.day-paper .paper-capture:focus-within{border-color:#cf613e;box-shadow:none}
+.day-paper .paper-capture input{padding:10px 6px 9px 0;color:#27231f;font-size:15px}
+.day-paper .paper-capture input::placeholder{color:#b95235;opacity:.9;font-weight:650}
+.day-paper .capture-go{
+  width:31px;height:31px;color:#fff8ef;background:#bf5438;
+  box-shadow:0 3px 7px #7e2d2238,inset 0 1px #fff5;
+}
+.day-paper .todo{margin-top:3px}
+.day-paper .td{min-height:48px;padding:0;border-bottom:1px solid #cfdde2;gap:8px}
+.day-paper .td:last-child{border-bottom:1px solid #cfdde2}
+.day-paper .td-hit{color:#27231f;padding:11px 0}
+.day-paper .capture+.todo .td-t,.day-paper .td-t{color:#27231f;font-weight:560}
+.day-paper .td.done .td-t{color:#8a8276}
+.day-paper .td-p{
+  color:#776f64;border-color:#d0c7b8;background:#fff9;box-shadow:0 1px 2px #6f655112;
+}
+.day-paper .td.done .td-p{color:#a57a2d;border-color:transparent;background:transparent;box-shadow:none}
+.day-paper .td-x{color:#766d62}
+.day-paper .td-box{border-radius:4px;border-color:#9a9184;background:#fff9}
+.day-paper .td-box:hover{border-color:#b95235}
+.day-paper .td.done .td-box{border-radius:4px;background:#d9a84e;border-color:#d9a84e}
+.day-paper .td-sub{color:#8b8174}
+.day-paper .td-n{background:#e9e4da;color:#71695e}
+.day-paper .td-step-hit{color:#38332d}
+.day-paper .td-tick{border-radius:4px;border-color:#9a9184;background:#fff9}
+.paper-empty{min-height:96px;display:flex;flex-direction:column;justify-content:center;gap:5px;color:#756d62}
+.paper-empty b{font:italic 18px Georgia,serif;color:#4c463e;font-weight:400}
+.paper-empty span{font-size:12px}
+.paper-foot{
+  display:flex;justify-content:space-between;gap:16px;margin-top:12px;padding-top:9px;
+  border-top:1px solid #d5cec2;color:#837a6e;font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase;
+}
+.day-paper+.quote{margin-top:0}
+@media(max-width:400px){
+  .day-paper{margin-left:-4px;margin-right:-4px;padding:20px 16px 15px 34px}
+  .paper-head h1{font-size:23px}
+  .day-paper .td-p{padding-inline:7px}
+}
+
+/* ============================================================
    THE PROFILE — the top of Me, and the only place the level is
    spelled out in full.
    ============================================================ */

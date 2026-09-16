@@ -23,12 +23,12 @@ which makes the shards respond individually to the light. The full-screen trail
 uses two group animations and no SVG blur filters. Static launcher icons come
 from the photorealistic source render and use versioned filenames.
 
-`actions.clock()` divides local time into seven human phases. The action dealer
-uses those phases as evidence: early morning heavily favors water, outdoor light
-and breathing; morning favors beginnings; midday and afternoon prioritize the
-open task board; evening and late night favor closure. Every dealt action carries
-its phase, source, and a short “why now” explanation. Crossing a phase boundary
-redeals rather than leaving a morning instruction on screen all afternoon.
+Do is task-first. `surfaces/do.js` renders `store.dayList()` inside the raised
+`.day-paper` before every other surface on the page. Capture, effort correction,
+completion, removal, plans, and the derived day summary all happen inside that
+sheet. There is no generated action board or primary Start button on live Do.
+`actions.js` remains for the archived Ignition prototype; it is not the current
+front door. Advice may still send the intentional urge ride-out timer into Do.
 
 `store.capture()` is the only writer of daily tasks. Those rows carry
 `origin: 'do'`; `dayList()` filters on it. `store.write()` writes only to Scribe,
@@ -66,7 +66,7 @@ assets/js/library.js       reference data: drill bank, prompts, taxonomies
 assets/js/ui.js            render primitives: cards, meters, rings, sparks, fields
 assets/css/app.css         the one layout layer, mobile-first, centred
 assets/js/insight.js       messages / truths / questions — the part that knows you
-assets/js/actions.js       the first-step dealer, shared by both front doors
+assets/js/actions.js       legacy first-step dealer retained for archived Ignition
 assets/js/classify.js      six-kind classifier for what he writes, learns from corrections
 assets/js/advice.js        daily advice + 12 situational protocols
 assets/js/shell.js         tab registry, routing, settings + data

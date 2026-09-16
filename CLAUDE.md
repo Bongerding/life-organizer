@@ -8,9 +8,9 @@ one.
 ## What this is
 
 A single-user life system: a PWA the owner installs on an Android phone, opens in
-two seconds, and is expected to still be running in ten years. It gives him one
-thing to start, keeps the record so he does not have to, and reports back what it
-can actually prove about him.
+two seconds, and is expected to still be running in ten years. It puts today's
+chosen work immediately in view, keeps the record so he does not have to, and
+reports back what it can actually prove about him.
 
 Zero dependencies. Classic scripts, one global (`window.LO`), no build step to
 run it. It must keep loading from a filesystem, a static host, and a `WKWebView`
@@ -28,7 +28,7 @@ handoff files under `personal/`.
 inside one of the four or it does not ship. If you think you need a fifth tab,
 you have found a feature that belongs somewhere else.
 
-- **Do** — one dealt action with a big target, a capture bar, and the day's list.
+- **Do** — today's list on raised paper, with capture and completion in place.
 - **Write** — one box for everything; it classifies what you wrote.
 - **Advice** — the daily line, twelve situational protocols, and the Mirror.
 
@@ -47,10 +47,9 @@ Attribute a named researcher only where the attribution is solid; describe the
 idea without a name otherwise. Never write a frame that claims something about
 the user, and never let an observation ship without its figure.
 
-The Do board is **swiped**, not buttoned. "Already did it" retires an action for
-good via `board.retired`. The action bank is topped up by `LO.actions.generated`
-from the user's own aims, habits, people and Scratch nodes — never invented from
-nothing. Quotes rotate every three hours and swipe for the next.
+Do has no dealt-action board and no primary Start button. The raised paper list
+is the first surface and must stay ahead of quotes, emergency tools, habits, and
+discoveries. Quotes still rotate every three hours and swipe for the next.
 
 `LO.customize` owns everything visual: eight layouts (five density, three
 vertical order), colour presets, a tap-a-part diagram that recolours the accent

@@ -1,15 +1,13 @@
 /* ============================================================
-   DO — one thing at a time, and a reward for it.
-   Mirrors Ignition on purpose: same engine, same wins, same
-   permission to stop after one. Tasks you wrote and habits you
-   keep sit underneath, checkable in one tap.
+   DO — the day's paper.
+   The list is the front door now: capture, see, and strike the
+   work without passing through a generated action first. The
+   emergency timer still lives here when another surface opens it.
    ============================================================ */
 (function (LO) {
   'use strict';
   const { ui, store, D } = LO;
 
-  let action = null;
-  let won = null;
   let timer = null;   // { endAt, total, id, action }
 
   LO.machine.register({
@@ -18,56 +16,48 @@
 
     render(s) {
       if (timer) return timerView();
-      if (won) return rewardView(s);
-
-      const phase = LO.actions.clock();
-      if (!action || action.phase !== phase.id) action = LO.actions.pick(s);
       const list = store.dayList();
       const t = D.today();
       const q = LO.quotes.today();
       const struck = s.habits.filter(h => h.log && h.log[t]).length;
+      const open = list.filter(l => l.status !== 'closed').length;
+      const done = list.length - open;
 
       return `
+        <section class="day-paper${list.length ? '' : ' empty'}" aria-labelledby="day-paper-title">
+          <header class="paper-head">
+            <div>
+              <span class="paper-kicker">${ui.esc(D.pretty(t))}</span>
+              <h1 id="day-paper-title">Today's list</h1>
+            </div>
+            <span class="paper-count">${done}/${list.length}</span>
+          </header>
+
+          <form class="capture paper-capture" data-capture>
+            <input data-newtask type="text" autocomplete="off" enterkeyhint="done"
+                   maxlength="140" placeholder="What can be done today?">
+            <button type="submit" class="capture-go" aria-label="Add it">+</button>
+          </form>
+
+          ${list.length
+            ? `<div class="todo" aria-label="Today's tasks">${list.map(taskRow).join('')}</div>`
+            : `<div class="paper-empty"><b>The page is open.</b><span>Add only what belongs to today.</span></div>`}
+
+          <footer class="paper-foot">
+            <span>${open ? open + ' open' : list.length ? 'page cleared' : 'nothing owed yet'}</span>
+            <span>${todayLine(list)}</span>
+          </footer>
+        </section>
+
         <figure class="quote" data-quoteswipe>
           <blockquote>${ui.esc(q.text)}</blockquote>
           <figcaption><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(q.who.replace(/ /g, '_'))}" target="_blank" rel="noopener noreferrer">${ui.esc(q.who)}</a></figcaption>
         </figure>
 
-        <div class="action-clock"><time>${ui.esc(phase.time)}</time><span>${ui.esc(phase.label)}</span></div>
-        <div class="board" data-board>
-          <div class="k">${ui.esc(action.source || action.kind)}</div>
-          <h2 class="deed">${ui.esc(action.label)}</h2>
-          ${action.sub ? `<p class="deed-sub">${ui.esc(action.sub)}</p>` : ''}
-          <p class="why-now"><b>Why this now</b>${ui.esc(action.why || action.clockNote || phase.note)}</p>
-        </div>
-        ${action.id === 'nothing' ? '' : `<p class="board-hint">Swipe for another</p>`}
-
-        ${action.id === 'nothing' ? '' : `
-          <button class="bigstart" data-start>
-            <b>${action.tab || action.sheet ? 'Open' : 'Start'}</b>
-            ${action.minutes ? `<span>${action.minutes} min</span>` : ''}
-          </button>
-          <div class="textlinks">
-            <button data-did>Already did it</button>
-          </div>`}
-
         <div class="sos">
           <button class="spin" data-spin><b>I'm spinning</b><span>rumination</span></button>
           <button class="urge" data-urge><b>I want to smoke</b><span>ride it out</span></button>
         </div>
-
-        <form class="capture" data-capture>
-          <input data-newtask type="text" autocomplete="off" enterkeyhint="done"
-                 maxlength="140" placeholder="What can be done today?">
-          <button type="submit" class="capture-go" aria-label="Add it">+</button>
-        </form>
-
-        ${list.length ? `
-          <div class="todo" aria-label="Today's tasks">${list.map(taskRow).join('')}</div>
-          <div class="today-summary">Today · ${todayLine(list)}</div>
-          ${list.every(l => l.status === 'closed') && list.length > 1
-            ? `<p class="note cleared">Everything you set for today is done.</p>` : ''}
-        ` : ''}
 
         ${s.habits.length ? `
           <div class="lbl">Habits<span class="r">${struck}/${s.habits.length}</span></div>
@@ -85,54 +75,12 @@
       const redraw = () => self.refresh();
 
       if (timer) { mountTimer(root, redraw); return; }
-      if (won) {
-        root.querySelector('[data-again]').onclick = async e => {
-          const button = e.currentTarget;
-          button.disabled = true;
-          root.classList.add('reward-clearing');
-          await LO.companion.shatter(button);
-          won = null; action = LO.actions.pick(store.state); redraw();
-        };
-        root.querySelector('[data-stop]').onclick = () => { won = null; redraw(); };
-        return;
-      }
 
       const spin = root.querySelector('[data-spin]');
       if (spin) spin.onclick = () => { LO.machine.get('advice').openAt('spinning'); LO.machine.go('advice'); };
       const urge = root.querySelector('[data-urge]');
       if (urge) urge.onclick = () => LO.machine.quick('urge');
 
-      const start = root.querySelector('[data-start]');
-      if (start) start.onclick = async () => {
-        start.disabled = true;
-        await LO.companion.launch(start);
-        start.disabled = false;
-        if (!start.isConnected || LO.machine.current !== 'do') return;
-        if (action.tab) return LO.machine.go(action.tab === 'loops' ? 'write' : action.tab);
-        if (action.sheet) return LO.machine.go(action.sheet === 'line' ? 'write' : 'write');
-        beginTimer(action, redraw);
-      };
-      const did = root.querySelector('[data-did]');
-      if (did) did.onclick = () => {
-        // "already did it" is not a skip. It banks the win and takes the
-        // thing off the board for good, so it never comes round again.
-        store.retire(action.id);
-        bank(action, redraw);
-      };
-
-      /* ----------------------------------------------------------
-         THE BOARD SWIPES
-
-         "Not this" was a button you had to aim at to say the one
-         thing you say most often. A swipe says it with the thumb
-         already on the screen, and it can say it as many times as
-         you like without the page feeling like a form.
-         ---------------------------------------------------------- */
-      swipeable(root.querySelector('[data-board]'), function (dir) {
-        action = LO.actions.pick(store.state, action.id);
-        store.served(action.id);
-        redraw();
-      });
       swipeable(root.querySelector('[data-quoteswipe]'), function () {
         LO.quotes.next();
         redraw();
@@ -333,13 +281,7 @@
       if (levelled) LO.machine.crestPulse();
 
       if (bonus) {
-        won = {
-          praise: 'The whole list.',
-          label: list.length + ' things, all of them done',
-          stop: STOP[Math.floor(Math.random() * STOP.length)],
-          points: LO.level.tier(eff).points + bonus, levelled
-        };
-        action = null;
+        ui.toast('Page cleared · +' + (LO.level.tier(eff).points + bonus), 3600);
       } else if (levelled) {
         ui.toast('Level ' + after, 3200);
       } else {
@@ -349,36 +291,6 @@
     }, 430);
   }
 
-  /* ---------------- reward ---------------- */
-  function rewardView(s) {
-    const streak = store.winStreak();
-    const done = store.winsOn().filter(w => w.kind !== 'day' && LO.level.pointsOf(w) > 0).length;
-    const lv = LO.level.stats();
-    return `
-      <div class="reward">
-        <div class="seal">✓</div>
-        <h2>${ui.esc(won.praise)}</h2>
-        <div class="did">${ui.esc(won.label)}</div>
-        ${won.points ? `<div class="earned">+${won.points}</div>` : ''}
-        <div class="streakline">${done} today${streak ? '  ·  ' + streak + ' day streak' : ''}</div>
-        <div class="lvlwrap">
-          <div class="meter"><i style="width:${lv.pct}%"></i></div>
-          <div class="lvlnote">${won.levelled ? 'Level ' + lv.level + ' reached' : 'Level ' + lv.level}
-            &nbsp;·&nbsp; ${lv.into} / ${lv.need}</div>
-        </div>
-      </div>
-      <button class="bigstart gold-round" data-again><b>One more</b></button>
-      <div class="textlinks"><button data-stop>Stop here</button></div>
-      <p class="note" style="margin-top:20px">${ui.esc(won.stop)}</p>`;
-  }
-
-  const PRAISE = ["That's one.", 'Done.', 'On the board.', 'Started and finished.'];
-  const STOP = [
-    'One is a full day by the rules you set. Nothing else is owed.',
-    'You can close this now. Come back tomorrow.',
-    'That was the hard part. The rest of today is yours.'
-  ];
-
   function bank(a, redraw) {
     if (a.done) a.done();
     const before = LO.level.stats().level;
@@ -386,13 +298,7 @@
       Math.min(60, 10 + (a.minutes || 0) * 2));
     const levelled = LO.level.stats().level > before;
     if (levelled) LO.machine.crestPulse();
-    won = {
-      praise: PRAISE[Math.floor(Math.random() * PRAISE.length)],
-      label: a.label,
-      stop: STOP[Math.floor(Math.random() * STOP.length)],
-      points: pts, levelled
-    };
-    action = null;
+    ui.toast(levelled ? 'Level ' + LO.level.stats().level : '+' + pts, 3200);
     redraw();
   }
 
@@ -401,11 +307,9 @@
     const a = {
       id: 'urge_surf', kind: 'ride it out', label: 'Ten minutes, then decide',
       sub: 'Out of the room. Water. Move. Do not negotiate with it, outlast it.',
-      minutes: 10, winKind: 'clarity', phase: LO.actions.clock().id,
+      minutes: 10, winKind: 'clarity',
       done() { LO.store.logUrge({ intensity: intensity, rode: true, instead: '' }); }
     };
-    action = a;
-    won = null;
     LO.machine.go('do');
     beginTimer(a, () => LO.machine.refresh());
   };
