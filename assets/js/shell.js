@@ -21,6 +21,7 @@ window.LO = window.LO || {};
       LO.companion.boot();
       LO.scratch.boot();
       LO.notify.start();
+      LO.fareharbor.start();
 
       this.paintTop();
       addEventListener('hashchange', () => this.route());
@@ -50,7 +51,7 @@ window.LO = window.LO || {};
       document.querySelectorAll('[data-go]').forEach(b => {
         b.onclick = () => { location.hash = b.dataset.go; };
       });
-      document.getElementById('crest').onclick = () => { location.hash = 'me'; };
+      document.getElementById('crest').onclick = () => this.openInbox();
       document.getElementById('gear').onclick = () => this.sheet();
       document.getElementById('sheet2').onclick = e => {
         if (e.target.id === 'sheet2') this.closeSheet();
@@ -79,7 +80,10 @@ window.LO = window.LO || {};
       const st = LO.level.stats();
       el.querySelector('b').textContent = st.level;
       el.querySelector('.xpbar i').style.width = st.pct + '%';
-      el.title = 'Level ' + st.level + ' · ' + st.into + ' / ' + st.need + ' points';
+      const me = this.get('me');
+      const waiting = me && me.attentionCount ? me.attentionCount() : 0;
+      el.title = 'Inbox' + (waiting ? ' · ' + waiting + ' waiting' : '') + ' · Level ' + st.level + ' · ' + st.into + ' / ' + st.need + ' points';
+      el.setAttribute('aria-label', waiting ? 'Open inbox, ' + waiting + ' waiting' : 'Open inbox');
     },
 
     /** a level just went up — say so where the number lives */
@@ -94,7 +98,7 @@ window.LO = window.LO || {};
 
     route() {
       const requested = (location.hash || '').replace('#', '') || 'do';
-      const id = requested === 'advice' ? 'do' : requested;
+      const id = requested === 'advice' ? 'do' : requested === 'inbox' ? 'me' : requested;
       if (requested === 'advice') history.replaceState(null, '', '#do');
       if (id === 'scratch') {
         // the paper is an overlay, not a fourth destination: Do stays mounted underneath
@@ -105,6 +109,7 @@ window.LO = window.LO || {};
       if (LO.scratch && LO.scratch.isOpen()) LO.scratch.close();
       if (id === 'people') { this.go('me'); LO.companion.openFriends(); return; }
       const sf = this.get(id) || this.get('do');
+      if (sf.id === 'me' && sf.setInbox) sf.setInbox(requested === 'inbox');
       this.current = sf.id;
       this.paintRoute(sf.id);
       this.render(sf);
@@ -147,7 +152,97 @@ window.LO = window.LO || {};
       location.hash = id;
     },
 
+    openInbox() {
+      const me = this.get('me');
+      if (me && me.setInbox) me.setInbox(true);
+      if (this.current === 'me') {
+        history.replaceState(null, '', '#inbox');
+        this.render(me);
+      } else {
+        location.hash = 'inbox';
+      }
+    },
+
     /* ---------------- sheets ---------------- */
+    taskMenu(id) {
+      const task = LO.store.state.mind.load.find(x => x.id === id);
+      if (!task) return;
+      const done = task.status === 'closed';
+      const el = document.getElementById('sheet2');
+      el.querySelector('.box').innerHTML = `
+        <div class="sheet-grab" aria-hidden="true"></div>
+        <div class="eyebrow">Today's list</div>
+        <h2>${LO.ui.esc(task.title)}</h2>
+        <div class="bars task-actions">
+          <button class="fullbtn hot" data-taskact="${done ? 'reopen' : 'complete'}">${done ? 'Mark open again' : 'Mark done'}</button>
+          <button class="fullbtn warn" data-taskact="delete">Delete from the list</button>
+          <button class="fullbtn" data-taskact="cancel">Cancel</button>
+        </div>`;
+      el.hidden = false;
+      el.querySelectorAll('[data-taskact]').forEach(b => {
+        b.onclick = () => {
+          const action = b.dataset.taskact;
+          if (action === 'complete') LO.store.completeTask(id);
+          if (action === 'reopen') LO.store.reopenTask(id);
+          if (action === 'delete') LO.store.removeTask(id);
+          this.closeSheet();
+          if (action !== 'cancel') {
+            LO.ui.toast(action === 'delete' ? 'Removed from today' : action === 'reopen' ? 'Marked open' : 'Completed');
+            this.refresh();
+          }
+        };
+      });
+    },
+
+    fareharborSheet() {
+      const el = document.getElementById('sheet2');
+      const c = LO.fareharbor.cfg();
+      el.querySelector('.box').innerHTML = `
+        <div class="sheet-grab" aria-hidden="true"></div>
+        <div class="eyebrow">Private integration</div>
+        <h2>FareHarbor</h2>
+        <p class="lede">Show tours assigned to you without putting a FareHarbor credential in this public app.</p>
+        <label class="fld"><span>Bridge endpoint</span>
+          <input data-fhurl value="${LO.ui.esc(c.bridgeUrl)}" placeholder="https://…/fareharbor/tours" autocapitalize="off"></label>
+        <label class="fld"><span>Access key${c.token ? ' — saved on this device' : ''}</span>
+          <input data-fhtoken type="password" placeholder="${c.token ? '•••••••• leave blank to keep' : 'Private bridge key'}" autocomplete="off"></label>
+        <label class="fld"><span>Your FareHarbor crew name</span>
+          <input data-fhguide value="${LO.ui.esc(c.guide)}" placeholder="Exact name used for assignments"></label>
+        ${c.lastError ? `<p class="integration-error">${LO.ui.esc(c.lastError)}</p>` : ''}
+        <div class="bars">
+          <button class="fullbtn hot" data-fh="save">Save & test</button>
+          ${LO.fareharbor.configured() ? '<button class="fullbtn" data-fh="sync">Refresh tours</button><button class="fullbtn warn" data-fh="disconnect">Disconnect</button>' : ''}
+          <button class="fullbtn" data-fh="close">Close</button>
+        </div>
+        <p class="note integration-note">FareHarbor sends booking webhooks to a private server. The bridge returns only tour, time, assignment, status, and Dashboard link. API credentials stay there—not in this repository or its backups. <a href="https://fareharbor.com/api/external/v1/" target="_blank" rel="noopener noreferrer">FareHarbor Integration Center ↗</a></p>`;
+      el.hidden = false;
+      const close = () => this.closeSheet();
+      el.querySelector('[data-fh="close"]').onclick = close;
+      const sync = async () => {
+        const r = await LO.fareharbor.sync(true);
+        LO.ui.toast(r.ok ? r.count + ' assigned tour' + (r.count === 1 ? '' : 's') : r.error, 4200);
+        if (r.ok) { close(); LO.fareharbor.start(); this.openInbox(); }
+        else this.fareharborSheet();
+      };
+      const save = el.querySelector('[data-fh="save"]');
+      save.onclick = async () => {
+        const fields = {
+          bridgeUrl: el.querySelector('[data-fhurl]').value,
+          token: el.querySelector('[data-fhtoken]').value || c.token,
+          guide: el.querySelector('[data-fhguide]').value
+        };
+        if (!fields.bridgeUrl || !fields.token || !fields.guide) return LO.ui.toast('Endpoint, access key, and crew name are required.');
+        LO.fareharbor.configure(fields);
+        await sync();
+      };
+      const refresh = el.querySelector('[data-fh="sync"]');
+      if (refresh) refresh.onclick = sync;
+      const disconnect = el.querySelector('[data-fh="disconnect"]');
+      if (disconnect) disconnect.onclick = () => {
+        LO.fareharbor.disconnect(); close(); LO.ui.toast('FareHarbor disconnected'); this.openInbox();
+      };
+    },
+
     /** Small protocols stay sheets, not destinations in the tab bar. */
     quick(kind) {
       const el = document.getElementById('sheet2');

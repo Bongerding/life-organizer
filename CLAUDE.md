@@ -20,9 +20,10 @@ without changes.
 
 Current direction: read `docs/LUMEN-GUIDE.md` and `docs/MASCOT.md` alongside
 the decision log. The user explicitly replaced the hexagon-only identity with
-a glass companion, a player card, and a friends drawer. Preserve the local,
-explainable guidance engine and its pause/motion controls. Never publish private
-handoff files under `personal/`.
+a glass companion, a profile card, and a friends drawer. Guidance/Explore UI is
+not part of the live Me page; the old adaptive code is retained only as readable
+history and for derived profile wording. Never publish private handoff files
+under `personal/`.
 
 **Three destinations: Do · Write · Me. There is never a fourth.** Write is the
 larger centre action in the bottom bar. A new idea goes inside one of the three
@@ -30,15 +31,25 @@ or opens as a temporary sheet; it does not earn another permanent destination.
 
 - **Do** — today's list on raised paper, with capture and completion in place.
 - **Write** — one box for everything; it classifies what you wrote.
-- **Me** — the profile, evidence, aims, people, and the one-question queue.
+- **Me** — profile and trajectory, plus the attention inbox, aims, evidence,
+  circle link, and the one-question queue. The glass crest opens the inbox.
 
-Advice is not a page. “I'm spinning” and urge support are small sheets opened
-from Do or Me, then dismissed. Old advice chronicle events remain valid history,
-but `advice.js`, Mirror, and the Advice surface are not loaded by the live app.
+Advice is not a page. Urge logging remains tucked inside Me's collapsed personal
+record controls; no coaching block sits on Do. Old advice chronicle events remain
+valid history, but `advice.js`, Mirror, and the Advice surface are not loaded by
+the live app.
 
 Do has no dealt-action board and no primary Start button. The raised paper list
-is the first surface and must stay ahead of quotes, emergency tools, habits, and
-discoveries. Quotes still rotate every three hours and swipe for the next.
+is the first surface and must stay ahead of the rotating quote and habits. Do not
+put Guidance, Explore/discovery cards, or coaching controls back on the page.
+Quotes still rotate every three hours and swipe for the next.
+
+The Me inbox is derived from open work, reminders, app notices, due contacts,
+and FareHarbor tours. It is not a fourth destination. The header crest routes to
+`#inbox`; the Me tab routes to the collapsed profile. FareHarbor reads only from
+a private bridge configured on-device. Never put a FareHarbor API key, webhook
+secret, bridge key, guide name, or real booking payload in this public repo. See
+`docs/FAREHARBOR.md`.
 
 `assets/css/paper.css` owns the live visual direction and loads last. It is fixed
 by design: warm open canvas, white physical sheets, near-black ink, one red-pen

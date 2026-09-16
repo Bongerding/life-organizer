@@ -137,6 +137,19 @@ window.LO = window.LO || {};
       // PEOPLE — the friendships that quietly decay if nothing tracks them
       people: [],            // [{id,name,cadence,lastContact,note,created}]
 
+      // INBOX — transient things that need attention, not another permanent surface
+      inbox: {
+        reminders: [],       // [{id,text,due,done,created,closedOn}]
+        notices: []          // [{id,title,body,source,ref,link,date,ts}]
+      },
+
+      // INTEGRATIONS — credentials stay on this device and are stripped from backups
+      integrations: {
+        fareharbor: {
+          bridgeUrl: '', token: '', guide: '', lastSync: '', lastError: '', tours: []
+        }
+      },
+
       // CLARITY — the substance you are getting out from under, tracked without judgement
       clarity: {
         substance: '',
@@ -458,6 +471,46 @@ window.LO = window.LO || {};
       this.patch('mind.load', id, { status: 'closed', closedOn: D.today() });
     },
 
+    /** one completion path for Do and the Me inbox */
+    completeTask(id) {
+      const rec = this.state.mind.load.find(x => x.id === id);
+      if (!rec || rec.status === 'closed') return { task: rec, points: 0, bonus: 0 };
+      const effort = +rec.effort || +rec.weight || 2;
+      const ref = 'task_' + id;
+      this.closeTask(id);
+      const points = this.state.wins.some(w => w.ref === ref)
+        ? 0 : this.win('task', rec.title, 0, ref, LO.level.tier(effort).points);
+      const list = this.dayList();
+      const bonus = rec.origin === 'do' && list.length > 1 && list.every(x => x.status === 'closed')
+        ? this.awardDay(list.length) : 0;
+      return { task: rec, points, bonus };
+    },
+
+    /** undo is a correction: history stays, the task and points become open again */
+    reopenTask(id) {
+      const rec = this.state.mind.load.find(x => x.id === id);
+      if (!rec || rec.status !== 'closed') return rec;
+      rec.status = 'open';
+      rec.closedOn = '';
+      const ref = 'task_' + id;
+      this.state.wins = this.state.wins.filter(w =>
+        w.ref !== ref && !(rec.origin === 'do' && w.date === D.today() && w.ref === 'day'));
+      this.log(rec.origin === 'do' ? 'day-task-reopened' : 'task-reopened', rec.title, { ref: id });
+      this.save();
+      return rec;
+    },
+
+    removeTask(id) {
+      const rec = this.state.mind.load.find(x => x.id === id);
+      if (!rec) return null;
+      this.state.mind.load.splice(this.state.mind.load.indexOf(rec), 1);
+      this.log(rec.origin === 'do' ? 'day-task-removed' : 'task-removed', 'Removed from the list', {
+        ref: id, wasDone: rec.status === 'closed'
+      });
+      this.save();
+      return rec;
+    },
+
     /* ---------- the day's list ----------
        This list belongs only to Do. It never creates a journal entry
        and Write never creates one of these tasks. */
@@ -487,6 +540,57 @@ window.LO = window.LO || {};
     awardDay(n) {
       if (this.dayCleared()) return 0;
       return this.win('day', 'Cleared the whole list', 0, 'day', LO.level.dayBonus(n));
+    },
+
+    /* ---------- inbox ---------- */
+    addReminder(text, due) {
+      const rec = {
+        id: this.id('rem'), text: String(text || '').trim(), due: due || '',
+        done: false, created: D.today(), closedOn: ''
+      };
+      if (!rec.text) return null;
+      this.state.inbox.reminders.unshift(rec);
+      this.log('reminder', rec.text, { ref: rec.id, due: rec.due || null });
+      this.save();
+      return rec;
+    },
+    completeReminder(id) {
+      const rec = this.state.inbox.reminders.find(x => x.id === id);
+      if (!rec) return null;
+      rec.done = !rec.done;
+      rec.closedOn = rec.done ? D.today() : '';
+      this.log(rec.done ? 'reminder-done' : 'reminder-reopened', rec.text, { ref: id });
+      this.save();
+      return rec;
+    },
+    removeReminder(id) {
+      const rec = this.state.inbox.reminders.find(x => x.id === id);
+      if (!rec) return null;
+      this.state.inbox.reminders.splice(this.state.inbox.reminders.indexOf(rec), 1);
+      this.log('reminder-removed', 'Removed a reminder', { ref: id });
+      this.save();
+      return rec;
+    },
+    notice(title, body, source, ref, link) {
+      const key = String(ref || source || title || 'notice');
+      const found = this.state.inbox.notices.find(n => n.source === (source || 'app') && n.ref === key);
+      if (found) {
+        Object.assign(found, { title, body: body || '', link: link || found.link || '', date: D.today(), ts: Date.now() });
+        this.save();
+        return found;
+      }
+      const rec = {
+        id: this.id('notice'), title, body: body || '', source: source || 'app',
+        ref: key, link: link || '', date: D.today(), ts: Date.now()
+      };
+      this.state.inbox.notices.unshift(rec);
+      this.state.inbox.notices = this.state.inbox.notices.slice(0, 60);
+      this.save();
+      return rec;
+    },
+    dismissNotice(id) {
+      const i = this.state.inbox.notices.findIndex(n => n.id === id);
+      if (i > -1) { this.state.inbox.notices.splice(i, 1); this.save(); }
     },
 
     /* ---------- scratch: the map, not the list ----------
@@ -865,22 +969,25 @@ window.LO = window.LO || {};
     },
 
     /* ---------- portability ---------- */
-    /** the whole record as JSON, with the sync token stripped — a backup
-        must never carry the credential that wrote it */
+    /** the whole record as JSON, with device credentials stripped */
     export() {
       const copy = JSON.parse(JSON.stringify(this.state));
       if (copy.settings && copy.settings.sync) copy.settings.sync.token = '';
+      if (copy.integrations && copy.integrations.fareharbor) copy.integrations.fareharbor.token = '';
       return JSON.stringify(copy, null, 2);
     },
     import(json) {
       const parsed = JSON.parse(json);
       const token = this.state.settings && this.state.settings.sync
         ? this.state.settings.sync.token : '';
+      const fareharborToken = this.state.integrations && this.state.integrations.fareharbor
+        ? this.state.integrations.fareharbor.token : '';
       this.state = graft(blank(), parsed);
       if (token) {
         this.state.settings.sync = this.state.settings.sync || {};
         this.state.settings.sync.token = token;
       }
+      if (fareharborToken) this.state.integrations.fareharbor.token = fareharborToken;
       this.save();
     },
     wipe() { localStorage.removeItem(KEY); this.state = blank(); this.save(); }

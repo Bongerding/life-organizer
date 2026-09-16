@@ -1,5 +1,31 @@
 # Decisions
 
+## 2026-09-15 · The profile crest is the attention inbox
+
+Me now has two states inside one destination. The ordinary Me tab opens the
+profile; the global glass crest and the crest above the profile name open
+`#inbox`. Trajectory belongs inside the profile card directly under the crest.
+The inbox is derived from open tasks, reminders, notices, due contacts, and
+assigned tours. It is not a fourth tab and it does not invent another score.
+
+The Guidance card, Explore/discovery card, duplicated inline people editor, and
+mission paragraph are removed from the live flow. Do keeps the rotating quote,
+but the coaching buttons and discovery card leave the page. The app should show
+the record and the next real obligation, not narrate how to use itself.
+
+Daily task correction is now explicit. A tap completes, tapping a completed box
+reopens it, and a deliberate hold exposes complete/reopen/delete. Reopening
+removes the mutable points-ledger entry and appends a correction to the
+chronicle. Deleting removes the listing while retaining the append-only record
+of its creation and removal.
+
+FareHarbor is an integration boundary, not a credential inside the PWA. The
+static public app reads a minimal normalized feed from a private HTTPS bridge,
+filters it by the on-device crew name, and puts upcoming assigned tours in the
+inbox. FareHarbor API/webhook credentials remain in the bridge; the bridge read
+key is stripped from backups. This makes the client complete without pretending
+GitHub Pages can securely receive webhooks.
+
 ## 2026-09-15 · Three destinations, paper everywhere
 
 Advice is removed from the live app completely: no pane, tab, route, script,

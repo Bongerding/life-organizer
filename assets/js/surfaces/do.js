@@ -9,6 +9,7 @@
   const { ui, store, D } = LO;
 
   let timer = null;   // { endAt, total, id, action }
+  let suppressTaskClickUntil = 0;
 
   LO.machine.register({
     id: 'do',
@@ -54,11 +55,6 @@
           <figcaption><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(q.who.replace(/ /g, '_'))}" target="_blank" rel="noopener noreferrer">${ui.esc(q.who)}</a></figcaption>
         </figure>
 
-        <div class="sos">
-          <button class="spin" data-spin><b>I'm spinning</b><span>rumination</span></button>
-          <button class="urge" data-urge><b>I need a reset</b><span>ride out an urge</span></button>
-        </div>
-
         ${s.habits.length ? `
           <div class="lbl">Habits<span class="r">${struck}/${s.habits.length}</span></div>
           <div class="hrow">
@@ -67,7 +63,7 @@
               return `<button class="hchip ${on ? 'on' : ''}" data-habit="${h.id}">
                 <i></i><b>${ui.esc(h.name)}</b></button>`;
             }).join('')}
-          </div>` : ''}${LO.companion.discovery()}`;
+          </div>` : ''}`;
     },
 
     mount(root) {
@@ -75,11 +71,6 @@
       const redraw = () => self.refresh();
 
       if (timer) { mountTimer(root, redraw); return; }
-
-      const spin = root.querySelector('[data-spin]');
-      if (spin) spin.onclick = () => LO.machine.quick('spin');
-      const urge = root.querySelector('[data-urge]');
-      if (urge) urge.onclick = () => LO.machine.quick('urge');
 
       swipeable(root.querySelector('[data-quoteswipe]'), function () {
         LO.quotes.next();
@@ -103,7 +94,15 @@
       }
 
       root.querySelectorAll('[data-hit]').forEach(b => {
-        b.onclick = () => strike(b.dataset.hit, b, redraw);
+        b.onclick = () => {
+          if (Date.now() < suppressTaskClickUntil) return;
+          const row = b.closest('.td');
+          if (row && row.classList.contains('done')) {
+            store.reopenTask(b.dataset.hit);
+            ui.toast('Marked open');
+            redraw();
+          } else strike(b.dataset.hit, b, redraw);
+        };
       });
       root.querySelectorAll('[data-eff]').forEach(b => {
         b.onclick = e => {
@@ -117,7 +116,10 @@
         };
       });
       root.querySelectorAll('[data-fold]').forEach(b => {
-        b.onclick = () => { store.togglePlan(b.dataset.fold); redraw(); };
+        b.onclick = () => {
+          if (Date.now() < suppressTaskClickUntil) return;
+          store.togglePlan(b.dataset.fold); redraw();
+        };
       });
       root.querySelectorAll('[data-step]').forEach(b => {
         b.onclick = () => {
@@ -145,11 +147,12 @@
         };
       });
       root.querySelectorAll('[data-drop]').forEach(b => {
-        b.onclick = () => { store.drop('mind.load', b.dataset.drop); ui.toast('Removed from today'); redraw(); };
+        b.onclick = () => { store.removeTask(b.dataset.drop); ui.toast('Removed from today'); redraw(); };
       });
       root.querySelectorAll('[data-habit]').forEach(b => {
         b.onclick = () => { store.toggleHabit(b.dataset.habit); ui.toast('Habit updated'); redraw(); };
       });
+      holdableTasks(root);
     }
   });
 
@@ -196,6 +199,40 @@
     card.addEventListener('pointercancel', end, { passive: true });
   }
 
+  /** A deliberate hold opens task management without making every row noisy. */
+  function holdableTasks(root) {
+    root.querySelectorAll('[data-row]').forEach(row => {
+      let timerId = null, sx = 0, sy = 0;
+      const cancel = () => {
+        clearTimeout(timerId);
+        timerId = null;
+        row.classList.remove('holding');
+      };
+      row.addEventListener('pointerdown', e => {
+        if (e.target.closest('[data-eff],[data-drop],[data-open],[data-step]')) return;
+        sx = e.clientX; sy = e.clientY;
+        timerId = setTimeout(() => {
+          timerId = null;
+          row.classList.add('holding');
+          suppressTaskClickUntil = Date.now() + 700;
+          if (navigator.vibrate) navigator.vibrate(12);
+          LO.machine.taskMenu(row.dataset.row);
+        }, 560);
+      }, { passive: true });
+      row.addEventListener('pointermove', e => {
+        if (timerId && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) cancel();
+      }, { passive: true });
+      row.addEventListener('pointerup', cancel, { passive: true });
+      row.addEventListener('pointercancel', cancel, { passive: true });
+      row.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        cancel();
+        suppressTaskClickUntil = Date.now() + 700;
+        LO.machine.taskMenu(row.dataset.row);
+      });
+    });
+  }
+
   /* ---------------- the day's list ---------------- */
   function taskRow(l) {
     const done = l.status === 'closed';
@@ -209,12 +246,12 @@
 
     if (!plan) {
       return `<div class="td${done ? ' done' : ''}" data-row="${l.id}">
-        <button class="td-hit" data-hit="${l.id}"${done ? ' disabled' : ''}>
+        <button class="td-hit" data-hit="${l.id}" title="Hold for options">
           <span class="td-t">${ui.esc(l.title)}</span>
         </button>
         <button class="td-p" data-eff="${l.id}" title="${LO.level.tier(eff).name} — tap to change">+${pts}</button>
-        ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
-        <button class="td-box" data-hit="${l.id}" aria-label="Mark done"${done ? ' disabled' : ''}></button>
+        <button class="td-x" data-drop="${l.id}" aria-label="Delete from today">×</button>
+        <button class="td-box" data-hit="${l.id}" aria-label="${done ? 'Mark open again' : 'Mark done'}"></button>
       </div>`;
     }
 
@@ -231,7 +268,7 @@
             : ui.esc(LO.scratch.describe(l.nodes))}</span>
         </button>
         <span class="td-p plainp">+${pts}</span>
-        ${done ? '' : `<button class="td-x" data-drop="${l.id}" aria-label="Remove">×</button>`}
+        <button class="td-x" data-drop="${l.id}" aria-label="Delete from today">×</button>
         <span class="td-fold" aria-hidden="true"></span>
       </div>
       ${steps && l.open ? `<ol class="td-steps">${steps.map((st, i) => `
@@ -269,23 +306,19 @@
     const before = LO.level.stats().level;
 
     setTimeout(() => {
-      store.closeTask(id);
-      store.win('task', l ? l.title : 'A task', 0, 'task_' + id, LO.level.tier(eff).points);
-
-      const list = store.dayList();
-      let bonus = 0;
-      if (list.length > 1 && list.every(x => x.status === 'closed')) bonus = store.awardDay(list.length);
+      const result = store.completeTask(id);
+      const bonus = result.bonus;
 
       const after = LO.level.stats().level;
       const levelled = after > before;
       if (levelled) LO.machine.crestPulse();
 
       if (bonus) {
-        ui.toast('Page cleared · +' + (LO.level.tier(eff).points + bonus), 3600);
+        ui.toast('Page cleared · +' + (result.points + bonus), 3600);
       } else if (levelled) {
         ui.toast('Level ' + after, 3200);
       } else {
-        ui.toast('+' + LO.level.tier(eff).points);
+        ui.toast('+' + result.points);
       }
       redraw();
     }, 430);

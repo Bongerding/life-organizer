@@ -1,16 +1,16 @@
 # Architecture — Life Organizer v0.5
 
-Lumen update: `adaptive.js` is the on-device guidance engine; `companion.js`
-owns the friends drawer, discovery cards and shared companion interactions;
-`companion.css` supplies the game presentation. The existing state gains
-`guidance: {enabled, feedback, interests, motion}`. People may carry `birthday`,
-`nextReach` and `note`. `entry-hidden` / `entry-restored` events implement
-recoverable record removal through `store.visibleChronicle()`. See
-[LUMEN-GUIDE.md](LUMEN-GUIDE.md) for the current release's boundaries.
+`companion.js` owns the glass identity and friends drawer. Discovery and
+guidance helpers remain historical source but are not rendered on Do or Me.
+People may carry `birthday`, `nextReach` and `note`. `entry-hidden` /
+`entry-restored` events implement recoverable record removal through
+`store.visibleChronicle()`.
 
 `notifications.js` owns permission, quiet hours, cadence, and copy for local
-notices. Its configuration lives under `state.settings.notifications`. It checks
-only while the PWA runtime exists. `sw.js` has `push` and `notificationclick`
+notices. Every notice it actually sends is also upserted into `state.inbox.notices`,
+so Me is the durable place to find it. Its configuration lives under
+`state.settings.notifications`. It checks only while the PWA runtime exists.
+`sw.js` has `push` and `notificationclick`
 handlers so a future VAPID-backed sender can wake the installed app without
 changing the receiving surface. Native widget scope is recorded in
 [ANDROID-WIDGETS.md](ANDROID-WIDGETS.md); no Android runtime is currently shipped.
@@ -33,13 +33,30 @@ Do is task-first. `surfaces/do.js` renders `store.dayList()` inside the raised
 `.day-paper` before every other surface on the page. Capture, effort correction,
 completion, removal, plans, and the derived day summary all happen inside that
 sheet. There is no generated action board or primary Start button on live Do.
-“I'm spinning” opens a short protocol sheet; urge support may still send the
-intentional ride-out timer into Do.
+Tap completes; tapping a completed box reopens it; holding any row opens a small
+management sheet for complete/reopen/delete. The rotating quote remains. The
+former coaching buttons and Explore/discovery card are not rendered.
 
 `store.capture()` is the only writer of daily tasks. Those rows carry
 `origin: 'do'`; `dayList()` filters on it. `store.write()` writes only to Scribe,
 regardless of classifier kind. Daily task lifecycle events use `day-task` and
 `day-task-done`, which are outside the default written-record filters.
+`completeTask()`, `reopenTask()`, and `removeTask()` are the shared task lifecycle
+used by both Do and the Me inbox. Reopening removes the mutable win-ledger row
+but appends a correction event; the chronicle is never rewritten.
+
+Me is profile-first. The crest, level, progress, and 30-day trajectory share one
+profile card. Clicking the crest expands an inbox derived from open tasks,
+`state.inbox.reminders`, `state.inbox.notices`, due contacts, and normalized
+FareHarbor tours. The global header crest routes to `#inbox`; the bottom Me tab
+routes to the collapsed profile. Guidance, Explore, duplicated people editing,
+and the mission paragraph are not live sections.
+
+`fareharbor.js` polls a user-configured private bridge while the PWA is open. It
+keeps only normalized assignment data and filters by the configured crew name.
+The bridge access key stays on-device and is stripped from exports. The public
+static app never talks to FareHarbor with an API credential and cannot receive
+their webhook directly. See [FAREHARBOR.md](FAREHARBOR.md).
 
 `aims.resolve()` repairs semantic
 trackers at read time for acquisition and sale goals, including goals saved by
@@ -71,6 +88,7 @@ assets/js/ui.js            render primitives: cards, meters, rings, sparks, fiel
 assets/css/app.css         the one layout layer, mobile-first, centred
 assets/js/insight.js       messages / truths / questions — the part that knows you
 assets/js/classify.js      six-kind classifier for what he writes, learns from corrections
+assets/js/fareharbor.js    private-bridge client for assigned tour summaries
 assets/js/shell.js         tab registry, routing, settings + data
 assets/js/surfaces/*.js    do.js, write.js, me.js
 assets/css/paper.css       final light-paper system; intentionally overrides old skins
@@ -136,6 +154,8 @@ rewire    targets[{ from, to, trait }], reps[{ date, drillId, trait, response }]
 vessel    targets{}, logs[{ date, sleep, weight, steps, water, note }], sessions[]
 mind      logs[{ date, mood, energy, clarity, stress, grateful, note }], load[{ title, weight, effort, kind, status, closedOn }]
 people    [{ name, cadence, lastContact, note }]
+inbox     reminders[{ text, due, done }], notices[{ title, body, source, ref, link }]
+integrations fareharbor{ bridgeUrl, token, guide, lastSync, lastError, tours[] }
 clarity   { substance, clearSince, best, urges[{ date, intensity, rode, instead }], uses[{ date, note }] }
 wins      [{ date, kind, label, minutes, ref, points }]   the ledger the level is derived from
 scribe    entries[{ date, prompt, text, tags }], insights[{ date, text, source }]

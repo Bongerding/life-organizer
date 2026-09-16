@@ -33,6 +33,7 @@ const js = [
   'assets/js/insight.js',
   'assets/js/sync.js',
   'assets/js/notifications.js',
+  'assets/js/fareharbor.js',
   'assets/js/shell.js',
   'assets/js/adaptive.js',
   'assets/js/companion.js',

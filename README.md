@@ -11,10 +11,11 @@ Zero dependencies. No build step to run it. One JSON object that is yours.
 
 ## One app
 
-The current direction is **Lumen**, a glass companion inside a personal growth
-game. Read [the prospective guide](docs/LUMEN-GUIDE.md) for the new player card,
-friends drawer, adaptive guidance, and planned trajectory. Asset provenance and
-the full generation prompt are in [MASCOT.md](docs/MASCOT.md).
+The identity is **Lumen**, a glass companion used for the app icon, profile crest,
+and level. The live direction is quieter than the original prospective guide:
+profile, trajectory, inbox, and friends remain; Guidance/Explore presentation
+does not. Asset provenance and the full generation prompt are in
+[MASCOT.md](docs/MASCOT.md).
 
 There is no separate phone build any more. `index.html` is the whole thing:
 a bottom tab bar and full-bleed panels on a handset, the same markup widening
@@ -22,9 +23,9 @@ into a centred column on a laptop. Three destinations, and three is the ceiling.
 
 | Tab | What it is for |
 |---|---|
-| **Do** | Today's task list on a raised paper sheet, with capture, effort, completion and points in place. Small reset protocols remain below it. |
+| **Do** | Today's task list on raised paper: capture, effort, completion, reopening, deletion, and points. The rotating quote stays; coaching clutter does not. |
 | **Write** | The larger centre action. One paper pad for capturing, classifying, searching, and revisiting the record. |
-| **Me** | The page about you: what it can prove, what it wants to ask, the clear count, your people, your aims. |
+| **Me** | Profile and trajectory plus an attention inbox for open work, reminders, notices, due contacts, and assigned FareHarbor tours. |
 
 The Do capture makes today's tasks; Write stays a separate journal. Everything
 still lands in one record.
@@ -92,7 +93,14 @@ sets itself up from your own north star, values, goals and patterns — all of i
 editable.
 
 After that: put today's work on **Do**, keep thoughts and moments in **Write**,
-and let **Me** fill in from the record and its one-question queue.
+and use the glass crest to open **Me → Inbox**. The ordinary Me tab opens the
+profile; trajectory sits directly under the crest and the question queue fills
+the evidence-backed summary over time.
+
+FareHarbor is prepared as a private-bridge integration. Once a FareHarbor
+booking webhook/API bridge is approved and deployed, enter its endpoint, access
+key, and exact crew name from the Me inbox. The public PWA never stores a
+FareHarbor API credential. See [docs/FAREHARBOR.md](docs/FAREHARBOR.md).
 
 The index stays at 0 until something real is being tracked — that is deliberate.
 An empty system should not congratulate you.

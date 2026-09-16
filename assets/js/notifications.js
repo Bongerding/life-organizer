@@ -63,7 +63,8 @@ window.LO = window.LO || {};
     return bits.length ? bits.join('. ') + '. No urgency—just keeping the board current.' : '';
   }
 
-  async function show(title, body, path, tag) {
+  async function show(title, body, path, tag, source) {
+    LO.store.notice(title, body, source || 'notification', (tag || 'notice') + '_' + LO.D.today(), path || '#inbox');
     const options = {
       body, tag: 'life-organizer-' + tag, renotify: false,
       data: { path: path || '#do' }
@@ -111,7 +112,14 @@ window.LO = window.LO || {};
     await show('A quiet test', 'Notifications are ready. This is the tone they will use.', '#do', 'test');
     return true;
   }
+  async function external(title, body, path, tag) {
+    LO.store.notice(title, body, tag || 'external', (tag || 'external') + '_' + LO.D.today(), path || '#inbox');
+    const c = cfg();
+    if (permission() !== 'granted' || !c.enabled || inQuietHours(new Date(), c)) return false;
+    await show(title, body, path || '#inbox', tag || 'external', tag || 'external');
+    return true;
+  }
   function status() { return { supported: supported(), permission: permission(), config: cfg() }; }
 
-  LO.notify = { cfg, status, enable, check, start, stop, test, updateBody };
+  LO.notify = { cfg, status, enable, check, start, stop, test, external, updateBody };
 })(window.LO);
