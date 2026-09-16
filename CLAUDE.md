@@ -39,10 +39,11 @@ record controls; no coaching block sits on Do. Old advice chronicle events remai
 valid history, but `advice.js`, Mirror, and the Advice surface are not loaded by
 the live app.
 
-Do has no dealt-action board and no primary Start button. The raised paper list
-is the first surface and must stay ahead of the rotating quote and habits. Do not
-put Guidance, Explore/discovery cards, or coaching controls back on the page.
-Quotes still rotate every three hours and swipe for the next.
+Do has no dealt-action board, primary Start button, emergency coaching buttons,
+or habit counter. The raised paper list is the first surface and stays ahead of
+the rotating quote. Do not put Guidance, Explore/discovery cards, coaching
+controls, or the retired “One first step” meta-habit back on the page. Quotes
+still rotate every three hours and swipe for the next.
 
 The Me inbox is derived from open work, reminders, app notices, due contacts,
 and FareHarbor tours. It is not a fourth destination. The header crest routes to

@@ -31,6 +31,10 @@ assert.ok(!doSurface.includes('data-board'), 'the dealt-action board must not ga
 assert.ok(doSurface.includes('holdableTasks(root)'), 'today rows need deliberate hold management');
 assert.ok(doSurface.includes('LO.machine.taskMenu'), 'holding a task needs the shared management sheet');
 assert.ok(!doSurface.includes('LO.companion.discovery()'), 'Explore content must stay off the focused Do page');
+assert.ok(!doSurface.includes('data-habit'), 'the retired starter habit must stay off Do');
+assert.ok(shellSource.includes('data-taskact="rename"') && shellSource.includes('taskRenameSheet(id)'), 'the hold sheet needs task renaming');
+assert.ok(!fs.readFileSync('assets/js/store.js', 'utf8').includes("name: 'One first step'"), 'new records must not seed the old meta-habit');
+assert.ok(!shellSource.includes("kind === 'spin'") && !shellSource.includes('Clear the noise'), 'the spinning/reset sheet must stay out of the live shell');
 const meSurface = fs.readFileSync('assets/js/surfaces/me.js', 'utf8');
 assert.ok(meSurface.includes('class="attention-inbox"'), 'Me needs the attention inbox');
 assert.ok(meSurface.includes('class="profile-trajectory"'), 'trajectory belongs directly under the profile crest');
@@ -45,6 +49,13 @@ const sell = { title: 'Sell an old item', domain: 'craft', track: { kind: 'wins'
 assert.equal(aims.resolve(buy).winKind, 'market-check');
 assert.equal(aims.resolve(sell).winKind, 'sale-prep');
 assert.match(aims.progress(buy, store.state).label, /0 of 3 marketplace checks this week/);
+store.wipe();
+store.state.habits = [
+  { id: 'retired', name: 'One first step', identity: 'I start before I feel ready', cue: 'Open the app', log: {} },
+  { id: 'mine', name: 'One first step', identity: 'A personal habit', cue: 'After lunch', log: {} }
+];
+store.import(store.export());
+assert.equal(Array.from(store.state.habits, h => h.id).join(','), 'mine', 'only the exact system-seeded habit is retired');
 store.wipe();
 store.capture('A daily task', 2);
 assert.equal(store.dayList().length, 1);
@@ -65,6 +76,15 @@ assert.equal(store.state.wins.filter(w => w.ref === 'task_' + daily.id).length, 
 assert.ok(store.state.chronicle.length > beforeDoneHistory, 'completion corrections append to history');
 store.removeTask(daily.id);
 assert.equal(store.dayList().length, 0);
+const plan = store.capture('A mapped plan', 3);
+plan.kind = 'plan';
+plan.nodes = [{ id: 'node_a', text: 'First', x: 10, y: 20 }];
+plan.steps = [{ id: 'step_a', text: 'First', done: false }];
+const planShape = JSON.stringify({ nodes: plan.nodes, steps: plan.steps });
+store.renameTask(plan.id, 'A clearer plan name');
+assert.equal(plan.title, 'A clearer plan name');
+assert.equal(JSON.stringify({ nodes: plan.nodes, steps: plan.steps }), planShape, 'renaming a plan must not alter its map');
+assert.equal(store.state.chronicle.at(-1).type, 'task-renamed');
 const reminder = store.addReminder('A neutral reminder', D.shift(1));
 assert.equal(store.state.inbox.reminders.length, 1);
 store.completeReminder(reminder.id);

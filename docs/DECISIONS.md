@@ -1,5 +1,24 @@
 # Decisions
 
+## 2026-09-16 · The starter habit is retired; plan titles are only labels
+
+“One first step” was a system-seeded meta-habit that checked itself whenever any
+win was recorded. Once Do became the direct task list, the extra Habits row made
+the interface harder to explain without adding a real action. It is no longer
+seeded, no longer auto-struck, and the exact original seeded shape is removed
+from existing and imported records. User-created habits—including any that happen
+to have a similar name—are preserved. Do now ends with its rotating quote.
+
+Holding any row on today's list exposes Rename alongside complete/reopen and
+delete. A title is presentation, not structure: `renameTask()` edits only the
+task's title and appends a `task-renamed` event. Scratch plan nodes, their map,
+steps, order, and completion state must not change when the label changes.
+
+The former “I’m spinning” and “I need a reset” controls remain absent from Do,
+and the unreachable spinning sheet has been removed from the live shell. Older
+archived protocol files may remain as history, but neither control belongs in
+the live task flow.
+
 ## 2026-09-15 · The profile crest is the attention inbox
 
 Me now has two states inside one destination. The ordinary Me tab opens the

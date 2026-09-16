@@ -34,16 +34,19 @@ Do is task-first. `surfaces/do.js` renders `store.dayList()` inside the raised
 completion, removal, plans, and the derived day summary all happen inside that
 sheet. There is no generated action board or primary Start button on live Do.
 Tap completes; tapping a completed box reopens it; holding any row opens a small
-management sheet for complete/reopen/delete. The rotating quote remains. The
-former coaching buttons and Explore/discovery card are not rendered.
+management sheet for complete/reopen/rename/delete. The rotating quote remains.
+The former coaching buttons, habit counter, and Explore/discovery card are not
+rendered.
 
 `store.capture()` is the only writer of daily tasks. Those rows carry
 `origin: 'do'`; `dayList()` filters on it. `store.write()` writes only to Scribe,
 regardless of classifier kind. Daily task lifecycle events use `day-task` and
 `day-task-done`, which are outside the default written-record filters.
-`completeTask()`, `reopenTask()`, and `removeTask()` are the shared task lifecycle
-used by both Do and the Me inbox. Reopening removes the mutable win-ledger row
-but appends a correction event; the chronicle is never rewritten.
+`completeTask()`, `reopenTask()`, `renameTask()`, and `removeTask()` are the shared
+task lifecycle used by both Do and the Me inbox. Reopening removes the mutable
+win-ledger row but appends a correction event; the chronicle is never rewritten.
+Renaming changes only `mind.load[].title`. For a Scratch plan, its `nodes`,
+generated steps, and completion state are untouched.
 
 Me is profile-first. The crest, level, progress, and 30-day trajectory share one
 profile card. Clicking the crest expands an inbox derived from open tasks,

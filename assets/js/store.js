@@ -218,6 +218,18 @@ window.LO = window.LO || {};
     return saved === undefined ? base : saved;
   }
 
+  /* The original starter record created one invisible-to-the-user automation:
+     finishing anything checked a habit called "One first step". Once Do became
+     a direct task list, that extra counter stopped explaining anything. Match
+     the full seeded shape so a user's own similarly named habit is untouched. */
+  function retireFirstStepHabit(state) {
+    state.habits = state.habits.filter(h => !(
+      h.name === 'One first step' &&
+      h.identity === 'I start before I feel ready' &&
+      h.cue === 'Open the app'
+    ));
+  }
+
   /* how each kind of new record reads in the chronicle */
   const ADDED = {
     'goals':           { type: 'goal',   text: r => 'Set a goal: ' + r.title },
@@ -256,6 +268,7 @@ window.LO = window.LO || {};
         } catch (e) { /* nothing to adopt */ }
       }
       this.state = raw ? graft(blank(), raw) : blank();
+      retireFirstStepHabit(this.state);
 
       // ask the browser not to evict us — this is what makes ten years plausible
       try {
@@ -507,6 +520,18 @@ window.LO = window.LO || {};
       this.log(rec.origin === 'do' ? 'day-task-removed' : 'task-removed', 'Removed from the list', {
         ref: id, wasDone: rec.status === 'closed'
       });
+      this.save();
+      return rec;
+    },
+
+    /** A plan title is a label. Renaming it must never redraw its node map. */
+    renameTask(id, title) {
+      const rec = this.state.mind.load.find(x => x.id === id);
+      const next = String(title || '').trim().slice(0, 140);
+      if (!rec || !next || next === rec.title) return rec || null;
+      const from = rec.title;
+      rec.title = next;
+      this.log('task-renamed', 'Renamed a task', { ref: id, from, to: next });
       this.save();
       return rec;
     },
@@ -899,11 +924,6 @@ window.LO = window.LO || {};
         id: this.id('win'), date: D.today(), kind, label,
         minutes: minutes || 0, ref: ref || '', points: pts
       });
-      // any first step also strikes the meta-habit, if it exists
-      const meta = this.state.habits.find(h => h.name === 'One first step');
-      if (meta && !(meta.log && meta.log[D.today()])) {
-        meta.log = meta.log || {}; meta.log[D.today()] = 1;
-      }
       if (!quiet) this.log('step', label, { kind, minutes: minutes || 0, ref: ref || '', points: pts });
       this.save();
       return pts;
@@ -955,13 +975,6 @@ window.LO = window.LO || {};
         id: this.id('t'), text: 'I am the kind of person who starts before he feels ready.'
       });
 
-      // one habit, because the whole system is built on starting
-      s.habits.push({
-        id: this.id('habit'), name: 'One first step',
-        domain: 'order', identity: 'I start before I feel ready',
-        target: 7, cue: 'Open the app', reward: '', log: {}, created: D.today()
-      });
-
       s.meta.seeded = true;
       this.log('system', 'Started the record');
       this.save();
@@ -983,6 +996,7 @@ window.LO = window.LO || {};
       const fareharborToken = this.state.integrations && this.state.integrations.fareharbor
         ? this.state.integrations.fareharbor.token : '';
       this.state = graft(blank(), parsed);
+      retireFirstStepHabit(this.state);
       if (token) {
         this.state.settings.sync = this.state.settings.sync || {};
         this.state.settings.sync.token = token;

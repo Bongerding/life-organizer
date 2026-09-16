@@ -20,7 +20,6 @@
       const list = store.dayList();
       const t = D.today();
       const q = LO.quotes.today();
-      const struck = s.habits.filter(h => h.log && h.log[t]).length;
       const open = list.filter(l => l.status !== 'closed').length;
       const done = list.length - open;
 
@@ -53,17 +52,7 @@
         <figure class="quote" data-quoteswipe>
           <blockquote>${ui.esc(q.text)}</blockquote>
           <figcaption><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(q.who.replace(/ /g, '_'))}" target="_blank" rel="noopener noreferrer">${ui.esc(q.who)}</a></figcaption>
-        </figure>
-
-        ${s.habits.length ? `
-          <div class="lbl">Habits<span class="r">${struck}/${s.habits.length}</span></div>
-          <div class="hrow">
-            ${s.habits.map(h => {
-              const on = !!(h.log && h.log[t]);
-              return `<button class="hchip ${on ? 'on' : ''}" data-habit="${h.id}">
-                <i></i><b>${ui.esc(h.name)}</b></button>`;
-            }).join('')}
-          </div>` : ''}`;
+        </figure>`;
     },
 
     mount(root) {
@@ -148,9 +137,6 @@
       });
       root.querySelectorAll('[data-drop]').forEach(b => {
         b.onclick = () => { store.removeTask(b.dataset.drop); ui.toast('Removed from today'); redraw(); };
-      });
-      root.querySelectorAll('[data-habit]').forEach(b => {
-        b.onclick = () => { store.toggleHabit(b.dataset.habit); ui.toast('Habit updated'); redraw(); };
       });
       holdableTasks(root);
     }

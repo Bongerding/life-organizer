@@ -66,8 +66,9 @@ state, then picks one by weighted random.
 - Habits become actions automatically. Any habit not struck today with copy in
   the bank turns into a dealt action; striking it on the phone strikes the same
   habit the desk shows.
-- Every win also strikes the meta-habit **"One first step"**, so the streak in the
-  header is the streak of days you started something.
+- The former auto-seeded **"One first step"** meta-habit was retired on
+  2026-09-16. Finished work already appears in the wins ledger and player level;
+  duplicating it as a habit made Do harder to understand.
 
 ## Rumination and urges
 

@@ -23,7 +23,7 @@ into a centred column on a laptop. Three destinations, and three is the ceiling.
 
 | Tab | What it is for |
 |---|---|
-| **Do** | Today's task list on raised paper: capture, effort, completion, reopening, deletion, and points. The rotating quote stays; coaching clutter does not. |
+| **Do** | Today's task list on raised paper: capture, effort, completion, reopening, renaming, deletion, and points. The rotating quote stays; coaching clutter and the old starter-habit counter do not. |
 | **Write** | The larger centre action. One paper pad for capturing, classifying, searching, and revisiting the record. |
 | **Me** | Profile and trajectory plus an attention inbox for open work, reminders, notices, due contacts, and assigned FareHarbor tours. |
 
@@ -128,9 +128,9 @@ analysis: [docs/MEMORY.md](docs/MEMORY.md) · setup: [docs/DEPLOY.md](docs/DEPLO
 Points come from **finished** things, never from writing one down — otherwise
 the level measures typing. A task pays by effort: **light 10**, **real 25**,
 **heavy 60**, guessed from the wording and changeable with a tap on the badge.
-A struck habit pays 10, once a day however many times it is toggled, and gives
-the points back if you untick it. An activity you log pays 25. A timed first
-step pays 10 + 2 a minute, capped at 60. Clearing everything on the day's list
+A user-created habit elsewhere in the record can still pay 10 once a day; the
+old auto-seeded “One first step” habit has been retired. An activity you log pays
+25. A timed first step pays 10 + 2 a minute, capped at 60. Clearing everything on the day's list
 pays 50 + 10 a task on top, once a day.
 
 Level *n* costs `150 + (n-1) × 75` points. The level is **derived from the wins

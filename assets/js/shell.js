@@ -175,6 +175,7 @@ window.LO = window.LO || {};
         <h2>${LO.ui.esc(task.title)}</h2>
         <div class="bars task-actions">
           <button class="fullbtn hot" data-taskact="${done ? 'reopen' : 'complete'}">${done ? 'Mark open again' : 'Mark done'}</button>
+          <button class="fullbtn" data-taskact="rename">Rename</button>
           <button class="fullbtn warn" data-taskact="delete">Delete from the list</button>
           <button class="fullbtn" data-taskact="cancel">Cancel</button>
         </div>`;
@@ -182,6 +183,7 @@ window.LO = window.LO || {};
       el.querySelectorAll('[data-taskact]').forEach(b => {
         b.onclick = () => {
           const action = b.dataset.taskact;
+          if (action === 'rename') { this.taskRenameSheet(id); return; }
           if (action === 'complete') LO.store.completeTask(id);
           if (action === 'reopen') LO.store.reopenTask(id);
           if (action === 'delete') LO.store.removeTask(id);
@@ -192,6 +194,39 @@ window.LO = window.LO || {};
           }
         };
       });
+    },
+
+    taskRenameSheet(id) {
+      const task = LO.store.state.mind.load.find(x => x.id === id);
+      if (!task) return;
+      const el = document.getElementById('sheet2');
+      el.querySelector('.box').innerHTML = `
+        <div class="sheet-grab" aria-hidden="true"></div>
+        <div class="eyebrow">Today's list</div>
+        <h2>Rename</h2>
+        <form data-taskrename>
+          <label class="fld"><span>Title</span>
+            <input data-tasktitle type="text" maxlength="140" value="${LO.ui.esc(task.title)}" autocomplete="off">
+          </label>
+          <div class="bars">
+            <button class="fullbtn hot" type="submit">Save name</button>
+            <button class="fullbtn" type="button" data-taskcancel>Cancel</button>
+          </div>
+        </form>`;
+      el.hidden = false;
+      const form = el.querySelector('[data-taskrename]');
+      const input = form.querySelector('[data-tasktitle]');
+      form.onsubmit = e => {
+        e.preventDefault();
+        const title = input.value.trim();
+        if (!title) { input.focus(); return; }
+        LO.store.renameTask(id, title);
+        this.closeSheet();
+        LO.ui.toast('Task renamed');
+        this.refresh();
+      };
+      el.querySelector('[data-taskcancel]').onclick = () => this.closeSheet();
+      requestAnimationFrame(() => { input.focus(); input.select(); });
     },
 
     fareharborSheet() {
@@ -256,19 +291,6 @@ window.LO = window.LO || {};
         </div>
         <p class="note" style="margin-top:14px">Get out of the room, drink water, move. Do not argue with it
           in your head — change what your body is doing instead.</p>`
-      : kind === 'spin' ? `
-        <h2>Clear the noise</h2>
-        <p class="lede">No diagnosis. No new system. Just make the next surface smaller.</p>
-        <ol class="quiet-steps">
-          <li><b>Stop adding.</b><span>Put both feet down and take one slower breath.</span></li>
-          <li><b>Name the pressure.</b><span>One sentence is enough. It can go in Write.</span></li>
-          <li><b>Choose one edge.</b><span>Open today's list and touch the smallest honest task.</span></li>
-        </ol>
-        <div class="bars">
-          <button class="fullbtn hot" data-q="gotodo">Open today's list</button>
-          <button class="fullbtn" data-q="gowrite">Write the pressure down</button>
-          <button class="fullbtn" data-q="cancel">Close</button>
-        </div>`
       : `
         <h2>Log it and move on</h2>
         <p class="lede">The day count restarts. Your best run stays. That is the whole consequence.</p>
@@ -283,8 +305,6 @@ window.LO = window.LO || {};
       const box = el.querySelector('.box');
       const acts = {
         cancel: () => this.closeSheet(),
-        gotodo: () => { this.closeSheet(); this.go('do'); },
-        gowrite: () => { this.closeSheet(); this.go('write'); },
         surf: () => {
           const intensity = +LO.ui.read(box).intensity;
           this.closeSheet();

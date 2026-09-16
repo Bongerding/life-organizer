@@ -10,7 +10,7 @@
    IndexedDB, not in this cache. Clearing the cache costs you
    nothing but a reload.
    ============================================================ */
-const CACHE = 'life-organizer-202609160214';
+const CACHE = 'life-organizer-202609161549';
 
 const SHELL = [
   './',
